@@ -1,0 +1,68 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply bg-black text-white;
+}
+
+.card-header {
+    @apply text-xl font-medium w-full;
+}
+
+.primary-btn {
+    @apply w-full p-2 bg-neutral-900 hover:bg-neutral-500 transition-all font-medium rounded-md flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:bg-gray-600
+}
+
+.critical-btn {
+    @apply w-full p-2 bg-red-500 hover:bg-red-600 transition-all font-semibold rounded-md flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:bg-red-500
+}
+
+.serum-gradient {
+  @apply bg-gradient-to-t from-custom-green-200 to-custom-green-500;
+}
+
+.focus-style {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-custom-green-200 focus-visible:border-none
+}
+
+.input {
+    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+}
+
+.input-2 {
+    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+}
+
+.input-label {
+    @apply text-xs text-white
+}
+.solapenav {
+    background: linear-gradient(100.61deg, #090b0b 0%, #1c2222 100%);
+  }
+  .solape__connect-btn {
+    background: transparent;
+    border: 2px solid #00ffaa;
+    color: hsla(0, 0%, 100%, .85);
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  
+  .solapetext:hover {
+    color: #057738;
+  }
+  
+  .solapetext span {
+    line-height: 23px;
+    font-weight: 300;
+  }
+  .solapetext {
+    background: transparent;
+    color: hsla(0, 0%, 100%, .85);
+    font-size: 16px;
+  }
+  .solapetext span {
+    line-height: 23px;
+    font-weight: 300;
+  }
