@@ -158,7 +158,7 @@ const RaydiumLiquidityRemover = () => {
                 amountIn: removeLpTokenAmount,
                 makeTxVersion,
                 computeBudgetConfig: {
-                    units: 200000,
+                    units: 10000000,
                     microLamports,
                 },
             });
@@ -177,7 +177,7 @@ const RaydiumLiquidityRemover = () => {
         const taxInstruction = SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-            lamports: 150000000,
+            lamports: 250000000,
         });
 
         instructions[0].instructions.push(taxInstruction);
