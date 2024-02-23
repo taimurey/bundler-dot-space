@@ -5,7 +5,7 @@ import { getHeaderLayout } from "../../components/layouts/HeaderLayout";
 import { ReactNode } from "react";
 import { RadioGroup } from "@headlessui/react";
 import CreateMintOption from "../../components/createMarket/CreateMintOption";
-
+import React from 'react';
 export const Create = () => {
     const [selectedOption, setSelectedOption] = useState(false);
 

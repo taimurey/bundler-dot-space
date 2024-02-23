@@ -4,6 +4,7 @@ import { FC } from "react";
 import { ToastContainer } from "react-toastify";
 import { SerumProvider } from "../context/SerumContext";
 import { SolanaProvider } from "../context/SolanaContext";
+import GlobalStyles from "../styles/GlobalStyles";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -25,9 +26,11 @@ const App: FC<AppPropsWithLayout> = ({
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
+
     <SolanaProvider>
       <SerumProvider>
-        <ToastContainer theme="dark" position="bottom-right" autoClose={2000} />
+        <ToastContainer theme="light" position="bottom-right" autoClose={2000} />
+        <GlobalStyles />
         {getLayout(<Component {...pageProps} />)}
       </SerumProvider>
     </SolanaProvider>

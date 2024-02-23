@@ -27,6 +27,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { prettifyPubkey } from "../../utils/pubkey";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
+import AppHeader from "./AppHeader/AppHeader";
 
 type SettingPanelProps = {
   close: (
@@ -102,6 +103,7 @@ const SettingsPanel = ({ close }: SettingPanelProps) => {
   return (
     <div>
       <div className="md:hidden border-b border-neutral-700 pb-3 space-y-2 flex-col flex">
+        <AppHeader />
         <button
           onClick={() => {
             router.push({

@@ -38,25 +38,24 @@ const WalletButton: FC = () => {
         onClick={
           wallet.connected
             ? () => {
-                setShowDropdown(!showDropdown);
-              }
+              setShowDropdown(!showDropdown);
+            }
             : () => setVisible(!visible)
         }
         className="solape__connect-btn"
       >
-        <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
+        <div className="md:block hidden rounded-full py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey
             ? `${wallet.publicKey.toString().slice(0, 6)}...`
-            : "Connect"}
+            : "Connect Wallet"}
         </div>
         <div className="md:hidden p-1.5">
           <KeyIcon className="h-5 w-5" />
         </div>
       </button>
       <ul
-        className={`${
-          showDropdown ? "block" : "hidden"
-        } absolute top-full w-64 my-2 solape__connect-btn py-1 rounded flex flex-col space-y-1`}
+        className={`${showDropdown ? "block" : "hidden"
+          } absolute top-full w-64 my-2 solape__connect-btn py-1 rounded flex flex-col space-y-1`}
       >
         <li
           className="hover:bg-neutral-900 p-2 cursor-pointer"

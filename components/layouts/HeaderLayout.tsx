@@ -1,12 +1,13 @@
 import Head from "next/head";
 import { FC, ReactNode } from "react";
-// import Image from "next/image";
 import Header from "../common/Header";
+import React from 'react';
 
 type HeaderLayoutProps = {
   title?: string;
   children: ReactNode;
 };
+
 export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
   return (
     <>
