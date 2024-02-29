@@ -11,14 +11,12 @@ export const Create = () => {
 
     return (
         <div className="space-y-4 mb-8">
-            <div>
-                <h1 className="text-2xl text-white">Token Manager</h1>
-            </div>
+
             <form>
                 <div className="space-y-4">
                     <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
 
-                        <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex">
+                        <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
 
                             <RadioGroup.Option
                                 value={false}

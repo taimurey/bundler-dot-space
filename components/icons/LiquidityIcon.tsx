@@ -2,13 +2,13 @@ import React, { SVGProps } from 'react';
 
 const LiquidityIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => {
     return (
-        <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" class="iconify iconify--noto" preserveAspectRatio="xMidYMid meet" {...props}>
+        <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="iconify iconify--noto" preserveAspectRatio="xMidYMid meet" {...props}>
             <radialGradient id="IconifyId17ecdb2904d178eab21436" cx="59.851" cy="-1.405" r="113.707" gradientUnits="userSpaceOnUse">
-                <stop offset=".423" stop-color="#45d6f0"></stop>
-                <stop offset=".518" stop-color="#41cde9"></stop>
-                <stop offset=".674" stop-color="#37b4d7"></stop>
-                <stop offset=".87" stop-color="#278bba"></stop>
-                <stop offset="1" stop-color="#1b6da4"></stop>
+                <stop offset=".423" stopColor="#6c757d"></stop>
+                <stop offset=".518" stopColor="#6c757d"></stop>
+                <stop offset=".674" stopColor="#6c757d"></stop>
+                <stop offset=".87" stopColor="#6c757d"></stop>
+                <stop offset="1" stopColor="#6c757d"></stop>
             </radialGradient>
             <path d="M14.66 115.74c1.37 1.06 5.32-5.77 20.2-6.68c15.93-.98 33.56 11.69 57.71 11.69c21.41 0 32.5-10.48 31.74-12.15c-.51-1.11-8.96-3.15-18.68-8.2c-11.69-6.07-24-12.15-33.41-25.82c-6.03-8.75-10.33-18.83-4.4-26.73c5.92-7.9 20.96-4.25 20.96-4.25l-20.5-22.17l-39.03 10.64L9.5 81.58l2.13 25.21l3.03 8.95z" fill="url(#IconifyId17ecdb2904d178eab21436)"></path>
             <path d="M59.26 36.11s4.77 1.52 11.16 4.85c10.63 5.55 17.07 14.28 23.64 14.82c6.82.55 10.31-3.38 8.82-11.58c-1.39-7.65-12.68-16.63-12.68-16.63s10.31 1.94 10.31-3.97c0-6.07-5.56-8.99-14.31-12c-5.83-2-21.51-6.44-42.53 1.52c-9.04 3.42-20.08 9.74-28.46 21.85C4.25 50.81 2.03 71.41 4.11 87.05c2.52 18.89 10.38 28.63 10.57 28.71c.19.08 1.22-22.21 10.01-31.88c7.49-8.24 15.15-4.86 24.25-5.31c10.73-.53 15.52-11.61 7.33-20.06c-7.03-7.26-18.68-6.61-18.68-6.61s3.86-1.54 11.19-2.2c8.42-.77 10.08-5.66 10.68-7.49c1.33-4.04-.2-6.1-.2-6.1z" fill="#1b6da4"></path>

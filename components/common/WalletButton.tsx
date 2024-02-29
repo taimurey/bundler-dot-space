@@ -33,7 +33,7 @@ const WalletButton: FC = () => {
   };
 
   return (
-    <div className="relative flex justify-end" ref={dropdownRef}>
+    <div className="relative flex justify-end z-auto" ref={dropdownRef}>
       <button
         onClick={
           wallet.connected
@@ -44,7 +44,7 @@ const WalletButton: FC = () => {
         }
         className="solape__connect-btn"
       >
-        <div className="md:block hidden rounded-full py-2 px-4 text-sm text-white group-hover:text-slate-300">
+        <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey
             ? `${wallet.publicKey.toString().slice(0, 6)}...`
             : "Connect Wallet"}
@@ -55,7 +55,7 @@ const WalletButton: FC = () => {
       </button>
       <ul
         className={`${showDropdown ? "block" : "hidden"
-          } absolute top-full w-64 my-2 solape__connect-btn py-1 rounded flex flex-col space-y-1`}
+          } absolute top-full w-64 my-2 solape__connect-btn py-1 flex flex-col space-y-1`}
       >
         <li
           className="hover:bg-neutral-900 p-2 cursor-pointer"

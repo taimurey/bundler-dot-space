@@ -23,6 +23,8 @@ import { FC, useCallback, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
+import { NFTStorage, File } from 'nft.storage';
+import { packToBlob } from 'ipfs-car/pack/blob';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -35,8 +37,62 @@ const CreateToken: FC = () => {
     const [tokenAmount, setTokenAmount] = useState(1000000000);
     const [tokenMintAddress, setTokenMintAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDIxZTYwQ2VlQjc5YTlmZTFFQzM1NjhBZkEwMDNFM2Q1MmVCODU4YWQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwODc5MTgyMTg2MiwibmFtZSI6Ik1pbnRlclRva2VuIn0.6h3W2Y9X0WYEioBZhA0va-TqYBT95O48hfxT-y6Fi6I' });
+    const [uploading, setUploading] = useState(false);
+    const [percentComplete, setPercentComplete] = useState(0);
+    let uploadedImageUrl = '';
 
-    const createToken = useCallback(async () => {
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Image = reader.result as string;
+                setUploadedImage(base64Image);
+
+                // Set the uploading state to true
+                setUploading(true);
+
+                try {
+                    // Pack the image into a CAR file
+                    const { car } = await packToBlob({
+                        input: [file],
+                        wrapWithDirectory: false,
+                    });
+
+                    // Upload the CAR file to NFT.Storage
+                    const cid = await client.storeCar(car, {
+                        onStoredChunk: (size) => {
+                            // Update the upload progress
+                            setPercentComplete((prevPercentComplete) => prevPercentComplete + size);
+                        },
+                    });
+
+                    console.log('Uploaded a file to NFT.Storage!');
+                    console.log('File available at', cid);
+                    console.log(cid)
+
+                    // Convert the IPFS URL to a HTTP URL
+                    const httpUrl = `https://nftstorage.link/ipfs/${cid}`;
+
+                    // Set the uploadedImage state variable to the HTTP URL of the uploaded image
+                    setUploadedImage(httpUrl);
+                    console.log(httpUrl);
+                    uploadedImageUrl = httpUrl;
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                } finally {
+                    // Set the uploading state to false
+                    setUploading(false);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    const createToken = useCallback(async (event: any) => {
+        event.preventDefault();
         if (!publicKey) {
             toast.error("Wallet not connected");
             return;
@@ -69,7 +125,7 @@ const CreateToken: FC = () => {
                         data: {
                             name: tokenName,
                             symbol: tokenSymbol,
-                            uri: tokenUri,
+                            uri: uploadedImageUrl,
                             creators: null,
                             sellerFeeBasisPoints: 0,
                             uses: null,
@@ -143,78 +199,47 @@ const CreateToken: FC = () => {
                 </div>
             )}
             {!tokenMintAddress ? (
-                <div className="pb-4">
-                    <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                        <div className="p-2 text-xl font-normal float-left">Token name</div>
-                        <div className="m-auto p-2">
+                <div className="pb-4  flex">
+                    <div className="w-1/2 ">
+                        <div className="sm:gap-4 pl-4 mt-4">
+                            <div className="pl-2 text-md font-normal">Name</div>
                             <input
-                                className="block w-full px-20 rounded-md py-2 bg-neutral-700 border-neutral-300 focus-style sm:text-md"
+                                className="block w-full px-5 rounded-md py-2 bg-neutral-800 border-neutral-300 focus-style sm:text-md"
                                 onChange={(e) => setTokenName(e.target.value)}
                                 placeholder="Enter Token Name..."
                             />
                         </div>
-                    </div>
-                    <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                        <div className="m-auto p-2">
-                            <div className="text-xl font-normal float-left">Token symbol</div>
-                            <p className="float-left">{"Abbreviated name (e.g. Solana -> SOL)."}</p>
-                        </div>
-                        <div className="m-auto  p-2">
+                        <div className="sm:gap-4 pl-4 mt-4">
+                            <div className="pl-2 text-md font-normal">Token symbol</div>
                             <input
-                                className="block w-full px-20 rounded-md p-2 bg-neutral-700 border-neutral-300 focus-style sm:text-sm"
+                                className="block w-full px-5 rounded-md py-2 bg-neutral-800 border-neutral-300 focus-style sm:text-md"
                                 onChange={(e) => setTokenSymbol(e.target.value)}
                                 placeholder="Enter Token Symbol..."
                             />
                         </div>
-                    </div>
-                    <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                        <div className=" p-2">
-                            <div className="text-xl font-normal">Token URI</div>
-                            <p >Link to your metadata json file.</p>
-
-                            <a
-                                className="cursor-pointer float-left font-medium text-purple-500 hover:text-indigo-500"
-                                href="./upload"
-                            >
-                                Paste an existing one or create new {" here"}
-                            </a>
-                            .
-
-                            <p>You can leave it blank if you don`t need token image.</p>
-                        </div>
-                        <div className="m-auto p-2">
+                        <div className="sm:gap-4 pl-4 mt-4">
+                            <div className="pl-2 text-md font-normal">Description</div>
                             <input
-                                className="block w-full px-20 rounded-md p-2 bg-neutral-700 border-neutral-300 focus-style sm:text-sm"
+                                className="block w-full px-5 rounded-md py-2 bg-neutral-800 border-neutral-300 focus-style sm:text-md"
                                 onChange={(e) => setTokenUri(e.target.value)}
-                                placeholder="Enter Metadata URI..."
-
+                                placeholder="Enter description..."
                             />
                         </div>
-                    </div>
-                    <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                        <div className="float-left p-2">
-                            <div className="text-xl font-normal">Token Amount</div>
-                            <p className="float-left">Amount of tokens to mint.</p>
-                        </div>
-                        <div className="m-auto p-2">
+                        <div className="sm:gap-4 pl-4 mt-4">
+                            <div className="pl-2 text-md font-normal">Token Amount</div>
                             <input
-                                className="block w-full px-20 rounded-md p-2 bg-neutral-700 border-neutral-300 focus-style sm:text-sm"
+                                className="block w-full px-5 rounded-md py-2 bg-neutral-800 border-neutral-300 focus-style sm:text-md"
                                 type="text"
                                 min={0}
                                 value={tokenAmount}
                                 onChange={(e) => setTokenAmount(Number(e.target.value))}
-                                placeholder="Enter Token Decimals..."
+                                placeholder="Enter Token Amount..."
                             />
                         </div>
-                    </div>
-                    <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-                        <div className="float-left p-2">
-                            <div className="text-xl font-normal">Token decimals</div>
-                            <p className="float-left">Default value is 9 for solana.</p>
-                        </div>
-                        <div className="m-auto p-2">
+                        <div className="sm:gap-4 pl-4 mt-4">
+                            <div className="pl-2 text-md font-normal">Token decimals</div>
                             <input
-                                className="block w-full px-20 rounded-md p-2 bg-neutral-700 border-neutral-300 focus-style sm:text-sm"
+                                className="block w-full px-5 rounded-md py-2 bg-neutral-800 border-neutral-300 focus-style sm:text-md"
                                 type="text"
                                 min={0}
                                 value={tokenDecimals}
@@ -222,14 +247,44 @@ const CreateToken: FC = () => {
                                 placeholder="Enter Token Decimals..."
                             />
                         </div>
+
                     </div>
-                    <div className="pt-2 space-y-2">
-                        <button
-                            className="w-full md:max-w-xs rounded-lg p-2 m-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-right"
-                            onClick={createToken}
-                        >
-                            Create token
-                        </button>
+                    <div className="w-1/2 flex items-center justify-center">
+                        {!uploadedImage && (
+                            <div>
+                                <div className="flex justify-center mb-4">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-20 w-20 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                        />
+                                    </svg>
+                                </div>
+                                <input
+                                    className="hidden"
+                                    aria-describedby="file_input_help"
+                                    id="file_input"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                />
+                                <label
+                                    className="block align-bottom w-full py-2 px-5 text-sm text-white bg-v2-background rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                    htmlFor="file_input"
+                                >
+                                    Upload Image
+                                </label>
+                            </div>
+                        )}
+                        {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain" />}
                     </div>
                 </div>
             ) : (
@@ -244,9 +299,22 @@ const CreateToken: FC = () => {
                         {tokenMintAddress}
                     </a>
                 </div>
+
             )}
+            <div className="pt-2 space-y-2">
+                <button
+                    className="w-full md:max-w-xs rounded-lg p-2 m-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-right"
+                    onClick={(event) => createToken(event)}
+                    disabled={uploading}
+                >
+                    Create token
+                </button>
+            </div>
         </div>
     );
+
+
+
 };
 
 

@@ -11,6 +11,7 @@ module.exports = {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
       },
+
       colors: {
         'custom-green': {
           '100': '#06d6a0',

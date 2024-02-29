@@ -45,10 +45,10 @@ const AppHeader: React.FC<{}> = () => {
         </div>
 
         <HeaderLinks />
+        {/* <WalletProvider theme={'jupiter'} lang={'en'} /> */}
 
-        <div className="hidden md:flex items-center space-x-4 mr-4">
-          {/* <WalletProvider theme={'jupiter'} lang={'en'} />
-           */}
+        <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
+
           <div className="hidden items-center justify-end md:flex space-x-4">
             <Popover className="relative">
               {({ open }) => (
@@ -64,7 +64,7 @@ const AppHeader: React.FC<{}> = () => {
                     <Popover.Button
                       className={`
                 ${open ? "" : "text-opacity-90"}
-                group inline-flex items-center rounded-md solape__connect-btn hover:bg-neutral-700 px-3 py-2 text-sm focus-style transition-colors`}
+                group inline-flex items-center solape__connect-btn hover:bg-neutral-700 px-3 py-2 text-sm focus-style transition-colors`}
                     >
                       {/* <span>Settings</span> */}
                       <Cog6ToothIcon
@@ -74,7 +74,7 @@ const AppHeader: React.FC<{}> = () => {
                       />
                     </Popover.Button>
                   </div>
-                  <Popover.Panel className="solape__connect-btn rounded-md shadow-md border border-gray-700 p-3 absolute right-0 z-10 mt-2 w-96 transform ">
+                  <Popover.Panel className="solape__connect-btn shadow-md border border-gray-700 p-3 absolute mt-2 w-96 transform ">
                     {({ close }) => <SettingsPanel close={close} />}
                   </Popover.Panel>
                 </>

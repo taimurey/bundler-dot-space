@@ -5,6 +5,9 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 import SettingsPanel from "./SettingsPanel";
 import React from 'react';
 import className from 'twin.macro';
+import TokenIcon from "../icons/TokenIcon";
+import MarketIcon from "../icons/MarketIcon";
+import Link from "next/link";
 const HeaderLink = ({
     href,
     isActive,
@@ -21,50 +24,54 @@ const HeaderLink = ({
     external?: boolean;
 }) => {
     return (
-        <a
+        <Link
             href={href}
-            css={[
+        >
+            <div css={[
                 className`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[80px] min-w-[230px] px-4 border-b-2 border-transparent`,
                 isActive && className`!text-v3-primary border-v3-primary`,
             ]}
-            {...(external
-                ? {
-                    target: '_blank',
-                    rel: 'noopener noreferrer',
-                }
-                : {})}
-        >
-            <div className="w-8 h-8 bg-v3-bg rounded-md flex items-center justify-center mr-2">
-                {icon}
+                {...(external
+                    ? {
+                        target: '_blank',
+                        rel: 'noopener noreferrer',
+                    }
+                    : {})}>
+
+                <>
+                    <div className="w-8 h-8 bg-v3-bg rounded-md flex items-center justify-center mr-2">
+                        {icon}
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-bold">{title}</span>
+                        <span className="text-xs font-light">{description}</span>
+                    </div>
+                </>
             </div>
-            <div className="flex flex-col">
-                <span className="text-sm font-bold">{title}</span>
-                <span className="text-xs font-light">{description}</span>
-            </div>
-        </a>
+        </Link>
     );
 };
+
 
 const Dashboard: FC = () => {
     const router = useRouter();
     return (
         <Popover className="relative z-50">
-            <div className="flex justify-center items-center">
-                <div className="grid grid-cols-4 gap-4 place-items-center">
-
+            <div className="flex justify-center items-center w-full bg-gray-800 border-b border-gray-700">
+                <div className="grid grid-cols-4 gap-8 place-items-center mt-2">
                     <HeaderLink
                         href="/create"
                         isActive={router.pathname === "/create"}
                         title="Create Token"
-                        description="Create a new token"
-                        icon={<Bars3Icon />}
+                        description="Mint SPL Tokens"
+                        icon={<TokenIcon />}
                     />
                     <HeaderLink
                         href="/market/create"
                         isActive={router.pathname === "/market/create"}
                         title="Create Market"
-                        description="Create a new market"
-                        icon={<Bars3Icon />}
+                        description="Openbook Market Creation"
+                        icon={<MarketIcon />}
                     />
                     <HeaderLink
                         href="/raydium"
