@@ -103,7 +103,7 @@ const SettingsPanel = ({ close }: SettingPanelProps) => {
   return (
     <div>
       <div className="md:hidden border-b border-neutral-700 pb-3 space-y-2 flex-col flex">
-        <AppHeader />
+        <AppHeader />/
         <button
           onClick={() => {
             router.push({

@@ -16,7 +16,7 @@ export const Create = () => {
                 <div className="space-y-4">
                     <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
 
-                        <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
+                        {/* <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
 
                             <RadioGroup.Option
                                 value={false}
@@ -44,15 +44,16 @@ export const Create = () => {
                                 )}
                             </RadioGroup.Option>
 
-                        </RadioGroup>
+                        </RadioGroup> */}
 
                         <div className="md:grid md:gap-6">
-
-
                             <div className="mt-5 space-y-4 md:col-span-2 md:mt-0">
-                                {selectedOption ? <UploadView /> : <CreateToken />}
+                                {/* {selectedOption ? <UploadView /> : <CreateToken />} */}
+                                {/* <UploadView /> */}
+                                <CreateToken />
                             </div>
                         </div>
+                        
                     </div>
                 </div>
             </form>
