@@ -6,7 +6,6 @@ import JupiterLogo from '../../icons/JupiterLogo';
 import MenuIcon from '../../icons/MenuIcon';
 import HeaderLinks from './HeaderLinks';
 import HeaderLinksMobile from './HeaderLinksMobile';
-import WalletProvider from '../../Wallet/WalletModal';
 import WalletButton from '../WalletButton';
 import { Popover } from '@headlessui/react';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
@@ -45,8 +44,6 @@ const AppHeader: React.FC<{}> = () => {
         </div>
 
         <HeaderLinks />
-        {/* <WalletProvider theme={'jupiter'} lang={'en'} /> */}
-
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
 
           <div className="hidden items-center justify-end md:flex space-x-4">
@@ -74,7 +71,7 @@ const AppHeader: React.FC<{}> = () => {
                       />
                     </Popover.Button>
                   </div>
-                  <Popover.Panel className="solape__connect-btn shadow-md border border-gray-700 p-3 absolute mt-2 w-96 transform ">
+                  <Popover.Panel className="solape__connect-btn shadow-md border border-gray-700 p-3 absolute right-0 mt-2 w-96 transform ">
                     {({ close }) => <SettingsPanel close={close} />}
                   </Popover.Panel>
                 </>

@@ -8,7 +8,7 @@ import {
   SolflareWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { useRouter } from "next/router";
 import {
   createContext,
@@ -18,6 +18,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast, ToastContainer } from "react-toastify";
 
 export type ClusterType = "mainnet-beta" | "testnet" | "devnet" | "custom";
 
@@ -46,15 +47,11 @@ export const CLUSTER_LOCAL_STORAGE_KEY = "cluster-serum-explorer";
 export const LOCALNET_URL = "http://localhost:8899/";
 
 export const CLUSTERS: SolanaCluster[] = [
-  // {
-  //   label: "Mainnet Beta",
-  //   network: "mainnet-beta",
-  //   endpoint:
-  //     process.env.NEXT_PUBLIC_MAINNET_URL || clusterApiUrl("mainnet-beta"),
-  // },
   {
-    label: "Mainnet (Serum)",
+    label: "Mainnet Beta",
     network: "mainnet-beta",
+    // endpoint:
+    //   process.env.NEXT_PUBLIC_MAINNET_URL || clusterApiUrl("mainnet-beta"),
     endpoint: "https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7",
   },
   //{
@@ -62,22 +59,23 @@ export const CLUSTERS: SolanaCluster[] = [
   //  network: "testnet",
   //  endpoint: clusterApiUrl("testnet"),
   //},
-  //{
-  //  label: "Devnet",
-  //  network: "devnet",
-  //  endpoint: clusterApiUrl("devnet"),
-  //},
   // {
-  //   label: "Custom RPC",
-  //   network: "custom",
-  //   endpoint: LOCALNET_URL,
+  //   label: "Devnet",
+  //   network: "devnet",
+  //   endpoint: clusterApiUrl("devnet"),
   // },
+  {
+    label: "Custom RPC",
+    network: "custom",
+    endpoint: LOCALNET_URL,
+  },
 ];
 
 export const CUSTOM_RPC_CLUSTER = CLUSTERS[CLUSTERS.length - 1];
 
 export const SolanaProvider = ({ children }: SolanaProviderProps) => {
   const [cluster, _setCluster] = useState(CLUSTERS[0]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [customEndpoint, _setCustomEndpoint] = useState(LOCALNET_URL);
 
   const router = useRouter();
@@ -102,38 +100,52 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
     return selectedCluster.label === cluster.label;
   };
 
-  const setCluster = (cluster: SolanaCluster) => {
+  const setCluster = (selectedCluster: SolanaCluster) => {
     const newQuery: {
       network?: string;
       customRPC?: string;
     } = {
       ...router.query,
-      network: cluster.network,
+      network: selectedCluster.network,
     };
 
-    if (cluster.network === "mainnet-beta") delete newQuery.network;
+    if (selectedCluster.network === "mainnet-beta") delete newQuery.network;
 
-    if (cluster.network === "custom") newQuery.customRPC = LOCALNET_URL;
-    else delete newQuery.customRPC;
+    if (selectedCluster.network === "custom") {
+      setIsSidebarOpen(true);
+    } else {
+      setIsSidebarOpen(false);
+    };
+
 
     router.replace({
       query: newQuery,
     });
   };
 
-  const setCustomEndpoint = (endpoint: string) => {
+  const setCustomEndpoint = async (newEndpoint: string) => {
     if (cluster.network !== "custom") return;
-    const newQuery: {
-      customRPC?: string;
-    } = {
-      ...router.query,
-      customRPC: endpoint,
-    };
-    router.replace({
-      query: newQuery,
-    });
-  };
+    console.log("newEndpoint", newEndpoint);
 
+    // Create a new Connection object with the custom RPC URL
+    const connection = new Connection(newEndpoint);
+
+    try {
+      // Fetch a new slot to validate the custom RPC URL
+      await connection.getSlot();
+
+      // If the fetch is successful, update the custom RPC URL
+      const newQuery: { customRPC?: string } = {
+        ...router.query,
+        customRPC: newEndpoint,
+      };
+      router.replace({ query: newQuery });
+      _setCustomEndpoint(newEndpoint);
+    } catch (error) {
+      // If the fetch fails, show an error toast
+      toast.error("Invalid custom RPC URL");
+    }
+  };
   useEffect(() => {
     if (router.query.network) {
       _setCluster(
@@ -166,12 +178,14 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
             }}
           >
             {children}
+            <ToastContainer />
           </SolanaContext.Provider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
 };
+
 
 export const useSolana = () => {
   const solana = useContext(SolanaContext);
@@ -181,3 +195,4 @@ export const useSolana = () => {
 
   return solana;
 };
+

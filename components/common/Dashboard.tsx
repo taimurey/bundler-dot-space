@@ -56,7 +56,7 @@ const HeaderLink = ({
 const Dashboard: FC = () => {
     const router = useRouter();
     return (
-        <Popover className="relative z-50">
+        <Popover className="relative ">
             <div className="flex justify-center items-center w-full bg-gray-800 border-b border-gray-700">
                 <div className="grid grid-cols-4 gap-8 place-items-center mt-2">
                     <HeaderLink
