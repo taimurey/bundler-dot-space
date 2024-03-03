@@ -8,6 +8,8 @@ import className from 'twin.macro';
 import TokenIcon from "../icons/TokenIcon";
 import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
+import { LinkProps } from "./AppHeader/HeaderLinks";
+
 const HeaderLink = ({
     href,
     isActive,
@@ -15,7 +17,7 @@ const HeaderLink = ({
     description,
     icon,
     external = false,
-}: {
+}: LinkProps & {
     href: string;
     isActive: boolean;
     title: string | React.ReactNode;
@@ -23,14 +25,16 @@ const HeaderLink = ({
     icon: React.ReactNode;
     external?: boolean;
 }) => {
+    const styles = [
+        `flex items-center font-semibold text-white/50 hover:text-white fill-current h-[80px] min-w-[230px] px-4 border-b-2 border-transparent`,
+        isActive && `!text-v3-primary border-v3-primary`,
+    ].join(' ');
     return (
         <Link
             href={href}
         >
-            <div css={[
-                className`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[80px] min-w-[230px] px-4 border-b-2 border-transparent`,
-                isActive && className`!text-v3-primary border-v3-primary`,
-            ]}
+            <div
+                className={styles}
                 {...(external
                     ? {
                         target: '_blank',

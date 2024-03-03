@@ -4,6 +4,12 @@ import SwapIcon from '../../icons/SwapIcon';
 import RepoLogo from '../../icons/RepoLogo';
 import DiscordIcon from '../../icons/DiscordIcon';
 import LiquidityIcon from '../../icons/LiquidityIcon';
+import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
+import { TwStyle } from 'twin.macro';
+
+export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
+  css?: TwStyle[] | undefined;
+}
 
 const HeaderLink = ({
   href,
@@ -11,25 +17,23 @@ const HeaderLink = ({
   title,
   icon,
   external = false,
-}: {
+}: LinkProps & {
   href: string;
   isActive: boolean;
   title: string | React.ReactNode;
   icon: React.ReactNode;
   external?: boolean;
 }) => {
+  const styles = [
+    `flex items-center font-semibold text-white/50 hover:text-white fill-current h-[60px] px-4 rounded`,
+    isActive && `bg-v3-bg !text-v3-primary`,
+  ].join(' ');
+
   return (
     <a
       href={href}
-      css={[
-        className`
-          flex items-center font-semibold text-white/50 hover:text-white fill-current h-[60px] px-4 rounded
-        `,
-        isActive && className`bg-v3-bg !text-v3-primary`,
-      ]}
-      {...(external
-        ? { target: '_blank', rel: 'noopener noreferrer' }
-        : {})}
+      className={styles}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
       <span className="flex items-center w-5">{icon}</span>
       <span className="ml-2 whitespace-nowrap">{title}</span>
@@ -44,14 +48,14 @@ const HeaderLinks = () => {
       <HeaderLink href="/" isActive title={'Minting Lab'} icon={<SwapIcon width="20" height="20" />} />
       <HeaderLink href="/" isActive={false} title={'Liquidity'} icon={<LiquidityIcon width="20" height="20" />} />
       <HeaderLink
-        href="https://github.com/TeamRaccoons/wallet-kit"
+        href="/"
         isActive={false}
         external
         title={'Docs'}
         icon={<RepoLogo width="20" height="20" />}
       />
       <HeaderLink
-        href="https://discord.gg/jup"
+        href="https://discord.gg/HGFf7NNHrp"
         isActive={false}
         external
         title={'Discord'}

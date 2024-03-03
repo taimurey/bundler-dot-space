@@ -18,10 +18,16 @@ const Collapse: React.FC<
   }, [height, maxHeight, expanded]);
 
   const animationClass = expanded ? tw`animate-fade-in` : tw`animate-fade-out`;
-
+  const styles = [
+    tw`transition-all duration-200 overflow-hidden`,
+    animationClass,
+    { height: localHeight, maxHeight },
+    className,
+  ].join(' ');
   return (
+
     <div
-      css={[tw`transition-all duration-200 overflow-hidden`, animationClass]}
+      className={styles}
       style={{ height: localHeight, maxHeight }}
     >
       {children}
