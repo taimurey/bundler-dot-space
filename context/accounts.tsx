@@ -51,10 +51,10 @@ interface ParsedTokenData {
 const AccountContext = React.createContext<IAccountContext>({
   accounts: {},
   loading: true,
-  refresh: () => {},
+  refresh: () => { },
 });
 
-const AccountsProvider: React.FC<PropsWithChildren> = ({ children }) => {
+const AccountsProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
 
