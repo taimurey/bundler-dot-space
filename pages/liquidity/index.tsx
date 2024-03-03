@@ -59,6 +59,69 @@ function getMarketAssociatedPoolKeys(input: LiquidityPairTargetInfo) {
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
+
+interface Props {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+    placeholder: string;
+    type: string;
+}
+
+const InputField: React.FC<Props> = ({ id, label, value, onChange, placeholder, type }) => {
+    return (
+        <div className='w-full '>
+            {label &&
+                <label className="block mt-5 text-base text-white font-semibold" htmlFor={id}>
+                    {label}
+                </label>
+            }
+            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                <input
+                    id={id}
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                    placeholder={placeholder}
+                />
+            </div>
+        </div>
+    );
+};
+
+interface Propss {
+    id: string;
+    label: string;
+    value: string;
+    latedisplay: boolean;
+}
+const OutputField: React.FC<Propss> = ({ id, label, value, latedisplay }) => {
+    return (
+        <div className='w-full '>
+            {label &&
+                <label className="block mt-5 text-base text-white font-semibold" htmlFor={id}>
+                    {label}
+                </label>
+            }
+            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                {!latedisplay || value.length > 0 ? <p
+                    id={id}
+
+                    className="block w-full py-2 rounded-md text-base   text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                >
+                    {value}
+                </p> : <p></p>
+
+                }
+            </div>
+        </div>
+    );
+};
+
+
+
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
     const [baseToken, setbaseToken] = useState("");
@@ -72,6 +135,19 @@ const RaydiumLiquidityRemover = () => {
     const [OpenTime, setOpenTime] = useState("");
     const [baseTokenAmount, setBaseTokenAmount] = useState("");
     const [QuoteTokenAmount, setQuoteTokenAmount] = useState("");
+    const [airdropChecked, setAirdropChecked] = useState(false);
+    const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
+    const [predictedSupplyAmount, setPredictedSupplyAmount] = useState("NaN%")
+    const [wallets, setWallets] = useState({
+        Wallet1: "N/A",
+        Wallet2: "N/A",
+        Wallet3: "N/A",
+    });
+
+    const [tokenMintAddress, setTokenMintAddress] = useState("")
+    const [buyAmount, setBuyAmount] = useState("")
+    const [liquidityAmount, setLiquidityAmount] = useState("")
+
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMicroLamportsInput(event.target.value);
@@ -84,7 +160,7 @@ const RaydiumLiquidityRemover = () => {
     let rpcconnection: any;
     const checkRpcAddress = useCallback(debounce(async () => {
         if (rpcAddress === '' || !rpcAddress.startsWith('http')) {
-            toast.error('RPC Address is incorrect or does not start with http');
+            // toast.error('RPC Address is incorrect or does not start with http');
             return;
         }
 
@@ -92,9 +168,9 @@ const RaydiumLiquidityRemover = () => {
 
         try {
             await rpcconnection.getSlot();
-            toast.info('RPC Address is correct');
+            // toast.info('RPC Address is correct');
         } catch (error) {
-            toast.error('RPC Address is incorrect');
+            // toast.error('RPC Address is incorrect');
         }
     }, 300), [rpcAddress]); // 300ms delay
 
@@ -230,175 +306,226 @@ const RaydiumLiquidityRemover = () => {
         }
     };
     return (
-        <div className="space-y-4 mb-8">
-            <div>
+        <div className="space-y-4
+ mb-8">
+            {/* <div>
                 <h1 className="text-2xl text-white">Liquidity Remover</h1>
-            </div>
+            </div> */}
             <form>
                 <div className="space-y-4">
-                    <div className="bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
-                        <div className="flex items-center justify-center">
-                            <div className="space-y-4 md:w-1/2 mt-20">
-                                <div className="text-base text-white">
-                                    {/* <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="microLamports">
-                                            Private Key <span className='opacity-50'>(Optional)</span> <span className="opacity-30">-- Fast Method</span>
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="privateKey"
-                                                type="text"
-                                                value={privateKey}
-                                                onChange={handlePrivateKeyChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="4DMMc34V..."
-                                            />
-                                        </div>
-                                    </div> */}
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="rpcAddress">
-                                            RPC Address
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="rpcAddress"
-                                                type="text"
-                                                value={rpcAddress}
-                                                onChange={handleRpcAddressChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter RPC Address..."
-                                            />
-                                        </div>
+                    <div className="">
+                        <div className="flex flex-col md:flex-row h-full   gap-6 justify-center">
+                            <div className="space-y-4 md:w-3/5 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
+                                <div>
+                                    <p className='font-bold text-[25px]'>Deploy</p>
+                                    <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
+                                </div>
+                                <div className='w-full'>
+                                    <label className="block mt-5 text-base text-white font-semibold" htmlFor="buyerPrivateKey">
+                                        Buyer Private key
+                                    </label>
+                                    <div className="relative mt-1 rounded-md shadow-sm w-full flex gap-2">
+                                        <input
+                                            id="buyerPrivateKey"
+                                            type="password"
+                                            value={rpcAddress}
+                                            onChange={setRpcAddress}
+                                            className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                                            placeholder="Enter your private key"
+                                        />
+                                        <button className='bg-white text-[#171717]  h-[40px] rounded-md px-3 flex justify-center items-center text-[15px]'>
+                                            Gen
+                                        </button>
+                                        <button className='bg-white text-[#171717]  h-[40px] rounded-md px-3 flex justify-center items-center text-[15px]'>
+                                            Copy
+                                        </button>
                                     </div>
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Market ID
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="MarketID"
-                                                type="text"
-                                                value={MarketId}
-                                                onChange={handleMarketIDChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Base Token
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="baseToken"
-                                                type="text"
-                                                value={baseToken}
-                                                onChange={handlebaseTokenChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
+                                </div>
+                                <InputField
+                                    id="deployerPrivatekey"
+                                    label="Deployer Private Key"
+                                    value={rpcAddress}
+                                    onChange={handleRpcAddressChange}
+                                    placeholder="Enter deployer private key"
+                                    type="password"
+                                />
+                                <div>
+                                    <input type="checkbox" id="airdropCheck" onClick={() => setAirdropChecked(!airdropChecked)} />
+                                    <label htmlFor="airdropCheck"> Generate and airdrop wallets</label>
+                                </div>
 
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Quote Token
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="QuoteToken"
-                                                type="text"
-                                                value={QuoteToken}
-                                                onChange={handleQuoteTokenChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Add BaseToken Amount
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id='addBaseAmount'
-                                                type="text"
-                                                value={baseTokenAmount}
-                                                onChange={handleBaseTokenAmountChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Add Quote Token Amount
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id='addBaseAmount'
-                                                type="text"
-                                                value={QuoteTokenAmount}
-                                                onChange={handleQuoteTokenAmountChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
 
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="baseToken">
-                                            Pool Open Time
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="OpenTime"
-                                                type="text"
-                                                value={OpenTime}
-                                                onChange={handleOpenTimeChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter token address..."
-                                            />
-                                        </div>
-                                    </div>
 
-                                    <div>
-                                        <label className="block mt-5 text-base text-white" htmlFor="microLamports">
-                                            Priority Fee
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm">
-                                            <input
-                                                id="microLamports"
-                                                type="text"
-                                                value={microLamportsInput}
-                                                onChange={handleMicroLamportsInputChange}
-                                                className="block w-full p-3 rounded-md text-base text-white bg-black focus:outline-none sm:text-base"
-                                                placeholder="Enter 0.001 etc..."
-                                            />
-                                        </div>
+                                {airdropChecked && <InputField
+                                    id="walletsNumber"
+                                    label="# of Wallets"
+                                    value={MarketId}
+                                    onChange={handleMarketIDChange}
+                                    placeholder="Enter the # of Wallets"
+                                    type="number"
+                                />
+                                }
+                                <div className='flex flex-col gap-2' id="tokeninfo">
+                                    <InputField
+                                        id="tokenMintaddress"
+                                        label="Token Info"
+                                        value={tokenMintAddress}
+                                        onChange={setTokenMintAddress}
+                                        placeholder="Enter token mint Address"
+                                        type="text"
+                                    />
+                                    <InputField
+                                        id="tokenMarketid"
+                                        value={MarketId}
+                                        onChange={setMarketId}
+                                        placeholder="Enter Market ID"
+                                        type="text"
+                                    />
+                                    <div className='flex justify-center items-center gap-2'>
+                                        <InputField
+                                            id="tokenTiker"
+                                            value={MarketId}
+                                            onChange={handleMarketIDChange}
+                                            placeholder="Enter ticker"
+                                            type="text"
+                                        />
+                                        <InputField
+                                            id="tokenDecimals"
+                                            value={MarketId}
+                                            onChange={handleMarketIDChange}
+                                            placeholder="Enter decimals"
+                                            type="text"
+                                        />
+                                        <InputField
+                                            id="totalSupply"
+                                            value={MarketId}
+                                            onChange={handleMarketIDChange}
+                                            placeholder="Enter total supply"
+                                            type="text"
+                                        />
                                     </div>
+                                    <InputField
+                                        id="tokenbuyAmount"
+                                        label="Buy Amounts (SOL)"
+                                        value={buyAmount}
+                                        onChange={setBuyAmount}
+                                        placeholder="First"
+                                        type="number"
+                                    />
 
+                                    <div className='flex justify-end items-end gap-2'>
+                                        <InputField
+                                            id="tokenLiquidityAmount"
+                                            label="Liquidity Amount (SOL)"
+                                            value={liquidityAmount}
+                                            onChange={setLiquidityAmount}
+                                            placeholder="Enter Liquidity Amount"
+                                            type="number"
+                                        />
+                                        <InputField
+                                            id="tokenLiquidityAmount"
+                                            value={MarketId}
+                                            onChange={handleMarketIDChange}
+                                            placeholder="Enter % of tokens to add to liquidity"
+                                            type="number"
+                                            label=""
+                                        />
+                                    </div>
                                     <button
-                                        type="button"
                                         onClick={handleRemoveLiquidity}
-                                        disabled={isLoading}
-                                        className="w-full m-16 mt-10 md:max-w-xs rounded-lg p-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-middle"
+                                        className='bg-white   h-[40px] rounded-md px-3 flex justify-center items-center  w-full text-[#171717] text-[14px] mt-4'
                                     >
-                                        {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
+                                        Initiate Deployment Sequence
+
                                     </button>
+                                </div>
+
+
+                                {/* <button
+                                    type="button"
+                                    onClick={handleRemoveLiquidity}
+                                    disabled={isLoading}
+                                    className="w-full m-16 mt-10 md:max-w-xs rounded-lg p-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-middle"
+                                >
+                                    {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
+                                </button> */}
+                            </div>
+                            <div className=" md:w-2/5 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6  flex flex-col justify-between w-full items-center">
+
+                                <div>
+                                    <div>
+                                        <p className='font-bold text-[25px]'>Predicted Parameters</p>
+                                        <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
+                                    </div>
+                                    <OutputField
+                                        id="predictedMarketCap"
+                                        label="Predicted Market Cap:"
+                                        value={predictedMarketCap}
+                                        latedisplay={false}
+                                    />
+                                    <OutputField
+                                        id="deployerPrivatekey"
+                                        label="Predicted Supply Amount:"
+                                        value={predictedSupplyAmount}
+                                        latedisplay={false}
+
+                                    />
+
+                                    <div className='w-full '>
+                                        <label className="block mt-5 text-base text-white font-semibold" >
+                                            Wallet
+                                        </label>
+                                        <p>``</p>
+                                        <div className="relative  rounded-md shadow-sm w-full flex flex-col justify-end">
+                                            {Object.entries(wallets).map(([key, value]) => (
+                                                <p
+
+                                                    className="block w-full  rounded-md text-base   text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                                                >
+                                                    {key}: {value}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <OutputField
+                                        id="totalmintaddress"
+                                        label="Token Mint Address"
+                                        value={tokenMintAddress}
+                                        latedisplay={true}
+                                    />
+                                    <OutputField
+                                        id="MarketId"
+                                        label="Market ID"
+                                        value={MarketId}
+                                        latedisplay={true}
+
+                                    />
+                                    <OutputField
+                                        id="buyamount"
+                                        label="Buy Amount"
+                                        value={buyAmount}
+                                        latedisplay={true}
+
+                                    />
+                                    <OutputField
+                                        id="liquidityamount"
+                                        label="Liquidity Amount"
+                                        value={liquidityAmount}
+                                        latedisplay={true}
+
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className='bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6 align-baseline'>
+                    {/* <div className='bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6 align-baseline'>
                         {targetPoolInfo && (
                             <div className="mt-4 text-white">
                                 <h2>Fetched Keys:</h2>
                                 <pre>{JSON.stringify(targetPoolInfo, null, 2)}</pre>
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </form>
         </div>
