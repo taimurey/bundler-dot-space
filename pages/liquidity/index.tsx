@@ -147,6 +147,9 @@ const RaydiumLiquidityRemover = () => {
     const [tokenMintAddress, setTokenMintAddress] = useState("")
     const [buyAmount, setBuyAmount] = useState("")
     const [liquidityAmount, setLiquidityAmount] = useState("")
+    const [ticker, setTicker] = useState("")
+    const [decimals, setDecimals] = useState("")
+    const [totalSupply, setTotalSupply] = useState("")
 
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -384,22 +387,22 @@ const RaydiumLiquidityRemover = () => {
                                     <div className='flex justify-center items-center gap-2'>
                                         <InputField
                                             id="tokenTiker"
-                                            value={MarketId}
-                                            onChange={handleMarketIDChange}
+                                            value={ticker}
+                                            onChange={setTicker}
                                             placeholder="Enter ticker"
                                             type="text"
                                         />
                                         <InputField
                                             id="tokenDecimals"
-                                            value={MarketId}
-                                            onChange={handleMarketIDChange}
+                                            value={decimals}
+                                            onChange={setDecimals}
                                             placeholder="Enter decimals"
                                             type="text"
                                         />
                                         <InputField
                                             id="totalSupply"
-                                            value={MarketId}
-                                            onChange={handleMarketIDChange}
+                                            value={totalSupply}
+                                            onChange={setTotalSupply}
                                             placeholder="Enter total supply"
                                             type="text"
                                         />
