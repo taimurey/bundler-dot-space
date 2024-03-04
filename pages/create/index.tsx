@@ -14,7 +14,7 @@ export const Create = () => {
 
             <form>
                 <div className="space-y-4">
-                    <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6 w-auto ">
+                    <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6 ">
 
                         {/* <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
 

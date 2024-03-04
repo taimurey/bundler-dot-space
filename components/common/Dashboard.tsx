@@ -80,19 +80,20 @@ const Dashboard: FC = () => {
                         icon={<MarketIcon />}
                     />
                     <HeaderLink
-                        href="/raydium"
-                        isActive={router.pathname === "/raydium"}
-                        title="Manage Liquidity"
-                        description="Handle liquidity on Raydium"
-                        icon={<ManageIcon />}
-                    />
-                    <HeaderLink
                         href="/liquidity"
                         isActive={router.pathname === "/liquidity"}
                         title="Add Liquidity"
                         description="Add liquidity to a market"
                         icon={<FlaskIcon />}
                     />
+                    <HeaderLink
+                        href="/raydium"
+                        isActive={router.pathname === "/raydium"}
+                        title="Manage Liquidity"
+                        description="Handle liquidity on Raydium"
+                        icon={<ManageIcon />}
+                    />
+
                 </div>
             </div>
             <Transition
