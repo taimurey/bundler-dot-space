@@ -10,6 +10,7 @@ import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
 import { LinkProps } from "./AppHeader/HeaderLinks";
 import FlaskIcon from "../icons/FlaskIcon";
+import ManageIcon from "../icons/ManageIcon";
 
 const HeaderLink = ({
     href,
@@ -81,9 +82,9 @@ const Dashboard: FC = () => {
                     <HeaderLink
                         href="/raydium"
                         isActive={router.pathname === "/raydium"}
-                        title="Raydium Liquidity"
-                        description="Remove Liquidity from Raydium"
-                        icon={<Bars3Icon />}
+                        title="Manage Liquidity"
+                        description="Handle liquidity on Raydium"
+                        icon={<ManageIcon />}
                     />
                     <HeaderLink
                         href="/liquidity"
