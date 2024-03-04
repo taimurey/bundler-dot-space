@@ -21,7 +21,7 @@ import {
     createCreateMetadataAccountV3Instruction,
     PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { FC, useCallback, useState } from "react";
+import { ChangeEvent, FC, KeyboardEvent, useCallback, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
@@ -109,7 +109,7 @@ const TagsInput: FC<TagsInputProps> = ({ selector, duplicate = false, max = null
     return (
         <div>
             <div className="tags-input-wrapper bg-transparent p-1  max-w-md  border border-[#dddddd]">
-                {tags.map((tag, index) => (
+                {tags.map(({ tag, index }: any) => (
                     <span key={index} className="tag bg-white px-2 py-1  m-1 text-[#292b33] text-[12px] cursor-pointer inline-block">
                         {tag}
                         <a
@@ -355,14 +355,14 @@ const CreateToken: FC = () => {
         sendTransaction,
     ]);
 
-    const setImageandsymbol = ({ value }: any) => {
+    const setImageandsymbol = (value) => {
         const icon = createImageFromInitials(value);
         setImage(icon);
         setTokenSymbol(value)
     }
 
     return (
-        <div className="divide-y divide-neutral-700">
+        <div className="divide-y divide-neutral-700 ">
 
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
@@ -371,7 +371,7 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <div className="p-4  flex bg-[] gap-8 flex-col md:flex-row">
+                <div className="p-4  flex bg-[] gap-8 flex-col md:flex-row max-w-[1480px] w-full">
                     <div className="lg:w-1/2  ">
                         <p className="text-[16px] uppercase pl-4">Token Information</p>
                         <p className="text-[14px] pl-4">This information is stored on IPFS by + Metaplex Metadata standard.</p>
@@ -598,7 +598,6 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-
 
 
 
