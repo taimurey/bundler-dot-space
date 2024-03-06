@@ -523,7 +523,7 @@ const CreateMarket = () => {
 
   return (
     <>
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-8 w-1/2 mx-auto flex justify-center items-center">
         <div>
           <h1 className="text-2xl text-white">Create Market</h1>
         </div>

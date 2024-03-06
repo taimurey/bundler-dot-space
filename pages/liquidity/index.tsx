@@ -9,20 +9,13 @@ import debounce from 'lodash.debounce';
 import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
 import {
     ApiPoolInfoV4,
-    jsonInfo2PoolKeys,
     Liquidity,
-    LiquidityPoolKeys, MAINNET_PROGRAM_ID,
+    MAINNET_PROGRAM_ID,
     Token,
-    TOKEN_PROGRAM_ID,
-    TokenAmount
 } from '@raydium-io/raydium-sdk';
-import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram } from '@solana/web3.js';
+import { PublicKey, Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
-import { formatAmmKeysById } from '../../components/removeLiquidity/formatAmmKeysById';
-import { getWalletTokenAccount } from '../../components/removeLiquidity/util';
-import { addLookupTableInfo, makeTxVersion } from '../../components/removeLiquidity/config';
-import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
-import { toast } from "react-toastify";
+import base58 from 'bs58';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -32,9 +25,7 @@ type CalcStartPrice = {
     addQuoteAmount: BN
 }
 
-function calcMarketStartPrice(input: CalcStartPrice) {
-    return input.addBaseAmount.toNumber() / 10 ** 6 / (input.addQuoteAmount.toNumber() / 10 ** 6)
-}
+
 
 type LiquidityPairTargetInfo = {
     baseToken: Token
@@ -42,19 +33,7 @@ type LiquidityPairTargetInfo = {
     targetMarketId: PublicKey
 }
 
-function getMarketAssociatedPoolKeys(input: LiquidityPairTargetInfo) {
-    return Liquidity.getAssociatedPoolKeys({
-        version: 4,
-        marketVersion: 3,
-        baseMint: input.baseToken.mint,
-        quoteMint: input.quoteToken.mint,
-        baseDecimals: input.baseToken.decimals,
-        quoteDecimals: input.quoteToken.decimals,
-        marketId: input.targetMarketId,
-        programId: PROGRAMIDS.AmmV4,
-        marketProgramId: MAINNET_PROGRAM_ID.OPENBOOK_MARKET,
-    })
-}
+
 
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
@@ -122,16 +101,13 @@ const OutputField: React.FC<Propss> = ({ id, label, value, latedisplay }) => {
 
 
 
-const RaydiumLiquidityRemover = () => {
-    const { connection } = useConnection();
-    const [baseToken, setbaseToken] = useState("");
-    const [microLamportsInput, setMicroLamportsInput] = useState("");
+const LiquidityHandlerRaydium = () => {
+    const [buyerKeypair, setBuyerKeypair] = useState("");
+    const [setbaseToken] = useState("");
+    const [setMicroLamportsInput] = useState("");
     const [MarketId, setMarketId] = useState("");
-    const { publicKey, sendTransaction, wallet, connected } = useWallet();
-    const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [rpcAddress, setRpcAddress] = useState("");
-    const [QuoteToken, setQuoteToken] = useState("");
+    const [setQuoteToken] = useState("");
     const [OpenTime, setOpenTime] = useState("");
     const [baseTokenAmount, setBaseTokenAmount] = useState("");
     const [QuoteTokenAmount, setQuoteTokenAmount] = useState("");
@@ -144,6 +120,18 @@ const RaydiumLiquidityRemover = () => {
         Wallet3: "N/A",
     });
 
+    const generateKeypair = (e: any) => {
+        e.preventDefault();
+        const keypair = Keypair.generate();
+        setBuyerKeypair(keypair.secretKey.toString());
+        setWallets({
+            Wallet1: `${keypair.publicKey.toString()}`,
+            Wallet2: wallets.Wallet2,
+            Wallet3: wallets.Wallet3,
+        });
+    }
+
+
     const [tokenMintAddress, setTokenMintAddress] = useState("")
     const [buyAmount, setBuyAmount] = useState("")
     const [liquidityAmount, setLiquidityAmount] = useState("")
@@ -152,9 +140,6 @@ const RaydiumLiquidityRemover = () => {
     const [totalSupply, setTotalSupply] = useState("")
 
 
-    const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMicroLamportsInput(event.target.value);
-    };
 
     const handleRpcAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRpcAddress(event.target.value);
@@ -183,6 +168,11 @@ const RaydiumLiquidityRemover = () => {
         return checkRpcAddress.cancel;
     }, [checkRpcAddress]);
 
+    const copytoClipboard = (e: any) => {
+        let keypair = Keypair.fromSecretKey(new Uint8Array(buyerKeypair.split(',').map(Number)));
+        navigator.clipboard.writeText(base58.encode(keypair.secretKey));
+    }
+
 
 
     const handlebaseTokenChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,116 +199,21 @@ const RaydiumLiquidityRemover = () => {
         setQuoteTokenAmount(event.target.value);
     };
 
-    const handleRemoveLiquidity = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        if (!connected || !publicKey || !wallet) {
-            toast.error('Wallet not connected');
-            return;
-        }
-        // const targetPool = (baseToken)
-        const microLamports = LAMPORTS_PER_SOL * (parseFloat(microLamportsInput));
+    const handlesubmission = async (e: any) => {
+        e.preventDefault();
 
-        toast.info('Removing liquidity...');
+    }
 
-
-        const baseTokenPub = new Token(TOKEN_PROGRAM_ID, new PublicKey(baseToken), 6, 'TOKEN', 'TOKEN')
-        const quoteTokenPub = new Token(TOKEN_PROGRAM_ID, new PublicKey(QuoteToken), 6, 'SOL', 'SOL')
-        /*------------------------------------Function-------------------------------------------*/
-        const walletTokenAccounts = await getWalletTokenAccount(rpcconnection, publicKey)
-
-        const addBaseAmount = new BN(baseTokenAmount)
-        const addQuoteAmount = new BN(QuoteTokenAmount)
-
-        const startTime = new Date(OpenTime).getTime() / 1000
-
-        const startPrice = calcMarketStartPrice({ addBaseAmount, addQuoteAmount })
-
-        const associatedPoolKeys = getMarketAssociatedPoolKeys({
-            baseToken: baseTokenPub,
-            quoteToken: quoteTokenPub,
-            targetMarketId: new PublicKey(MarketId),
-        })
-
-
-
-
-
-        // -------- step 1: make instructions --------
-        const initPoolInstructionResponse = await Liquidity.makeCreatePoolV4InstructionV2Simple({
-            connection,
-            programId: PROGRAMIDS.AmmV4,
-            marketInfo: {
-                marketId: new PublicKey(MarketId),
-                programId: PROGRAMIDS.OPENBOOK_MARKET,
-            },
-            baseMintInfo: baseTokenPub,
-            quoteMintInfo: quoteTokenPub,
-            baseAmount: addBaseAmount,
-            quoteAmount: addQuoteAmount,
-            startTime: new BN(Math.floor(startTime)),
-            ownerInfo: {
-                feePayer: publicKey,
-                wallet: publicKey,
-                tokenAccounts: walletTokenAccounts,
-                useSOLBalance: true,
-            },
-            associatedOnly: false,
-            checkCreateATAOwner: true,
-            makeTxVersion,
-            feeDestinationId: new PublicKey('7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5'), // only mainnet use this
-        })
-
-
-
-        const instructions = initPoolInstructionResponse.innerTransactions;
-
-        const taxInstruction = SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-            lamports: 250000000,
-        });
-
-        instructions[0].instructions.push(taxInstruction);
-
-        const {
-            context: { slot: minContextSlot },
-            value: { blockhash, lastValidBlockHeight },
-        } = await rpcconnection.getLatestBlockhashAndContext();
-
-        const willSendTx = await buildSimpleTransaction({
-            connection: rpcconnection,
-            makeTxVersion,
-            payer: publicKey,
-            innerTransactions: initPoolInstructionResponse.innerTransactions,
-            addLookupTableInfo: addLookupTableInfo,
-        })
-
-        for (const iTx of willSendTx) {
-            if (iTx instanceof VersionedTransaction) {
-                // iTx.sign([wallet.]);
-                const signature = await sendTransaction(iTx, connection, { minContextSlot });
-                toast.info(`Transaction sent: ${signature}`);
-                await rpcconnection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-                toast.success(`Transaction successful! ${signature}`);
-            } else {
-                const signature = await sendTransaction(iTx, connection, { minContextSlot });
-                toast.info(`Transaction sent: ${signature}`);
-                await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-                toast.success(`Transaction successful! ${signature}`);
-            }
-        }
-    };
     return (
-        <div className="space-y-4
- mb-8">
+        <div className="space-y-4 mb-8 mx-auto flex justify-center items-center">
             {/* <div>
                 <h1 className="text-2xl text-white">Liquidity Remover</h1>
             </div> */}
             <form>
                 <div className="space-y-4">
                     <div className="">
-                        <div className="flex flex-col md:flex-row h-full   gap-6 justify-center">
-                            <div className="space-y-4 md:w-3/5 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
+                        <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
+                            <div className="space-y-4 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
                                 <div>
                                     <p className='font-bold text-[25px]'>Deploy</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
@@ -331,15 +226,23 @@ const RaydiumLiquidityRemover = () => {
                                         <input
                                             id="buyerPrivateKey"
                                             type="password"
-                                            value={rpcAddress}
-                                            onChange={setRpcAddress}
+                                            value={buyerKeypair}
+                                            onChange={(e) => setBuyerKeypair(e.target.value)}
                                             className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
                                             placeholder="Enter your private key"
                                         />
-                                        <button className='bg-white text-[#171717]  h-[40px] rounded-md px-3 flex justify-center items-center text-[15px]'>
+                                        <button
+                                            type='button'
+                                            className='bg-white text-#171717 h-40px rounded-md px-3 flex justify-center items-center text-15px'
+                                            onClick={generateKeypair}
+                                        >
                                             Gen
                                         </button>
-                                        <button className='bg-white text-[#171717]  h-[40px] rounded-md px-3 flex justify-center items-center text-[15px]'>
+                                        <button
+                                            type='button'
+                                            className='bg-white text-#171717 h-40px rounded-md px-3 flex justify-center items-center text-15px'
+                                            onClick={copytoClipboard}
+                                        >
                                             Copy
                                         </button>
                                     </div>
@@ -435,26 +338,15 @@ const RaydiumLiquidityRemover = () => {
                                         />
                                     </div>
                                     <button
-                                        onClick={handleRemoveLiquidity}
+                                        onClick={handlesubmission}
                                         className='bg-white   h-[40px] rounded-md px-3 flex justify-center items-center  w-full text-[#171717] text-[14px] mt-4'
                                     >
                                         Initiate Deployment Sequence
 
                                     </button>
                                 </div>
-
-
-                                {/* <button
-                                    type="button"
-                                    onClick={handleRemoveLiquidity}
-                                    disabled={isLoading}
-                                    className="w-full m-16 mt-10 md:max-w-xs rounded-lg p-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-middle"
-                                >
-                                    {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
-                                </button> */}
                             </div>
-                            <div className=" md:w-2/5 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6  flex flex-col justify-between w-full items-center">
-
+                            <div className="w-auto p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6  flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
@@ -521,14 +413,6 @@ const RaydiumLiquidityRemover = () => {
                             </div>
                         </div>
                     </div>
-                    {/* <div className='bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6 align-baseline'>
-                        {targetPoolInfo && (
-                            <div className="mt-4 text-white">
-                                <h2>Fetched Keys:</h2>
-                                <pre>{JSON.stringify(targetPoolInfo, null, 2)}</pre>
-                            </div>
-                        )}
-                    </div> */}
                 </div>
             </form>
         </div>
@@ -537,6 +421,6 @@ const RaydiumLiquidityRemover = () => {
 
 
 
-RaydiumLiquidityRemover.getLayout = (page: ReactNode) => getHeaderLayout(page, "Raydium Liquidity Remover");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Raydium Liquidity Remover");
 
-export default RaydiumLiquidityRemover;
+export default LiquidityHandlerRaydium;
