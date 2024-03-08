@@ -211,15 +211,15 @@ const RaydiumLiquidityRemover = () => {
         }
     };
     return (
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-8 ">
             <div>
                 <h1 className="text-2xl text-white">Liquidity Remover</h1>
             </div>
             <form>
-                <div className="space-y-4">
+                <div className="space-y-4 w-1/3 mx-auto">
                     <div className="bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
                         <div className="flex items-center justify-center">
-                            <div className="space-y-4 md:w-1/2 mt-20">
+                            <div className="space-y-4  mt-20">
                                 <div className="text-base text-white">
                                     {/* <div>
                                         <label className="block mt-5 text-base text-white" htmlFor="microLamports">

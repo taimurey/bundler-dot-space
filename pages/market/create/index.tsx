@@ -47,6 +47,7 @@ import {
 } from "../../../utils/transaction";
 import useSerumMarketAccountSizes from "../../../hooks/useSerumMarketAccountSizes";
 import useRentExemption from "../../../hooks/useRentExemption";
+import V2SexyChameleonText from '../../../components/Wallet/SexyChameleonText/V2SexyChameleonText';
 
 const TRANSACTION_MESSAGES = [
   {
@@ -523,12 +524,16 @@ const CreateMarket = () => {
 
   return (
     <>
-      <div className="space-y-4 mb-6">
-        <div>
-          <h1 className="text-2xl text-white">Create Market</h1>
-        </div>
+      <div className="space-y-4 mb-8 w-1/2 mx-auto flex justify-center items-center">
+
         <form onSubmit={handleSubmit(handleCreateMarket)}>
+
           <div className="space-y-4">
+            <div>
+              <V2SexyChameleonText>
+                <h1 className="text-2xl font-semibold">Create Market</h1>
+              </V2SexyChameleonText>
+            </div>
             <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">

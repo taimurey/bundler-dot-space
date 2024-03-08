@@ -17,7 +17,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
       <div className="w-full h-screen overflow-y-auto flex flex-col space-y-4 justify-between">
         <div className="w-full mx-auto">
           <Header />
-          <div className="px-4 py-10 max-w-4xl mx-auto space-y-6">
+          <div className="px-4 py-10 mx-auto space-y-6">
             {children}
           </div>
         </div>
