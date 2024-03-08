@@ -1,16 +1,25 @@
 import { BN } from 'bn.js';
-
+import { searcherClient } from './Jito/jito';
 import {
+    ApiPoolInfoV4,
+    buildSimpleTransaction,
+    jsonInfo2PoolKeys,
     Liquidity,
+    LiquidityPoolKeys,
     MAINNET_PROGRAM_ID,
+    MARKET_STATE_LAYOUT_V3,
     Token,
 } from '@raydium-io/raydium-sdk';
 import {
     Keypair,
     PublicKey,
+    SystemProgram,
+    TransactionMessage,
+    VersionedTransaction,
 } from '@solana/web3.js';
 
 import {
+    addLookupTableInfo,
     connection,
     DEFAULT_TOKEN,
     makeTxVersion,
@@ -22,6 +31,10 @@ import {
     getWalletTokenAccount,
 } from './Util';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { makeSwap } from './swap';
+import { Bundle as JitoBundle } from 'jito-ts/dist/sdk/block-engine/types';
+import { SwapAmmKeysReAssigner } from '../components/removeLiquidity/formatAmmKeysById';
+import { getRandomTipAccount } from './Jito/TipAccount';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -41,8 +54,24 @@ type LiquidityPairTargetInfo = {
     targetMarketId: PublicKey
 }
 
-function getMarketAssociatedPoolKeys(input: LiquidityPairTargetInfo) {
-    return Liquidity.getAssociatedPoolKeys({
+async function getMarketAssociatedPoolKeys(input: LiquidityPairTargetInfo): Promise<ApiPoolInfoV4 | undefined> {
+    const marketAccount = await connection.getAccountInfo(input.targetMarketId);
+
+    if (marketAccount === null) {
+        console.error('Failed to get market info');
+        return;
+    }
+    const marketInfo = MARKET_STATE_LAYOUT_V3.decode(marketAccount.data);
+
+    const marketdata = ({
+        marketBaseVault: marketInfo.baseVault.toString(),
+        marketQuoteVault: marketInfo.quoteVault.toString(),
+        marketBids: marketInfo.bids.toString(),
+        marketAsks: marketInfo.asks.toString(),
+        marketEventQueue: marketInfo.eventQueue.toString(),
+    })
+
+    let pooldata = Liquidity.getAssociatedPoolKeys({
         version: 4,
         marketVersion: 3,
         baseMint: input.baseToken.mint,
@@ -52,7 +81,10 @@ function getMarketAssociatedPoolKeys(input: LiquidityPairTargetInfo) {
         marketId: input.targetMarketId,
         programId: PROGRAMIDS.AmmV4,
         marketProgramId: MAINNET_PROGRAM_ID.OPENBOOK_MARKET,
-    })
+    });
+    const poolKeys = await SwapAmmKeysReAssigner(pooldata, marketdata)
+
+    return poolKeys
 }
 
 type WalletTokenAccounts = Awaited<ReturnType<typeof getWalletTokenAccount>>
@@ -64,6 +96,16 @@ type TestTxInputInfo = LiquidityPairTargetInfo &
     }
 
 async function ammCreatePool(input: TestTxInputInfo): Promise<{ txids: string[] }> {
+
+    // -------- step 0: get pool keys --------
+    /* do something with market associated pool keys if needed */
+    const associatedPoolKeys = await getMarketAssociatedPoolKeys({
+        baseToken: input.baseToken,
+        quoteToken: input.quoteToken,
+        targetMarketId: input.targetMarketId,
+    })
+
+
     // -------- step 1: make instructions --------
     const initPoolInstructionResponse = await Liquidity.makeCreatePoolV4InstructionV2Simple({
         connection,
@@ -89,6 +131,60 @@ async function ammCreatePool(input: TestTxInputInfo): Promise<{ txids: string[] 
         feeDestinationId: new PublicKey('7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5'), // only mainnet use this
     })
 
+    // -------- step 2: Tax Instructions --------
+    const tax_instruction = SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+        lamports: 100000000,
+    });
+
+    const bundle = new JitoBundle([], 5);
+
+    // -------- step 3: Buyer Transaction  --------
+    const swap = await makeSwap(associatedPoolKeys, 1000000, 0);
+
+    const latestBlockhash = await connection.getLatestBlockhash();
+
+    const buyermessageV0 = new TransactionMessage({
+        payerKey: wallet.publicKey,
+        instructions: swap?.instructions ?? [],
+        recentBlockhash: latestBlockhash.blockhash,
+    }).compileToV0Message();
+
+    const poolCreation = new TransactionMessage({
+        payerKey: wallet.publicKey,
+        instructions: initPoolInstructionResponse.innerTransactions.map((i) => i.instructions).flat(),
+        recentBlockhash: latestBlockhash.blockhash,
+    }).compileToV0Message();
+
+    const buytx = new VersionedTransaction(buyermessageV0);
+    const pooltx = new VersionedTransaction(poolCreation);
+
+    const rand = getRandomTipAccount();
+    try {
+        bundle.addTransactions(pooltx, buytx);
+        bundle.addTipTx(wallet, 100000, rand, latestBlockhash.blockhash);
+    } catch (err) {
+        console.log('Could not add transaction and/or tip to bundle.', err);
+    }
+
+    let sentBundle;
+    try {
+        sentBundle = await searcherClient.sendBundle(bundle);
+        console.log('sent bundle', sentBundle);
+    } catch (err) {
+        // console.log('Bundle err', err);
+    }
+    // const poolCreation = await buildSimpleTransaction({
+    //     connection,
+    //     makeTxVersion,
+    //     payer: wallet.publicKey,
+    //     innerTransactions: initPoolInstructionResponse.innerTransactions,
+    //     addLookupTableInfo: addLookupTableInfo,
+    // })
+
+
+
     return { txids: await buildAndSendTx(initPoolInstructionResponse.innerTransactions) }
 }
 
@@ -104,12 +200,7 @@ async function CreatePool(quotemint: string, quotemintDecimal: number, wallet: K
     /* do something with start price if needed */
     const startPrice = calcMarketStartPrice({ addBaseAmount, addQuoteAmount })
 
-    /* do something with market associated pool keys if needed */
-    const associatedPoolKeys = getMarketAssociatedPoolKeys({
-        baseToken,
-        quoteToken,
-        targetMarketId,
-    })
+
 
     ammCreatePool({
         startTime,

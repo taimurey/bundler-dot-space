@@ -2,8 +2,10 @@ import {
   ApiPoolInfoV4,
   LIQUIDITY_STATE_LAYOUT_V4,
   Liquidity,
+  LiquidityAssociatedPoolKeys,
   MARKET_STATE_LAYOUT_V3,
   Market,
+  MarketStateLayoutV3,
   SPL_MINT_LAYOUT
 } from '@raydium-io/raydium-sdk';
 import {
@@ -77,5 +79,36 @@ export async function formatAmmKeysById(id: string): Promise<ApiPoolInfoV4 | und
   if (account === null) {
     console.log('Account not found after maximum retries');
     return undefined;
+  }
+}
+
+export async function SwapAmmKeysReAssigner(PoolKeys: LiquidityAssociatedPoolKeys, marketAccount: any): Promise<ApiPoolInfoV4 | undefined> {
+  return {
+    id: PoolKeys.id.toString(),
+    baseMint: PoolKeys.baseMint.toString(),
+    quoteMint: PoolKeys.quoteMint.toString(),
+    lpMint: PoolKeys.lpMint.toString(),
+    baseDecimals: PoolKeys.baseDecimals,
+    quoteDecimals: PoolKeys.quoteDecimals,
+    lpDecimals: PoolKeys.lpDecimals,
+    version: 4,
+    programId: PoolKeys.programId.toString(),
+    authority: PoolKeys.authority.toString(),
+    openOrders: PoolKeys.openOrders.toString(),
+    targetOrders: PoolKeys.targetOrders.toString(),
+    baseVault: PoolKeys.baseVault.toString(),
+    quoteVault: PoolKeys.quoteVault.toString(),
+    withdrawQueue: PoolKeys.withdrawQueue.toString(),
+    lpVault: PoolKeys.lpVault.toString(),
+    marketVersion: 3,
+    marketProgramId: PoolKeys.marketProgramId.toString(),
+    marketId: PoolKeys.marketId.toString(),
+    marketAuthority: PoolKeys.marketAuthority.toString(),
+    marketBaseVault: marketAccount.marketBaseVault.toString(),
+    marketQuoteVault: marketAccount.marketQuoteVault.toString(),
+    marketBids: marketAccount.marketBids.toString(),
+    marketAsks: marketAccount.marketAsks.toString(),
+    marketEventQueue: marketAccount.marketEventQueue.toString(),
+    lookupTableAccount: PublicKey.default.toString()
   }
 }
