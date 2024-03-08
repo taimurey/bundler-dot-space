@@ -8,6 +8,10 @@ import className from 'twin.macro';
 import TokenIcon from "../icons/TokenIcon";
 import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
+import { LinkProps } from "./AppHeader/HeaderLinks";
+import FlaskIcon from "../icons/FlaskIcon";
+import ManageIcon from "../icons/ManageIcon";
+
 const HeaderLink = ({
     href,
     isActive,
@@ -15,7 +19,7 @@ const HeaderLink = ({
     description,
     icon,
     external = false,
-}: {
+}: LinkProps & {
     href: string;
     isActive: boolean;
     title: string | React.ReactNode;
@@ -23,14 +27,16 @@ const HeaderLink = ({
     icon: React.ReactNode;
     external?: boolean;
 }) => {
+    const styles = [
+        `flex items-center font-semibold text-white/50 hover:text-white fill-current h-[80px] min-w-[230px] px-4 border-b-2 border-transparent`,
+        isActive && `!text-v3-primary border-v3-primary`,
+    ].join(' ');
     return (
         <Link
             href={href}
         >
-            <div css={[
-                className`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[80px] min-w-[230px] px-4 border-b-2 border-transparent`,
-                isActive && className`!text-v3-primary border-v3-primary`,
-            ]}
+            <div
+                className={styles}
                 {...(external
                     ? {
                         target: '_blank',
@@ -56,7 +62,7 @@ const HeaderLink = ({
 const Dashboard: FC = () => {
     const router = useRouter();
     return (
-        <Popover className="relative z-50">
+        <Popover className="relative ">
             <div className="flex justify-center items-center w-full bg-gray-800 border-b border-gray-700">
                 <div className="grid grid-cols-4 gap-8 place-items-center mt-2">
                     <HeaderLink
@@ -74,19 +80,20 @@ const Dashboard: FC = () => {
                         icon={<MarketIcon />}
                     />
                     <HeaderLink
-                        href="/raydium"
-                        isActive={router.pathname === "/raydium"}
-                        title="Raydium Liquidity"
-                        description="Provide liquidity on Raydium"
-                        icon={<Bars3Icon />}
-                    />
-                    <HeaderLink
                         href="/liquidity"
                         isActive={router.pathname === "/liquidity"}
                         title="Add Liquidity"
                         description="Add liquidity to a market"
-                        icon={<Bars3Icon />}
+                        icon={<FlaskIcon />}
                     />
+                    <HeaderLink
+                        href="/raydium"
+                        isActive={router.pathname === "/raydium"}
+                        title="Manage Liquidity"
+                        description="Handle liquidity on Raydium"
+                        icon={<ManageIcon />}
+                    />
+
                 </div>
             </div>
             <Transition

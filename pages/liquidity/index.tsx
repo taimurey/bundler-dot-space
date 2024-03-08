@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useCallback } from 'react';
 import { BN } from 'bn.js';
