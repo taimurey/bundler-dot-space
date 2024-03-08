@@ -287,14 +287,15 @@ const LiquidityHandlerRaydium = () => {
                                         placeholder="Enter Market ID"
                                         type="text"
                                     />
+
                                     <div className='flex justify-center items-center gap-2'>
-                                        <InputField
+                                        {/* <InputField
                                             id="tokenTiker"
                                             value={ticker}
                                             onChange={setTicker}
                                             placeholder="Enter ticker"
                                             type="text"
-                                        />
+                                        /> */}
                                         <InputField
                                             id="tokenDecimals"
                                             value={decimals}
@@ -309,7 +310,25 @@ const LiquidityHandlerRaydium = () => {
                                             placeholder="Enter total supply"
                                             type="text"
                                         />
+
                                     </div>
+                                    {/*-------------------------------------------  BaseAmount -------------------------------------------*/}
+                                    <InputField
+                                        id="tokenMarketid"
+                                        value={MarketId}
+                                        onChange={setMarketId}
+                                        placeholder="Enter Base Amount"
+                                        type="text"
+                                    />
+                                    {/*------------------------------------------- QuoteAmount------------------------------------------- */}
+
+                                    <InputField
+                                        id="tokenMarketid"
+                                        value={MarketId}
+                                        onChange={setMarketId}
+                                        placeholder="Enter Quote Amount"
+                                        type="text"
+                                    />
                                     <InputField
                                         id="tokenbuyAmount"
                                         label="Buy Amounts (SOL)"

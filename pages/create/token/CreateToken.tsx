@@ -376,7 +376,7 @@ const CreateToken: FC = () => {
                         <p className="text-[16px] uppercase pl-4">Token Information</p>
                         <p className="text-[14px] pl-4">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                         <div className="sm:gap-4 pl-4 mt-4">
-                            <TokenInput label="Token Name (ex. Dexlab)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} />
+                            <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} />
                             <TokenInput label="Token symbol" value={tokenSymbol} onChange={setImageandsymbol} placeholder={"Enter token symbol"} />
                             <div className="sm:gap-4 mt-4">
                                 <div className=" text-[14px] text-[#9d9dab] font-normal ">(Optional) Description</div>
