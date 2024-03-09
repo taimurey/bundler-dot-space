@@ -6,7 +6,7 @@ import { useEffect, useCallback } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
 import debounce from 'lodash.debounce';
-import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
+import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
     ApiPoolInfoV4,
     Liquidity,
@@ -16,90 +16,14 @@ import {
 import { PublicKey, Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
+import { InputField } from '../../../components/FieldComponents/InputField';
+import { OutputField } from '../../../components/FieldComponents/OutputField';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-type CalcStartPrice = {
-    addBaseAmount: BN
-    addQuoteAmount: BN
-}
-
-
-
-type LiquidityPairTargetInfo = {
-    baseToken: Token
-    quoteToken: Token
-    targetMarketId: PublicKey
-}
-
-
-
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
-
-
-interface Props {
-    id: string;
-    label: string;
-    value: string;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    placeholder: string;
-    type: string;
-}
-
-const InputField: React.FC<Props> = ({ id, label, value, onChange, placeholder, type }) => {
-    return (
-        <div className='w-full '>
-            {label &&
-                <label className="block mt-5 text-base text-white font-semibold" htmlFor={id}>
-                    {label}
-                </label>
-            }
-            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                <input
-                    id={id}
-                    type={type}
-                    value={value}
-                    onChange={(e) => onChange(e)}
-                    className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
-                    placeholder={placeholder}
-                />
-            </div>
-        </div>
-    );
-};
-
-interface Propss {
-    id: string;
-    label: string;
-    value: string;
-    latedisplay: boolean;
-}
-const OutputField: React.FC<Propss> = ({ id, label, value, latedisplay }) => {
-    return (
-        <div className='w-full '>
-            {label &&
-                <label className="block mt-5 text-base text-white font-semibold" htmlFor={id}>
-                    {label}
-                </label>
-            }
-            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                {!latedisplay || value.length > 0 ? <p
-                    id={id}
-
-                    className="block w-full py-2 rounded-md text-base   text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
-                >
-                    {value}
-                </p> : <p></p>
-
-                }
-            </div>
-        </div>
-    );
-};
-
-
 
 const LiquidityHandlerRaydium = () => {
     const [buyerKeypair, setBuyerKeypair] = useState("");
@@ -140,6 +64,13 @@ const LiquidityHandlerRaydium = () => {
             ...prevState,
             [field]: value,
         }));
+
+        if (field === 'deployerPrivateKey') {
+            setWallets(prevState => ({
+                ...prevState,
+                Wallet2: (Keypair.fromSecretKey(base58.decode(value))).publicKey.toString(),
+            }));
+        }
     };
 
 
@@ -147,13 +78,19 @@ const LiquidityHandlerRaydium = () => {
     const generateKeypair = (e: any) => {
         e.preventDefault();
         const keypair = Keypair.generate();
-        setBuyerKeypair(keypair.secretKey.toString());
+        const secretKey = keypair.secretKey.toString();
+        setBuyerKeypair(secretKey);
+        setFormData(prevState => ({
+            ...prevState,
+            buyerPrivateKey: secretKey,
+        }));
         setWallets({
             Wallet1: `${keypair.publicKey.toString()}`,
             Wallet2: wallets.Wallet2,
             Wallet3: wallets.Wallet3,
         });
     }
+
 
 
 
@@ -166,8 +103,8 @@ const LiquidityHandlerRaydium = () => {
 
     const handlesubmission = async (e: any) => {
         e.preventDefault();
-        console.log(formData , "simple form data")
-        console.log(JSON.stringify(formData) , "JSON stringified form data")
+        console.log(formData, "simple form data")
+        console.log(JSON.stringify(formData), "JSON stringified form data")
 
         // const response = await fetch('#', {
         //     method: 'POST',
@@ -179,39 +116,9 @@ const LiquidityHandlerRaydium = () => {
     }
 
 
-    // const handleRpcAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setRpcAddress(event.target.value);
-    // };
-
-    // let rpcconnection: any;
-    // const checkRpcAddress = useCallback(debounce(async () => {
-    //     if (rpcAddress === '' || !rpcAddress.startsWith('http')) {
-    //         // toast.error('RPC Address is incorrect or does not start with http');
-    //         return;
-    //     }
-
-    //     rpcconnection = rpcAddress ? new Connection(rpcAddress) : new Connection('https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7');
-
-    //     try {
-    //         await rpcconnection.getSlot();
-    //         // toast.info('RPC Address is correct');
-    //     } catch (error) {
-    //         // toast.error('RPC Address is incorrect');
-    //     }
-    // }, 300), [rpcAddress]); // 300ms delay
-
-    // useEffect(() => {
-    //     checkRpcAddress();
-    //     // Cancel the debounce on useEffect cleanup.
-    //     return checkRpcAddress.cancel;
-    // }, [checkRpcAddress]);
-
 
     return (
         <div className="space-y-4 mb-8 mx-auto flex justify-center items-center">
-            {/* <div>
-                <h1 className="text-2xl text-white">Liquidity Remover</h1>
-            </div> */}
             <form>
                 <div className="space-y-4">
                     <div className="">
@@ -262,9 +169,6 @@ const LiquidityHandlerRaydium = () => {
                                     <input type="checkbox" id="airdropCheck" onClick={() => setAirdropChecked(!airdropChecked)} />
                                     <label htmlFor="airdropCheck"> Generate and airdrop wallets</label>
                                 </div>
-
-
-
                                 {airdropChecked && <InputField
                                     id="walletsNumbers"
                                     label="# of Wallets"
@@ -293,19 +197,21 @@ const LiquidityHandlerRaydium = () => {
                                     />
 
                                     <div className='flex justify-center items-center gap-2'>
-                                        {/* <InputField
-                                            id="tokenTiker"
-                                            value={ticker}
-                                            onChange={setTicker}
-                                            placeholder="Enter ticker"
-                                            type="text"
-                                        /> */}
+
                                         <InputField
                                             label=""
                                             id="tokenDecimals"
                                             value={formData.tokenDecimals}
                                             onChange={(e) => handleChange(e, 'tokenDecimals')}
                                             placeholder="Enter decimals"
+                                            type="text"
+                                        />
+                                        <InputField
+                                            label=''
+                                            id="tokenBaseAmount"
+                                            value={formData.tokenBaseAmount}
+                                            onChange={(e) => handleChange(e, 'tokenBaseAmount')}
+                                            placeholder="Enter start timer(mins)"
                                             type="text"
                                         />
                                         <InputField
@@ -318,25 +224,6 @@ const LiquidityHandlerRaydium = () => {
                                         />
 
                                     </div>
-                                    {/*-------------------------------------------  BaseAmount -------------------------------------------*/}
-                                    <InputField
-                                        label=""
-                                        id="tokenBaseAmount"
-                                        value={formData.tokenBaseAmount}
-                                        onChange={(e) => handleChange(e, 'tokenBaseAmount')}
-                                        placeholder="Enter Base Amount"
-                                        type="number"
-                                    />
-                                    {/*------------------------------------------- QuoteAmount------------------------------------------- */}
-
-                                    <InputField
-                                        label=""
-                                        id="tokenQuoteAmount"
-                                        value={formData.tokenQuoteAmount}
-                                        onChange={(e) => handleChange(e, 'tokenQuoteAmount')}
-                                        placeholder="Enter Quote Amount"
-                                        type="number"
-                                    />
                                     <InputField
                                         id="tokenbuyAmount"
                                         label="Buy Amounts (SOL)"
@@ -366,7 +253,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <button
                                         onClick={handlesubmission}
-                                        className='bg-white   h-[40px] rounded-md px-3 flex justify-center items-center  w-full text-[#171717] text-[14px] mt-4'
+                                        className=' hover:bg-[#0094d8] bg-[#00b4d8]  font-semibold   h-[40px] rounded-md px-3 flex font-mono justify-center items-center  w-full text-[#ffffff] text-[14px] mt-4'
                                     >
                                         Initiate Deployment Sequence
 
@@ -395,9 +282,9 @@ const LiquidityHandlerRaydium = () => {
 
                                     <div className='w-full '>
                                         <label className="block mt-5 text-base text-white font-semibold" >
-                                            Wallet
+                                            Wallets:
                                         </label>
-                                        <p>``</p>
+                                        <br />
                                         <div className="relative  rounded-md shadow-sm w-full flex flex-col justify-end">
                                             {Object.entries(wallets).map(([key, value]) => (
                                                 <p
@@ -432,7 +319,7 @@ const LiquidityHandlerRaydium = () => {
                                     <OutputField
                                         id="liquidityamount"
                                         label="Liquidity Amount"
-                                        value={formData.tokenLiquidityAmount}
+                                        value={`${formData.tokenLiquidityAmount} sol`}
                                         latedisplay={true}
 
                                     />

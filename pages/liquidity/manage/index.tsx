@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useCallback } from 'react';
 import { ReactNode } from 'react';
-import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
+import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
     ApiPoolInfoV4,
     jsonInfo2PoolKeys,
@@ -16,14 +16,11 @@ import {
 } from '@raydium-io/raydium-sdk';
 import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
-import { formatAmmKeysById } from '../../components/removeLiquidity/formatAmmKeysById';
-import { getWalletTokenAccount } from '../../components/removeLiquidity/util';
-import { addLookupTableInfo, makeTxVersion } from '../../components/removeLiquidity/config';
+import { formatAmmKeysById } from '../../../components/removeLiquidity/formatAmmKeysById';
+import { getWalletTokenAccount } from '../../../components/removeLiquidity/util';
+import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiquidity/config';
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
-
-
-
 
 
 const RaydiumLiquidityRemover = () => {

@@ -4,6 +4,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { FC, useRef, useState } from "react";
 import { useOutsideAlerter } from "../../hooks/useOutsideAlerter";
 import { copyTextToClipboard } from "../../utils/general";
+import V2SexyChameleonText from "../Wallet/SexyChameleonText/V2SexyChameleonText";
 
 const WalletButton: FC = () => {
   const wallet = useWallet();
@@ -42,12 +43,12 @@ const WalletButton: FC = () => {
             }
             : () => setVisible(!visible)
         }
-        className="solape__connect-btn"
+        className="solape__connect-btn font-mono"
       >
         <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey
             ? `${wallet.publicKey.toString().slice(0, 6)}...`
-            : "Connect Wallet"}
+            : <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(199,242,132,1)] to-[rgba(0,190,240,1)] font-semibold font-mono hover:animate-hue">Connect Wallet</span>}
         </div>
         <div className="md:hidden p-1.5">
           <KeyIcon className="h-5 w-5" />
@@ -55,7 +56,7 @@ const WalletButton: FC = () => {
       </button>
       <ul
         className={`${showDropdown ? "block" : "hidden"
-          } absolute top-full w-64 my-2 solape__connect-btn py-1 flex flex-col space-y-1`}
+          } absolute top-full w-64 my-2 settings__connect-btn py-1 flex flex-col space-y-1`}
       >
         <li
           className="hover:bg-neutral-900 p-2 cursor-pointer"

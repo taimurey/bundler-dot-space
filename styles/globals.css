@@ -44,11 +44,17 @@ body {
 } */
 
 .solape__connect-btn {
-  background: transparent;
-  border: 2px solid #00ffaa;
+  border: 0.5px solid #ffffff;
   color: hsla(0, 0%, 100%, .85);
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 100px;
+}
+.settings__connect-btn {
+  border: 0.5px solid #ffffff;
+  background-color: #121b23;
+  color: hsla(0, 0%, 100%, .85);
+  font-size: 16px;
+  border-radius: 5px;
 }
 
 .solapetext:hover {

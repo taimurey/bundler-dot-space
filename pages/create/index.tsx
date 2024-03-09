@@ -6,16 +6,17 @@ import { ReactNode } from "react";
 import { RadioGroup } from "@headlessui/react";
 import CreateMintOption from "../../components/createMarket/CreateMintOption";
 import React from 'react';
+import RevokeAuthorities from "./metadata";
 export const Create = () => {
     const [selectedOption, setSelectedOption] = useState(false);
 
     return (
-        <div className="space-y-4 mb-8 mx-auto flex justify-center items-center">
+        <div className="space-y-4 mt-10 mb-8 mx-auto flex justify-center items-center">
             <form>
                 <div className="space-y-4">
                     <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6 ">
 
-                        {/* <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
+                        <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
 
                             <RadioGroup.Option
                                 value={false}
@@ -37,21 +38,20 @@ export const Create = () => {
                                 {({ active, checked }) => (
                                     <CreateMintOption active={active} checked={checked}>
                                         <RadioGroup.Label>
-                                            Upload Metadata
+                                            Token Manager
                                         </RadioGroup.Label>
                                     </CreateMintOption>
                                 )}
                             </RadioGroup.Option>
 
-                        </RadioGroup> */}
+                        </RadioGroup>
 
-                        <CreateToken />
-                        {/* <div className="md:grid md:gap-6">
+
+                        <div className="md:grid md:gap-6">
                             <div className="mt-5 space-y-4 md:col-span-2 md:mt-0">
-                                {selectedOption ? <UploadView /> : <CreateToken />}
-                                <UploadView />
+                                {selectedOption ? <RevokeAuthorities /> : <CreateToken />}
                             </div>
-                        </div> */}
+                        </div>
 
                     </div>
                 </div>

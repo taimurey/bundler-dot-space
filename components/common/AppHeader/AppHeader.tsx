@@ -29,8 +29,8 @@ const AppHeader: React.FC<{}> = () => {
 
   return (
     <>
-      <div className="relative flex items-center justify-between w-full bg-jupiter-bg/[.35]">
-        <div className="flex items-center p-4">
+      <div className="relative flex items-center justify-between w-full bg-[#1d2e3c]">
+        <div className="flex items-center pr-4 pl-4">
           <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
             {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -71,7 +71,7 @@ const AppHeader: React.FC<{}> = () => {
                       />
                     </Popover.Button>
                   </div>
-                  <Popover.Panel className="solape__connect-btn shadow-md border border-gray-700 p-3 absolute right-0 mt-2 w-96 transform ">
+                  <Popover.Panel className="settings__connect-btn shadow-md border border-gray-700 p-3 absolute right-0 mt-2 w-96 transform ">
                     {({ close }) => <SettingsPanel close={close} />}
                   </Popover.Panel>
                 </>

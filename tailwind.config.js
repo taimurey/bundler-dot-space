@@ -27,7 +27,7 @@ module.exports = {
         },
         'jupiter-input-light': '#EBEFF1',
         'jupiter-bg': '#3A3B43',
-        'jupiter-dark-bg': '#292A33',
+        'jupiter-dark-bg': '#171C20',
         'jupiter-jungle-green': '#24AE8F',
         'jupiter-primary': '#FBA43A',
         warning: '#FAA63C',
@@ -73,6 +73,7 @@ module.exports = {
   },
   variants: {
     extend: {
+      height: ['hover'],
       // Enable dark mode, hover, on backgroundImage utilities
       backgroundImage: ['dark', 'hover', 'focus-within', 'focus'],
     },
