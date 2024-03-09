@@ -21,12 +21,13 @@ import {
     createCreateMetadataAccountV3Instruction,
     PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { ChangeEvent, FC, KeyboardEvent, useCallback, useState } from "react";
+import React, { ChangeEvent, FC, KeyboardEvent, useCallback, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
 import { NFTStorage, File } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
+import { InputField } from '../../../components/FieldComponents/InputField';
 
 
 // // input component 
@@ -34,8 +35,6 @@ interface TokenInputProps {
     label: string;
     value: string | number;
     onChange: (value: string | number | Function) => void;
-    // onChange: SetStateAction<string | number>;
-
     type?: string;
     placeholder?: string;
 }
@@ -58,119 +57,119 @@ const TokenInput: FC<TokenInputProps> = ({ label, value, onChange, type = 'text'
     );
 };
 
-interface TagsInputProps {
-    selector: string;
-    duplicate?: boolean;
-    max?: number | null;
-}
+// interface TagsInputProps {
+//     selector: string;
+//     duplicate?: boolean;
+//     max?: number | null;
+// }
 
-const TagsInput: FC<TagsInputProps> = ({ selector, duplicate = false, max = null, tags, setTags }: any) => {
-    const [inputValue, setInputValue] = useState<string>('');
+// const TagsInput: FC<TagsInputProps> = ({ selector, duplicate = false, max = null, tags, setTags }: any) => {
+//     const [inputValue, setInputValue] = useState<string>('');
 
-    const addTag = (string: string): void => {
-        if (anyErrors(string)) return;
+//     const addTag = (string: string): void => {
+//         if (anyErrors(string)) return;
 
-        setTags([...tags, string]);
-        setInputValue('');
-    };
+//         setTags([...tags, string]);
+//         setInputValue('');
+//     };
 
-    const deleteTag = (index: number): void => {
-        const updatedTags = tags.filter(({ _, i }: any) => i !== index);
-        setTags(updatedTags);
-    };
+//     const deleteTag = (index: number): void => {
+//         const updatedTags = tags.filter(({ _, i }: any) => i !== index);
+//         setTags(updatedTags);
+//     };
 
-    const anyErrors = (string: string): boolean => {
-        if (max !== null && tags.length >= max) {
-            console.log('max tags limit reached');
-            return true;
-        }
+//     const anyErrors = (string: string): boolean => {
+//         if (max !== null && tags.length >= max) {
+//             console.log('max tags limit reached');
+//             return true;
+//         }
 
-        if (!duplicate && tags.includes(string)) {
-            console.log('duplicate found "' + string + '"');
-            return true;
-        }
+//         if (!duplicate && tags.includes(string)) {
+//             console.log('duplicate found "' + string + '"');
+//             return true;
+//         }
 
-        return false;
-    };
+//         return false;
+//     };
 
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
-        setInputValue(event.target.value);
-    };
+//     const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
+//         setInputValue(event.target.value);
+//     };
 
-    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-        if ([9, 13, 188].includes(event.keyCode)) {
-            event.preventDefault();
-            if (inputValue.trim() !== '') {
-                addTag(inputValue.trim());
-            }
-        }
-    };
+//     const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+//         if ([9, 13, 188].includes(event.keyCode)) {
+//             event.preventDefault();
+//             if (inputValue.trim() !== '') {
+//                 addTag(inputValue.trim());
+//             }
+//         }
+//     };
 
-    return (
-        <div>
-            <div className="tags-input-wrapper bg-transparent p-1  max-w-md  border border-[#dddddd]">
-                {tags.map(({ tag, index }: any) => (
-                    <span key={index} className="tag bg-white px-2 py-1  m-1 text-[#292b33] text-[12px] cursor-pointer inline-block">
-                        {tag}
-                        <a
-                            href="/"
-                            className="ml-2 cursor-pointer "
-                            onClick={(e) => {
-                                e.preventDefault();
-                                deleteTag(index);
-                            }}
-                        >
-                            &times;
-                        </a>
-                    </span>
-                ))}
-                <input
-                    type="text"
-                    id={selector}
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyDown={handleInputKeyDown}
-                    disabled={max !== null && tags.length >= max}
-                    className="border-none bg-transparent outline-none w-40 ml-2 "
-                />
+//     return (
+//         <div>
+//             <div className="tags-input-wrapper bg-transparent p-1  max-w-md  border border-[#dddddd]">
+//                 {tags.map(({ tag, index }: any) => (
+//                     <span key={index} className="tag bg-white px-2 py-1  m-1 text-[#292b33] text-[12px] cursor-pointer inline-block">
+//                         {tag}
+//                         <a
+//                             href="/"
+//                             className="ml-2 cursor-pointer "
+//                             onClick={(e) => {
+//                                 e.preventDefault();
+//                                 deleteTag(index);
+//                             }}
+//                         >
+//                             &times;
+//                         </a>
+//                     </span>
+//                 ))}
+//                 <input
+//                     type="text"
+//                     id={selector}
+//                     value={inputValue}
+//                     onChange={handleInputChange}
+//                     onKeyDown={handleInputKeyDown}
+//                     disabled={max !== null && tags.length >= max}
+//                     className="border-none bg-transparent outline-none w-40 ml-2 "
+//                 />
 
-            </div>
-            <div className="flex  text-[14px] justify-center items-center whitespace-nowrap flex-wrap lg:flex-nowrap"> Suggestions:
-                <span
-                    className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-                    onClick={() => addTag("Meme")}
-                >
-                    Meme
-                </span>
-                <span
-                    className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-                    onClick={() => addTag("AirDrop")}
-                >
-                    Air Drop
-                </span>
-                <span
-                    className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-                    onClick={() => addTag("FanToken")}
-                >
-                    FanToken
-                </span>
-                <span
-                    className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-                    onClick={() => addTag("Tokeniozation")}
-                >
-                    Tokeniozation
-                </span>
-                <span
-                    className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-                    onClick={() => addTag("RWA")}
-                >
-                    RWA
-                </span>
+//             </div>
+//             <div className="flex  text-[14px] justify-center items-center whitespace-nowrap flex-wrap lg:flex-nowrap"> Suggestions:
+//                 <span
+//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
+//                     onClick={() => addTag("Meme")}
+//                 >
+//                     Meme
+//                 </span>
+//                 <span
+//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
+//                     onClick={() => addTag("AirDrop")}
+//                 >
+//                     Air Drop
+//                 </span>
+//                 <span
+//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
+//                     onClick={() => addTag("FanToken")}
+//                 >
+//                     FanToken
+//                 </span>
+//                 <span
+//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
+//                     onClick={() => addTag("Tokeniozation")}
+//                 >
+//                     Tokeniozation
+//                 </span>
+//                 <span
+//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
+//                     onClick={() => addTag("RWA")}
+//                 >
+//                     RWA
+//                 </span>
 
-            </div>
-        </div>
-    );
-};
+//             </div>
+//         </div>
+//     );
+// };
 
 
 
@@ -183,33 +182,71 @@ const CreateToken: FC = () => {
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
-    const [tokenName, setTokenName] = useState("");
-    const [tokenSymbol, setTokenSymbol] = useState("");
+    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({
+        tokenName: "",
+        tokenSymbol: "",
+        tokenDescription: "",
+        iconUrl: "",
+        websiteUrl: "",
+        twitterUrl: "",
+        telegramUrl: "",
+        discordUrl: "",
+        uploadedImage: uploadedImage
+
+    });
+
+
+
+    // tokenAmount,
+    // publicKey,
+    // connection,
+    // tokenDecimals,
+    // tokenName,
+    // tokenSymbol,
+    // tokenUri,
+    // sendTransaction,
+
+
     const [tokenUri, setTokenUri] = useState("");
     const [tokenDecimals, setTokenDecimals] = useState(9);
     const [tokenAmount, setTokenAmount] = useState(1000000000);
-    const [tokenDescription, settokenDescription] = useState("");
     const [tokenMintAddress, setTokenMintAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
-    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [iconUrl, setIconurl] = useState("");
     const client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDIxZTYwQ2VlQjc5YTlmZTFFQzM1NjhBZkEwMDNFM2Q1MmVCODU4YWQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwODc5MTgyMTg2MiwibmFtZSI6Ik1pbnRlclRva2VuIn0.6h3W2Y9X0WYEioBZhA0va-TqYBT95O48hfxT-y6Fi6I' });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
     const [urls, setUrls] = useState<string[]>(["", "", "", ""]);
 
-    const handleChange = (index: number, newValue: string): void => {
-        const updatedUrls = [...urls];
-        updatedUrls[index] = newValue;
-        setUrls(updatedUrls);
+    // const handleChange = (index: number, newValue: string): void => {
+    //     const updatedUrls = [...urls];
+    //     updatedUrls[index] = newValue;
+    //     setUrls(updatedUrls);
+    // };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+        
     };
+
+
+
     let uploadedImageUrl = '';
 
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
+        const key = "uploadedImage"
+        handleChange(e, "uploadedImage")
+        
+
         if (file) {
             const reader = new FileReader();
             reader.onloadend = async () => {
@@ -257,6 +294,8 @@ const CreateToken: FC = () => {
     };
     const createToken = useCallback(async (event: any) => {
         event.preventDefault();
+        console.log(formData, "simple form data")
+        console.log(JSON.stringify(formData), "JSON stringified form data")
         if (!publicKey) {
             toast.error("Wallet not connected");
             return;
@@ -287,8 +326,8 @@ const CreateToken: FC = () => {
                 {
                     createMetadataAccountArgsV3: {
                         data: {
-                            name: tokenName,
-                            symbol: tokenSymbol,
+                            name: formData.tokenName,
+                            symbol: formData.tokenSymbol,
                             uri: uploadedImageUrl,
                             creators: null,
                             sellerFeeBasisPoints: 0,
@@ -349,21 +388,22 @@ const CreateToken: FC = () => {
         publicKey,
         connection,
         tokenDecimals,
-        tokenName,
-        tokenSymbol,
+        formData.tokenName,
+        formData.tokenSymbol,
         tokenUri,
         sendTransaction,
     ]);
 
-    const setImageandsymbol = (value) => {
+    const setImageandsymbol = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { value } = e.target;
         const icon = createImageFromInitials(value);
-        setImage(icon);
-        setTokenSymbol(value)
+        setImage(icon ?? '');
+        handleChange(e, "tokenSymbol")
     }
 
     return (
         <div className="divide-y divide-neutral-700">
-            
+
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
                     <ClipLoader />
@@ -371,31 +411,82 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <div className="p-4  flex bg-[] gap-8 flex-col md:flex-row">
+                <div className="py-4  flex bg-[] gap-8 flex-col md:flex-row">
                     <div className="lg:w-1/2  ">
-                        <p className="text-[16px] uppercase pl-4">Token Information</p>
-                        <p className="text-[14px] pl-4">This information is stored on IPFS by + Metaplex Metadata standard.</p>
-                        <div className="sm:gap-4 pl-4 mt-4">
-                            <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} />
-                            <TokenInput label="Token symbol" value={tokenSymbol} onChange={setImageandsymbol} placeholder={"Enter token symbol"} />
+                        <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
+                        <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
+                        <div className="sm:gap-4  mt-4">
+                            {/* <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} /> */}
+                            <InputField
+                                id="tokenName"
+                                label="Token Name (ex. Mevarik)"
+                                value={formData.tokenName}
+                                onChange={(e) => handleChange(e, 'tokenName')}
+                                placeholder="Enter Token Name"
+                                type="text"
+                            />
+                            <InputField
+                                id="tokenSymbol"
+                                label="Token Symbol"
+                                value={formData.tokenSymbol}
+                                onChange={(e) => { handleChange(e, 'tokenSymbol'), setImageandsymbol(e) }}
+                                placeholder="Enter Token Symbol"
+                                type="text"
+                            />
                             <div className="sm:gap-4 mt-4">
-                                <div className=" text-[14px] text-[#9d9dab] font-normal ">(Optional) Description</div>
-                                <textarea name="" id="" value={tokenDescription} rows={5} className="block w-full px-4 rounded-md py-1 focus:outline-none bg-neutral-800 border-neutral-300  sm:text-md "
-                                    onChange={(e) => settokenDescription(e.target.value)}
+                                <label className=" block mt-5 text-base text-white font-semibold "> Description (Optional)</label>
+                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={5} className="  mt-1 px-4  py-1  bg-neutral-800   sm:text-md block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px]"
+                                    onChange={(e) => handleChange(e, 'tokenDescription')}
                                     placeholder="Enter description..."></textarea>
                             </div>
-                            <div className=" text-[14px] font-normal">(Optional) Extensions</div>
-                            <TokenInput value={urls[0]} onChange={(newValue) => handleChange(0, newValue)} type="url" placeholder={"Website URL"} />
-                            <TokenInput value={urls[1]} onChange={(newValue) => handleChange(1, newValue)} type="url" placeholder={"Twitter URL"} />
-                            <TokenInput value={urls[2]} onChange={(newValue) => handleChange(2, newValue)} type="url" placeholder={"Telegram Group URL"} />
-                            <TokenInput value={urls[3]} onChange={(newValue) => handleChange(3, newValue)} type="url" placeholder={"Discord URL"} />
 
-                            <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
-                            </div>                        <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} />
+                            <div className="  block mt-5 text-base text-white font-semibold"> Extensions (Optional)</div>
+                            <InputField
+                                id="websiteUrl"
+                                label=""
+                                value={formData.websiteUrl}
+                                onChange={(e) => handleChange(e, 'websiteUrl')}
+                                placeholder={"Website URL"}
+                                type="url"
+                            />
+                            <InputField
+                                id="twitterUrl"
+                                label=""
+                                value={formData.twitterUrl}
+                                onChange={(e) => handleChange(e, 'twitterUrl')}
+                                placeholder={"Twitter URL"}
+                                type="url"
+                            /><InputField
+                                id="telegramUrl"
+                                label=""
+                                value={formData.telegramUrl}
+                                onChange={(e) => handleChange(e, 'telegramUrl')}
+                                placeholder={"Telegram Group URL"}
+                                type="url"
+                            /><InputField
+                                id="discordUrl"
+                                label=""
+                                value={formData.discordUrl}
+                                onChange={(e) => handleChange(e, 'discordUrl')}
+                                placeholder={"Discord URL"}
+                                type="url"
+                            />
+                            {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
+                            </div>
+                            <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} /> */}
 
                             <div className=" text-[14px] font-normal mt-6">
-                                Symbol Image (ex. Square size 128x128 or larger is recommended.)
-                                <TokenInput value={iconUrl} onChange={setIconurl} type="url" placeholder={"Enter or Upload symbol icon url"} />
+                                <label className=" block mt-5 text-base text-white font-semibold ">   Symbol Image  (ex. Square size 128x128 or larger is recommended.)
+                                </label>
+                                <InputField
+                                    id="iconUrl"
+                                    label=""
+                                    value={formData.iconUrl}
+                                    onChange={(e) => handleChange(e, 'iconUrl')}
+                                    placeholder={"Enter or Upload symbol icon url"}
+                                    type="url"
+                                />
+                                
                             </div>
 
                             {/* image upload  */}
@@ -435,7 +526,7 @@ const CreateToken: FC = () => {
                                         </label>
                                     </div>
                                 )}
-                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain" />}
+                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[100px]" />}
 
                             </div>
                             <div className="pt-2 space-y-2">
@@ -457,15 +548,15 @@ const CreateToken: FC = () => {
                     </div>
                     <div className="lg:w-1/2 flex justify-start flex-col ">
                         <p className="text-[16px] uppercase">Preview</p>
-                        <div className="bg-[#262626] px-4 py-2 my-2 rounded-md">
+                        <div className="bg-[#262626] border px-4 py-2 my-2 rounded-md border-[#404040]">
                             <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row ">
                                 <div className="flex gap-4 justify-center items-center">
                                     {image ?
                                         <img src={image} className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center" alt="" /> :
                                         <div className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center">S</div>}
                                     <div>
-                                        <p className="font-light text-[#c7f285] ">{tokenName.length > 0 ? `${tokenName}` : "Token Name"}</p>
-                                        <p className="font-light ">{tokenSymbol.length > 0 ? `${tokenSymbol}` : "Symbol"}</p>
+                                        <p className="font-light text-[#c7f285] ">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                        <p className="font-light ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center gap-2">
@@ -490,17 +581,17 @@ const CreateToken: FC = () => {
                             </div>
 
                         </div>
-                        <div className="bg-[#262626] px-4 py-2 my-2 rounded-md">
+                        <div className="bg-[#262626] px-4 border border-[#404040] py-2 my-2 rounded-md">
                             <p className="text-[16px] capitalize">token Information</p>
 
                             <div>
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Name</p>
-                                    <p className="text-[14px] font-light">{tokenName}</p>
+                                    <p className="text-[14px] font-light">{formData.tokenName}</p>
                                 </div>
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Symbol</p>
-                                    <p className="text-[14px] font-light">{tokenSymbol}</p>
+                                    <p className="text-[14px] font-light">{formData.tokenSymbol}</p>
                                 </div>
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Program</p>
@@ -519,32 +610,32 @@ const CreateToken: FC = () => {
                                     <p className="text-[14px] font-light"></p>
                                 </div>
 
-                                {tokenDescription.length > 0 && (
+                                {formData.tokenDescription.length > 0 && (
                                     <div className="flex  gap-8 py-4">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Description</p>
-                                        <p className="text-[14px] font-light">{tokenDescription}</p>
+                                        <p className="text-[14px] font-light">{formData.tokenDescription}</p>
                                     </div>
                                 )}
 
                                 <div>
-                                    {urls[0] && <div className="flex  gap-8 py-2 justify-start items-center">
+                                    {formData.websiteUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Website</p>
-                                        <p className="text-[14px] font-light">{urls[0]}</p>
+                                        <p className="text-[14px] font-light">{formData.websiteUrl}</p>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
-                                    {urls[1] && <div className="flex  gap-8 py-2 justify-start items-center">
+                                    {formData.twitterUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Twitter</p>
-                                        <p className="text-[14px] font-light">{urls[1]}</p>
+                                        <p className="text-[14px] font-light">{formData.twitterUrl}</p>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
-                                    {urls[2] && <div className="flex  gap-8 py-2 justify-start items-center">
+                                    {formData.telegramUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Telegram</p>
-                                        <p className="text-[14px] font-light">{urls[2]}</p>
+                                        <p className="text-[14px] font-light">{formData.telegramUrl}</p>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
-                                    {urls[3] && <div className="flex  gap-8 py-2 justify-start items-center ">
+                                    {formData.discordUrl && <div className="flex  gap-8 py-2 justify-start items-center ">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Discord</p>
-                                        <p className="text-[14px] font-light">{urls[3]}</p>
+                                        <p className="text-[14px] font-light">{formData.discordUrl}</p>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                 </div>

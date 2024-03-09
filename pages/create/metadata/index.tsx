@@ -8,8 +8,7 @@ import {
 } from '@solana/spl-token-2';
 import { MintCloseAuthority } from "@solana/spl-token-2";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { InputField } from "../../liquidity/add";
-
+import { InputField } from "../../../components/FieldComponents/InputField";
 const RevokeAuthorities: FC = () => {
   const [status, setStatus] = useState<string>('');
   const [mintAddress, setMintAddress] = useState<string>('');
