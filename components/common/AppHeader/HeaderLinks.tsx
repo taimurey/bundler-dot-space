@@ -1,4 +1,3 @@
-import className from 'twin.macro';
 import { useState, useEffect } from 'react';
 import SwapIcon from '../../icons/SwapIcon';
 import RepoLogo from '../../icons/RepoLogo';
@@ -31,7 +30,6 @@ const HeaderLink = ({
   setActive: (index: number) => void;
 }) => {
 
-  const router = useRouter();
   const isActive = active === index;
 
   const linkProps: { target?: string; rel?: string } = {};

@@ -220,19 +220,17 @@ const RaydiumLiquidityRemover = () => {
                                 placeholder="Enter 0.001 etc..."
                             />
                         </div>
-                        <div className='flex flex-col gap-4'>
-                            <button
-                                type="button"
-                                onClick={handleRemoveLiquidity}
-                                disabled={isLoading}
-                                className="hover:bg-[#0094d8] font-semibold h-[40px] rounded-md px-3 flex font-mono justify-center items-center  w-full text-[#ffffff] text-[14px] mt-4"
-                            >
-                                {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
-                            </button>
-                        </div>
+                        <button
+                            type='button'
+                            onClick={handleRemoveLiquidity}
+                            disabled={isLoading}
+                            className="hover:bg-[#0094d8] font-semibold h-[40px] rounded-md px-3 flex font-mono justify-center items-center  w-full text-[#ffffff] text-[14px] mt-4"
+                        >
+                            {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
+                        </button>
                         <br />
                         <div>
-                            <h1 className='bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent'>
+                            <h1 className=' bg-gradient-to-r from-[#e2c95b] to-[#03ff03] bg-clip-text text-left text-xl font-semibold text-transparent'>
                                 Pool Info:
                             </h1>
                             <div className='bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6 align-baseline mt-2'>

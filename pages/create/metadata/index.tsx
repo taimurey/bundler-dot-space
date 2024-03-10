@@ -27,7 +27,7 @@ const RevokeAuthorities: FC = () => {
       const mintPublicKey = new PublicKey(mintAddress);
 
 
-      let revokeFreeze = createSetAuthorityInstruction(
+      const revokeFreeze = createSetAuthorityInstruction(
         mintPublicKey, // mint acocunt || token account
         publicKey, // current auth
         AuthorityType.FreezeAccount, // authority type
@@ -64,7 +64,7 @@ const RevokeAuthorities: FC = () => {
 
 
 
-      let revokeMint = createSetAuthorityInstruction(
+      const revokeMint = createSetAuthorityInstruction(
         mintPublicKey, // mint acocunt || token account
         publicKey, // current auth
         AuthorityType.MintTokens, // authority type

@@ -1,10 +1,8 @@
 import { Popover, Transition } from "@headlessui/react";
 import { useRouter } from "next/router";
 import { FC, Fragment, useState } from "react";
-import { Bars3Icon } from "@heroicons/react/24/outline";
 import SettingsPanel from "./SettingsPanel";
 import React from 'react';
-import className from 'twin.macro';
 import TokenIcon from "../icons/TokenIcon";
 import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";

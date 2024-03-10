@@ -15,6 +15,7 @@ import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../context';
+import axios from 'axios';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -131,19 +132,16 @@ const LiquidityHandlerRaydium = () => {
         console.log(formData, "simple form data")
         console.log(JSON.stringify(formData), "JSON stringified form data")
 
-        // const response = await fetch('#', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify(formData),
-        // });
+        const response = await axios.post('http://localhost:3001/jitoadd', formData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
     }
 
 
-
     return (
-        <div className="space-y-4 mb-8 mx-auto flex justify-center items-center">
+        <div className="space-y-4 mb-8 mx-auto flex mt-8 justify-center items-center">
             <form>
                 <div className="space-y-4">
                     <div className="">

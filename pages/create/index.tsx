@@ -1,5 +1,4 @@
 import { useState } from "react";
-import UploadView from "./metadata";
 import CreateToken from "./token/CreateToken";
 import { getHeaderLayout } from "../../components/layouts/HeaderLayout";
 import { ReactNode } from "react";
