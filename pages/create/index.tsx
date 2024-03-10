@@ -11,16 +11,14 @@ export const Create = () => {
     const [selectedOption, setSelectedOption] = useState(false);
 
     return (
-        <div className="space-y-4 mt-10 mb-8 mx-auto flex justify-center items-center">
-            <form>
-                <div className="space-y-4">
+        <div className="flex justify-center items-center">
+            <div className="space-y-4 mt-10 mb-8 w-2/3">
+                <form>
                     <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6 ">
-
                         <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
-
                             <RadioGroup.Option
                                 value={false}
-                                className="flex-1 focus-style rounded-md"
+                                className="flex-1 focus-style rounded-md cursor-pointer hover:bg-blue-500"
                             >
                                 {({ active, checked }) => (
                                     <CreateMintOption active={active} checked={checked}>
@@ -30,10 +28,9 @@ export const Create = () => {
                                     </CreateMintOption>
                                 )}
                             </RadioGroup.Option>
-
                             <RadioGroup.Option
                                 value={true}
-                                className="flex-1 focus-style rounded-md"
+                                className="flex-1 focus-style rounded-md cursor-pointer hover:bg-blue-500"
                             >
                                 {({ active, checked }) => (
                                     <CreateMintOption active={active} checked={checked}>
@@ -43,19 +40,15 @@ export const Create = () => {
                                     </CreateMintOption>
                                 )}
                             </RadioGroup.Option>
-
                         </RadioGroup>
-
-
                         <div className="md:grid md:gap-6">
-                            <div className="mt-5 space-y-4 md:col-span-2 md:mt-0">
+                            <div className="">
                                 {selectedOption ? <RevokeAuthorities /> : <CreateToken />}
                             </div>
                         </div>
-
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 };

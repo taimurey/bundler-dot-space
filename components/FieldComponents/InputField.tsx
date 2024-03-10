@@ -23,7 +23,7 @@ export const InputField: React.FC<Props> = ({ id, label, value, onChange, placeh
                     type={type}
                     value={value}
                     onChange={(e) => onChange(e)}
-                    className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                    className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
                     placeholder={placeholder}
                 />
             </div>

@@ -1,23 +1,20 @@
 'use client';
 
-import { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useEffect, useCallback } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
-import debounce from 'lodash.debounce';
+import { Metaplex } from "@metaplex-foundation/js";
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
-    ApiPoolInfoV4,
-    Liquidity,
     MAINNET_PROGRAM_ID,
-    Token,
 } from '@raydium-io/raydium-sdk';
 import { PublicKey, Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
+import { useSolana } from '../../../context';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -26,6 +23,8 @@ type BN = typeof ZERO
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
+    const { cluster } = useSolana();
+    const connection = new Connection(cluster.endpoint);
     const [buyerKeypair, setBuyerKeypair] = useState("");
     const [airdropChecked, setAirdropChecked] = useState(false);
     const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
@@ -33,7 +32,6 @@ const LiquidityHandlerRaydium = () => {
     const [wallets, setWallets] = useState({
         Wallet1: "N/A",
         Wallet2: "N/A",
-        Wallet3: "N/A",
     });
 
 
@@ -41,22 +39,24 @@ const LiquidityHandlerRaydium = () => {
     const [formData, setFormData] = useState({
         buyerPrivateKey: '',
         deployerPrivateKey: '',
+        airdropChecked: airdropChecked,
         walletsNumbers: '',
         tokenMintAddress: '',
         tokenMarketID: '',
         tokenDecimals: '',
         totalSupply: '',
-        tokenBaseAmount: '',
-        tokenQuoteAmount: '',
+        poolstarttimer: '',
         tokenbuyAmount: '',
         tokenLiquidityAmount: '',
         tokenLiquidityAddPercent: '',
-        wallets: {
-            Wallet1: wallets.Wallet1,
-            Wallet2: wallets.Wallet2,
-            Wallet3: wallets.Wallet3,
-        },
     });
+
+    React.useEffect(() => {
+        setFormData(prevState => ({
+            ...prevState,
+            airdropChecked: airdropChecked,
+        }));
+    }, [airdropChecked]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
@@ -65,10 +65,21 @@ const LiquidityHandlerRaydium = () => {
             [field]: value,
         }));
 
+        //handle airdropChecked
+        if (field === 'airdropChecked') {
+            setAirdropChecked(airdropChecked);
+        }
+
         if (field === 'deployerPrivateKey') {
+            let wallet = (Keypair.fromSecretKey(base58.decode(value)));
             setWallets(prevState => ({
                 ...prevState,
-                Wallet2: (Keypair.fromSecretKey(base58.decode(value))).publicKey.toString(),
+                Wallet2: wallet.publicKey.toString(),
+            }));
+
+            setFormData(prevState => ({
+                ...prevState,
+                deployerPrivateKey: wallet.publicKey.toString(),
             }));
         }
     };
@@ -78,24 +89,38 @@ const LiquidityHandlerRaydium = () => {
     const generateKeypair = (e: any) => {
         e.preventDefault();
         const keypair = Keypair.generate();
-        const secretKey = keypair.secretKey.toString();
+        const secretKey = base58.encode(keypair.secretKey).toString();
         setBuyerKeypair(secretKey);
         setFormData(prevState => ({
             ...prevState,
-            buyerPrivateKey: secretKey,
+            buyerPrivateKey: keypair.publicKey.toString(),
         }));
         setWallets({
             Wallet1: `${keypair.publicKey.toString()}`,
             Wallet2: wallets.Wallet2,
-            Wallet3: wallets.Wallet3,
         });
     }
 
 
+    const handleloadMintmetadata = async (e: any) => {
+        e.preventDefault();
+        let MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(formData.tokenMintAddress)) });
 
+        let decimals = MintMetadata.mint.decimals;
+        let supply = MintMetadata.mint.supply.basisPoints;
+        console.log(MintMetadata, "mint metadata")
+        console.log(decimals, "decimals")
+        console.log(supply, "supply")
+
+        setFormData(prevState => ({
+            ...prevState,
+            tokenDecimals: decimals.toString(),
+            totalSupply: supply.toString(10),
+        }));
+    }
 
     const copytoClipboard = (e: any) => {
-        let keypair = Keypair.fromSecretKey(new Uint8Array(buyerKeypair.split(',').map(Number)));
+        let keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
         navigator.clipboard.writeText(base58.encode(keypair.secretKey));
     }
 
@@ -166,7 +191,7 @@ const LiquidityHandlerRaydium = () => {
                                     type="password"
                                 />
                                 <div>
-                                    <input type="checkbox" id="airdropCheck" onClick={() => setAirdropChecked(!airdropChecked)} />
+                                    <input type="checkbox" id="airdropCheck" checked={airdropChecked} onChange={() => setAirdropChecked(!airdropChecked)} />
                                     <label htmlFor="airdropCheck"> Generate and airdrop wallets</label>
                                 </div>
                                 {airdropChecked && <InputField
@@ -187,6 +212,13 @@ const LiquidityHandlerRaydium = () => {
                                         placeholder="Enter token mint Address"
                                         type="text"
                                     />
+                                    <button
+                                        className="hover:bg-[#0094d8] bg-[#1f3144] font-semibold h-[45px] rounded-md px-5 flex  justify-center items-center text-[#ffffff] text-[16px]"
+                                        onClick={handleloadMintmetadata}
+
+                                    >
+                                        Load Mint Details
+                                    </button>
                                     <InputField
                                         label=""
                                         id="tokenMarketID"
@@ -204,15 +236,15 @@ const LiquidityHandlerRaydium = () => {
                                             value={formData.tokenDecimals}
                                             onChange={(e) => handleChange(e, 'tokenDecimals')}
                                             placeholder="Enter decimals"
-                                            type="text"
+                                            type="number"
                                         />
                                         <InputField
                                             label=''
-                                            id="tokenBaseAmount"
-                                            value={formData.tokenBaseAmount}
-                                            onChange={(e) => handleChange(e, 'tokenBaseAmount')}
-                                            placeholder="Enter start timer(mins)"
-                                            type="text"
+                                            id="poolstarttimer"
+                                            value={formData.poolstarttimer}
+                                            onChange={(e) => handleChange(e, 'poolstarttimer')}
+                                            placeholder="Enter start timer(secs)"
+                                            type="number"
                                         />
                                         <InputField
                                             label=""
@@ -220,7 +252,7 @@ const LiquidityHandlerRaydium = () => {
                                             value={formData.totalSupply}
                                             onChange={(e) => handleChange(e, 'totalSupply')}
                                             placeholder="Enter total supply"
-                                            type="text"
+                                            type="number"
                                         />
 
                                     </div>
@@ -229,7 +261,7 @@ const LiquidityHandlerRaydium = () => {
                                         label="Buy Amounts (SOL)"
                                         value={formData.tokenbuyAmount}
                                         onChange={(e) => handleChange(e, 'tokenbuyAmount')}
-                                        placeholder="First"
+                                        placeholder="First Buy Amount"
                                         type="number"
                                     />
 
@@ -248,7 +280,7 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'tokenLiquidityAddPercent')}
                                             placeholder="Enter % of tokens to add to liquidity"
                                             type="number"
-                                            label=""
+                                            label="Amount Percentage"
                                         />
                                     </div>
                                     <button
@@ -266,19 +298,19 @@ const LiquidityHandlerRaydium = () => {
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
                                         <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
                                     </div>
-                                    <OutputField
+                                    {/* <OutputField
                                         id="predictedMarketCap"
                                         label="Predicted Market Cap:"
                                         value={predictedMarketCap}
                                         latedisplay={false}
-                                    />
-                                    <OutputField
+                                    /> */}
+                                    {/* <OutputField
                                         id="deployerPrivatekey"
                                         label="Predicted Supply Amount:"
                                         value={predictedSupplyAmount}
                                         latedisplay={false}
 
-                                    />
+                                    /> */}
 
                                     <div className='w-full '>
                                         <label className="block mt-5 text-base text-white font-semibold" >
@@ -298,7 +330,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <OutputField
                                         id="totalmintaddress"
-                                        label="Token Mint Address"
+                                        label="Mint Address:"
                                         value={formData.tokenMintAddress}
                                         latedisplay={true}
                                     />
@@ -312,16 +344,15 @@ const LiquidityHandlerRaydium = () => {
                                     <OutputField
                                         id="buyamount"
                                         label="Buy Amount"
-                                        value={formData.tokenbuyAmount}
+                                        value={`${formData.tokenbuyAmount && formData.tokenbuyAmount !== '0' ? `${formData.tokenbuyAmount} sol` : formData.tokenbuyAmount}`}
                                         latedisplay={true}
 
                                     />
                                     <OutputField
                                         id="liquidityamount"
                                         label="Liquidity Amount"
-                                        value={`${formData.tokenLiquidityAmount} sol`}
+                                        value={`${formData.tokenLiquidityAmount && formData.tokenLiquidityAmount !== '0' ? `${formData.tokenLiquidityAmount} sol` : formData.tokenLiquidityAmount}`}
                                         latedisplay={true}
-
                                     />
                                 </div>
                             </div>
