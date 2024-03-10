@@ -146,7 +146,7 @@ const LiquidityHandlerRaydium = () => {
                 <div className="space-y-4">
                     <div className="">
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
+                            <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Deploy</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
@@ -290,7 +290,7 @@ const LiquidityHandlerRaydium = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="w-auto p-4 bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6  flex flex-col justify-between items-center">
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>

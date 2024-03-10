@@ -83,7 +83,7 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
     const router = useRouter();
     return (
         <Popover className="relative ">
-            <div className="flex justify-center items-center w-full bg-[#151620]  border-b border-gray-700">
+            <div className="flex justify-center items-center w-full bg-[#0d1117]  border-b border-gray-700">
                 <div className="grid grid-cols-4 gap-8 place-items-center">
                     <HeaderLink
                         href="/create"

@@ -533,7 +533,7 @@ const CreateMarket = () => {
                 <h1 className="text-2xl font-semibold">Create Market</h1>
               </V2SexyChameleonText> */}
             </div>
-            <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -596,7 +596,7 @@ const CreateMarket = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -612,7 +612,7 @@ const CreateMarket = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-neutral-900 border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">

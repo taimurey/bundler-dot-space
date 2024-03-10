@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import SpaceLogo from '../../public/spacelogo.png'
+import SpaceLogo from '../../public/spacesuit.png'
 
 const JupiterLogo: React.FC<{ width?: number; height?: number }> = ({ width = 45, height = 45 }) => {
   return (

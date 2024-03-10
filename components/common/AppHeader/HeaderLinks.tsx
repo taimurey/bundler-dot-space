@@ -42,7 +42,7 @@ const HeaderLink = ({
   return (
     <Link href={href} passHref>
       <a
-        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[60px] px-4 rounded-t-xl ${isActive ? ' bg-[#151620] !text-v3-primary' : ""}`}
+        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[60px] px-4 rounded-t-xl ${isActive ? ' bg-[#0d1117] !text-v3-primary' : ""}`}
         {...linkProps}
         onClick={() => {
           setActive(index);
