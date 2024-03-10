@@ -4,7 +4,6 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { FC, useRef, useState } from "react";
 import { useOutsideAlerter } from "../../hooks/useOutsideAlerter";
 import { copyTextToClipboard } from "../../utils/general";
-import V2SexyChameleonText from "../Wallet/SexyChameleonText/V2SexyChameleonText";
 
 const WalletButton: FC = () => {
   const wallet = useWallet();
