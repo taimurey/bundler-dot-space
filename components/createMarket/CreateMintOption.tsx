@@ -13,11 +13,11 @@ export default function CreateMintOption({
   return (
     <div
       className={classNames(
-        "p-2 flex-1 border-2 rounded-md flex items-center justify-center text-sm",
+        "p-2 flex-1 border-2 rounded-md flex items-center justify-center text-sm hover:bg-gray-800",
         active
-          ? "bg-neutral-800 border-custom-green-500" // Change this to the color you want for active button
+          ? "bg-neutral-800 border-x-rose-50"
           : "bg-neutral-900 border-neutral-500",
-        checked ? "border-custom-green-500 text-custom-green" : "text-white"
+        checked ? "border-y-indigo-50 text-custom-green" : "text-white"
       )}
     >
       {children}

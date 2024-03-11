@@ -21,162 +21,14 @@ import {
     createCreateMetadataAccountV3Instruction,
     PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
-import React, { ChangeEvent, FC, KeyboardEvent, useCallback, useState } from "react";
+import React, { FC, useCallback, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
-import { NFTStorage, File } from 'nft.storage';
+import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
-
-
-// // input component 
-interface TokenInputProps {
-    label: string;
-    value: string | number;
-    onChange: (value: string | number | Function) => void;
-    type?: string;
-    placeholder?: string;
-}
-
-
-
-
-const TokenInput: FC<TokenInputProps> = ({ label, value, onChange, type = 'text', placeholder = '' }) => {
-    return (
-        <div className="sm:gap-4  mt-4">
-            {label && <div className=" text-[14px] font-normal text-[#9d9dab]">{label}</div>}
-            <input
-                className="block w-full focus:outline-none px-4 rounded-md py-2 bg-neutral-800 border-neutral-300 sm:text-md font-light"
-                type={type}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-            />
-        </div>
-    );
-};
-
-// interface TagsInputProps {
-//     selector: string;
-//     duplicate?: boolean;
-//     max?: number | null;
-// }
-
-// const TagsInput: FC<TagsInputProps> = ({ selector, duplicate = false, max = null, tags, setTags }: any) => {
-//     const [inputValue, setInputValue] = useState<string>('');
-
-//     const addTag = (string: string): void => {
-//         if (anyErrors(string)) return;
-
-//         setTags([...tags, string]);
-//         setInputValue('');
-//     };
-
-//     const deleteTag = (index: number): void => {
-//         const updatedTags = tags.filter(({ _, i }: any) => i !== index);
-//         setTags(updatedTags);
-//     };
-
-//     const anyErrors = (string: string): boolean => {
-//         if (max !== null && tags.length >= max) {
-//             console.log('max tags limit reached');
-//             return true;
-//         }
-
-//         if (!duplicate && tags.includes(string)) {
-//             console.log('duplicate found "' + string + '"');
-//             return true;
-//         }
-
-//         return false;
-//     };
-
-//     const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
-//         setInputValue(event.target.value);
-//     };
-
-//     const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-//         if ([9, 13, 188].includes(event.keyCode)) {
-//             event.preventDefault();
-//             if (inputValue.trim() !== '') {
-//                 addTag(inputValue.trim());
-//             }
-//         }
-//     };
-
-//     return (
-//         <div>
-//             <div className="tags-input-wrapper bg-transparent p-1  max-w-md  border border-[#dddddd]">
-//                 {tags.map(({ tag, index }: any) => (
-//                     <span key={index} className="tag bg-white px-2 py-1  m-1 text-[#292b33] text-[12px] cursor-pointer inline-block">
-//                         {tag}
-//                         <a
-//                             href="/"
-//                             className="ml-2 cursor-pointer "
-//                             onClick={(e) => {
-//                                 e.preventDefault();
-//                                 deleteTag(index);
-//                             }}
-//                         >
-//                             &times;
-//                         </a>
-//                     </span>
-//                 ))}
-//                 <input
-//                     type="text"
-//                     id={selector}
-//                     value={inputValue}
-//                     onChange={handleInputChange}
-//                     onKeyDown={handleInputKeyDown}
-//                     disabled={max !== null && tags.length >= max}
-//                     className="border-none bg-transparent outline-none w-40 ml-2 "
-//                 />
-
-//             </div>
-//             <div className="flex  text-[14px] justify-center items-center whitespace-nowrap flex-wrap lg:flex-nowrap"> Suggestions:
-//                 <span
-//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-//                     onClick={() => addTag("Meme")}
-//                 >
-//                     Meme
-//                 </span>
-//                 <span
-//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-//                     onClick={() => addTag("AirDrop")}
-//                 >
-//                     Air Drop
-//                 </span>
-//                 <span
-//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-//                     onClick={() => addTag("FanToken")}
-//                 >
-//                     FanToken
-//                 </span>
-//                 <span
-//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-//                     onClick={() => addTag("Tokeniozation")}
-//                 >
-//                     Tokeniozation
-//                 </span>
-//                 <span
-//                     className="tag bg-white px-1 py-1 rounded-sm m-1 text-[#292b33] text-[10px] cursor-pointer"
-//                     onClick={() => addTag("RWA")}
-//                 >
-//                     RWA
-//                 </span>
-
-//             </div>
-//         </div>
-//     );
-// };
-
-
-
-
-
-
-
+import Image from "next/image";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -233,7 +85,6 @@ const CreateToken: FC = () => {
             ...prevState,
             [field]: value,
         }));
-        
     };
 
 
@@ -245,7 +96,6 @@ const CreateToken: FC = () => {
         const file = e.target.files && e.target.files[0];
         const key = "uploadedImage"
         handleChange(e, "uploadedImage")
-        
 
         if (file) {
             const reader = new FileReader();
@@ -402,7 +252,7 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="divide-y divide-neutral-700">
+        <div className="divide-y divide-neutral-700 ">
 
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
@@ -486,7 +336,6 @@ const CreateToken: FC = () => {
                                     placeholder={"Enter or Upload symbol icon url"}
                                     type="url"
                                 />
-                                
                             </div>
 
                             {/* image upload  */}
@@ -526,24 +375,18 @@ const CreateToken: FC = () => {
                                         </label>
                                     </div>
                                 )}
-                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[100px]" />}
-
+                                {uploadedImage && (
+                                    <div className="relative mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
+                                        <Image src={uploadedImage} alt="Uploaded" layout="fill" objectFit="contain" />
+                                    </div>
+                                )}
                             </div>
-                            <div className="pt-2 space-y-2">
-                                <div>
-                                    <button
-                                        className="w-full  rounded-lg p-2 m-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-right"
-                                        onClick={(event) => createToken(event)}
-                                        disabled={uploading}
-                                    >
-                                        Create token
-                                    </button>
 
-                                    <p className="text-[12px]">  CREATE TOKEN<br />
-                                        Generate a token. In this process, you can get a token mint address.</p>
-                                </div>
+                            {/* <div className="pt-2 space-y-2">
 
-                            </div>
+
+                            </div> */}
+
                         </div>
                     </div>
                     <div className="lg:w-1/2 flex justify-start flex-col ">
@@ -560,19 +403,19 @@ const CreateToken: FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center gap-2">
-                                    <a href={urls[0]} target="_blank">
+                                    <a href={urls[0]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTwitter} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[1]} target="_blank">
+                                    <a href={urls[1]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTelegram} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[2]} target="_blank">
+                                    <a href={urls[2]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faDiscord} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[3]} target="_blank">
+                                    <a href={urls[3]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faWhatsapp} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
@@ -621,22 +464,22 @@ const CreateToken: FC = () => {
                                     {formData.websiteUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Website</p>
                                         <p className="text-[14px] font-light">{formData.websiteUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.twitterUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Twitter</p>
                                         <p className="text-[14px] font-light">{formData.twitterUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.telegramUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Telegram</p>
                                         <p className="text-[14px] font-light">{formData.telegramUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.discordUrl && <div className="flex  gap-8 py-2 justify-start items-center ">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Discord</p>
                                         <p className="text-[14px] font-light">{formData.discordUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                 </div>
                                 {tags.length > 0 && (
@@ -659,10 +502,18 @@ const CreateToken: FC = () => {
                             </div>
 
                         </div>
-
+                        <div>
+                            <p className="text-[12px] mt-10">  CREATE TOKEN<br />
+                                Generate a token. In this process, you can get a token mint address.</p>
+                            <button
+                                className="invoke-btn w-full"
+                                onClick={(event) => createToken(event)}
+                                disabled={uploading}
+                            >
+                                Create token
+                            </button>
+                        </div>
                     </div>
-
-
                 </div>
 
             ) : (
@@ -689,6 +540,5 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-
 
 

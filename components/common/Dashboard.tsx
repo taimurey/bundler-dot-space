@@ -1,10 +1,8 @@
 import { Popover, Transition } from "@headlessui/react";
 import { useRouter } from "next/router";
 import { FC, Fragment, useState } from "react";
-import { Bars3Icon } from "@heroicons/react/24/outline";
 import SettingsPanel from "./SettingsPanel";
 import React from 'react';
-import className from 'twin.macro';
 import TokenIcon from "../icons/TokenIcon";
 import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
@@ -36,7 +34,7 @@ const HeaderLink = ({
     }, [isExpanded]);
 
     const styles = [
-        `flex items-center font-semibold text-white/50 hover:text-white fill-current  min-w-[230px] px-4 border-b-2 border-transparent transition-height duration-200 ease-in-out`,
+        `flex items-center font-semibold text-white/50 hover:text-white fill-current  min-w-[230px] px-4 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer`,
         isActive && `!text-v3-primary border-v3-primary`,
         isExpandedState ? `h-[80px]` : `h-0`,
     ].join(' ');
@@ -85,7 +83,7 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
     const router = useRouter();
     return (
         <Popover className="relative ">
-            <div className="flex justify-center items-center w-full bg-[#151620]  border-b border-gray-700">
+            <div className="flex justify-center items-center w-full bg-[#0d1117]  border-b border-gray-700">
                 <div className="grid grid-cols-4 gap-8 place-items-center">
                     <HeaderLink
                         href="/create"

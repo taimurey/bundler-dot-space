@@ -5,7 +5,6 @@ import {
   LiquidityAssociatedPoolKeys,
   MARKET_STATE_LAYOUT_V3,
   Market,
-  MarketStateLayoutV3,
   SPL_MINT_LAYOUT
 } from '@raydium-io/raydium-sdk';
 import {

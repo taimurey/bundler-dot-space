@@ -30,6 +30,7 @@ module.exports = {
         'jupiter-dark-bg': '#171C20',
         'jupiter-jungle-green': '#24AE8F',
         'jupiter-primary': '#FBA43A',
+        'input-boxes': '#202020',
         warning: '#FAA63C',
         'v2-primary': 'rgba(199, 242, 132, 1)',
         'v2-background': '#304256',

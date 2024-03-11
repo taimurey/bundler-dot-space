@@ -9,12 +9,10 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { Connection } from "@solana/web3.js";
-import { useRouter } from "next/router";
 import {
   createContext,
   ReactNode,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -75,10 +73,13 @@ export const CUSTOM_RPC_CLUSTER = CLUSTERS[CLUSTERS.length - 1];
 
 export const SolanaProvider = ({ children }: SolanaProviderProps) => {
   const [cluster, _setCluster] = useState(CLUSTERS[0]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [customEndpoint, _setCustomEndpoint] = useState(LOCALNET_URL);
 
-  const router = useRouter();
+  // const handleCustomRPCSubmit = (userInput: string) => {
+  //   if (cluster.network === "custom") {
+  //     setCustomEndpoint(userInput);
+  //   }
+  // };
 
   const endpoint = useMemo(() => {
     if (cluster.network === "custom") {
@@ -101,26 +102,16 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
   };
 
   const setCluster = (selectedCluster: SolanaCluster) => {
-    const newQuery: {
-      network?: string;
-      customRPC?: string;
-    } = {
-      ...router.query,
-      network: selectedCluster.network,
-    };
-
-    if (selectedCluster.network === "mainnet-beta") delete newQuery.network;
-
     if (selectedCluster.network === "custom") {
-      setIsSidebarOpen(true);
-    } else {
-      setIsSidebarOpen(false);
-    };
+      const customEndpoint = localStorage.getItem(CLUSTER_LOCAL_STORAGE_KEY);
+      if (customEndpoint) {
+        _setCustomEndpoint(customEndpoint);
+      } else {
+        _setCustomEndpoint(LOCALNET_URL);
+      }
+    }
 
-
-    router.replace({
-      query: newQuery,
-    });
+    _setCluster(selectedCluster);
   };
 
   const setCustomEndpoint = async (newEndpoint: string) => {
@@ -135,34 +126,12 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
       await connection.getSlot();
 
       // If the fetch is successful, update the custom RPC URL
-      const newQuery: { customRPC?: string } = {
-        ...router.query,
-        customRPC: newEndpoint,
-      };
-      router.replace({ query: newQuery });
       _setCustomEndpoint(newEndpoint);
     } catch (error) {
       // If the fetch fails, show an error toast
       toast.error("Invalid custom RPC URL");
     }
   };
-  useEffect(() => {
-    if (router.query.network) {
-      _setCluster(
-        CLUSTERS.filter((c) => c.network === router.query.network)[0]
-      );
-    } else _setCluster(CLUSTERS[0]);
-  }, [router.query.network]);
-
-  useEffect(() => {
-    if (router.query.customRPC) {
-      _setCluster({
-        ...CLUSTERS[3],
-        endpoint: router.query.customRPC as string,
-      });
-      _setCustomEndpoint(router.query.customRPC as string);
-    }
-  }, [router.query.customRPC]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
@@ -185,7 +154,6 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
     </ConnectionProvider>
   );
 };
-
 
 export const useSolana = () => {
   const solana = useContext(SolanaContext);
