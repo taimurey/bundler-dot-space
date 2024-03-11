@@ -152,7 +152,7 @@ const LiquidityHandlerRaydium = () => {
                                     <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
                                 </div>
                                 <div className='w-full'>
-                                    <label className="block mt-5 text-base text-white font-semibold" htmlFor="buyerPrivateKey">
+                                    <label className="block mt-5 text-base  text-white font-semibold" htmlFor="buyerPrivateKey">
                                         Buyer Private key
                                     </label>
                                     <div className="relative mt-1 rounded-md shadow-sm w-full flex gap-2">
@@ -161,12 +161,12 @@ const LiquidityHandlerRaydium = () => {
                                             type="password"
                                             value={formData.buyerPrivateKey}
                                             onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                            className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                                            className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px]"
                                             placeholder="Enter your private key"
                                         />
                                         <button
                                             type='button'
-                                            className='bg-white text-#171717 h-40px rounded-md px-3 flex justify-center items-center text-15px'
+                                            className='bg-white text-#171717  h-40px rounded-md px-3 flex justify-center items-center text-15px'
                                             onClick={generateKeypair}
                                         >
                                             Gen
@@ -202,21 +202,23 @@ const LiquidityHandlerRaydium = () => {
                                 />
                                 }
                                 <div className='flex flex-col gap-2' id="tokeninfo">
-                                    <InputField
-                                        id="tokenMintAddress"
-                                        label="Token Info"
-                                        value={formData.tokenMintAddress}
-                                        onChange={(e) => handleChange(e, 'tokenMintAddress')}
-                                        placeholder="Enter token mint Address"
-                                        type="text"
-                                    />
-                                    <button
-                                        className="hover:bg-[#0094d8] bg-[#1f3144] font-semibold h-[45px] rounded-md px-5 flex  justify-center items-center text-[#ffffff] text-[16px]"
-                                        onClick={handleloadMintmetadata}
+                                    <div className='flex justify-center items-center gap-2'>
+                                        <InputField
+                                            id="tokenMintAddress"
+                                            label="Token Info"
+                                            value={formData.tokenMintAddress}
+                                            onChange={(e) => handleChange(e, 'tokenMintAddress')}
+                                            placeholder="Enter token mint Address"
+                                            type="text"
+                                        />
+                                        <button
+                                            className="invoke-btn w-2/3"
+                                            onClick={handleloadMintmetadata}
 
-                                    >
-                                        Load Mint Details
-                                    </button>
+                                        >
+                                            Load Mint
+                                        </button>
+                                    </div>
                                     <InputField
                                         label=""
                                         id="tokenMarketID"
@@ -283,7 +285,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <button
                                         onClick={handlesubmission}
-                                        className=' hover:bg-[#0094d8] bg-[#00b4d8]  font-semibold   h-[40px] rounded-md px-3 flex font-mono justify-center items-center  w-full text-[#ffffff] text-[14px] mt-4'
+                                        className='invoke-btn w-full'
                                     >
                                         Initiate Deployment Sequence
 

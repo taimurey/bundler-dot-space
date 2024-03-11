@@ -191,7 +191,7 @@ const RaydiumLiquidityRemover = () => {
             <form>
                 <div className="space-y-4 w-2/4 mx-auto">
 
-                    <div className="bg-neutral-900 border border-neutral-700 shadow rounded-2xl sm:p-6">
+                    <div className="bg-[#0c0e11] border border-neutral-600 shadow-2xl shadow-black rounded-2xl sm:p-6">
                         <div>
                             <h1 className=" bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent">
                                 Liquidity Remover
@@ -224,7 +224,7 @@ const RaydiumLiquidityRemover = () => {
                             type='button'
                             onClick={handleRemoveLiquidity}
                             disabled={isLoading}
-                            className="hover:bg-[#0094d8] font-semibold h-[40px] rounded-md px-3 flex font-mono justify-center items-center  w-full text-[#ffffff] text-[14px] mt-4"
+                            className="invoke-btn w-full text-white font-bold py-2 px-4 rounded-lg"
                         >
                             {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
                         </button>

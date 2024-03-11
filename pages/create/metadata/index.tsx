@@ -109,7 +109,7 @@ const RevokeAuthorities: FC = () => {
               onChange={(e) => setMintAddress(e.target.value)}
             />
             <button
-              className="hover:bg-[#0094d8] bg-[#1f3144] font-semibold h-[40px] rounded-md px-5 flex mt-12 justify-center items-center text-[#ffffff] text-[16px]"
+              className="invoke-btn"
               onClick={() => setMintAddress('')}
               disabled={!mintAddress}
             >
@@ -119,14 +119,14 @@ const RevokeAuthorities: FC = () => {
 
           <div className="relative mt-1 rounded-md shadow-sm w-full flex gap-2">
             <button
-              className="hover:bg-[#0094d8] bg-[#1f3144] font-semibold h-[50px] rounded-md px-5 flex font-mono justify-center items-center w-full text-[#ffffff] text-[16px] mt-4"
+              className="invoke-btn w-1/2"
               onClick={revokeFreeze}
               disabled={!mintAddress}
             >
               Revoke Freeze Authority
             </button>
             <button
-              className="hover:bg-[#0094d8] bg-[#1f3144]  font-semibold h-[50px] rounded-md px-5 flex font-mono justify-center items-center w-full text-[#ffffff] text-[16px] mt-4"
+              className="invoke-btn w-1/2"
               onClick={revokeMint}
               disabled={!mintAddress}
             >

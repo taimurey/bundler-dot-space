@@ -42,7 +42,30 @@ body {
   @apply text-xs text-white
 }
 
+/* .invoke-btn{
+ @apply hover:border font-bold h-[45px] rounded-md px-5 flex mt-12 justify-center items-center text-[16px];
+ background: linear-gradient(to right, #5cf3ac 50%, #f0b661 100%);
+ border: 1px linear-gradient(to right, #5cf3ac 50%, #f0b661 100%);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+}
+ */
 
+ .invoke-btn {
+  @apply font-bold rounded-lg h-[45px] px-5 flex mt-12 justify-center items-center   text-[16px];
+  background: linear-gradient(to right, #5cf3ac 50%, #f0b661 100%);
+  border: 1px solid #0ca38f;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background-image 0.5s ease-in-out, border-image 0.5s ease-in-out, border-radius 0.5s ease-in-out;
+}
+
+.invoke-btn:hover {
+  @apply font-bold h-[45px] rounded-lg px-5 flex mt-12 justify-center items-center text-[16px];
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-image: 1 linear-gradient(to right, #5cf3ac 50%, #e9672b 100%);
+}
 /* .solapenav {
   background: linear-gradient(100.61deg, #264653 0%, #264653 100%);
 } */

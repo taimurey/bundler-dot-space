@@ -253,7 +253,7 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="divide-y divide-neutral-700">
+        <div className="divide-y divide-neutral-700 ">
 
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
@@ -377,24 +377,15 @@ const CreateToken: FC = () => {
                                         </label>
                                     </div>
                                 )}
-                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[100px]" />}
+                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[400px]" />}
 
                             </div>
-                            <div className="pt-2 space-y-2">
-                                <div>
-                                    <button
-                                        className="w-full  rounded-lg p-2 m-2 animate-pulse bg-gradient-to-r from-[#9945FF] to-[#14F195] px-8 hover:from-pink-500 hover:to-yellow-500 float-right"
-                                        onClick={(event) => createToken(event)}
-                                        disabled={uploading}
-                                    >
-                                        Create token
-                                    </button>
 
-                                    <p className="text-[12px]">  CREATE TOKEN<br />
-                                        Generate a token. In this process, you can get a token mint address.</p>
-                                </div>
+                            {/* <div className="pt-2 space-y-2">
 
-                            </div>
+
+                            </div> */}
+
                         </div>
                     </div>
                     <div className="lg:w-1/2 flex justify-start flex-col ">
@@ -510,10 +501,18 @@ const CreateToken: FC = () => {
                             </div>
 
                         </div>
-
+                        <div>
+                            <p className="text-[12px] mt-10">  CREATE TOKEN<br />
+                                Generate a token. In this process, you can get a token mint address.</p>
+                            <button
+                                className="invoke-btn w-full"
+                                onClick={(event) => createToken(event)}
+                                disabled={uploading}
+                            >
+                                Create token
+                            </button>
+                        </div>
                     </div>
-
-
                 </div>
 
             ) : (

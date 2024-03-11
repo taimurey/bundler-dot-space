@@ -533,7 +533,7 @@ const CreateMarket = () => {
                 <h1 className="text-2xl font-semibold">Create Market</h1>
               </V2SexyChameleonText> */}
             </div>
-            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 shadow-2xl shadow-black px-4 py-5 rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -596,7 +596,7 @@ const CreateMarket = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow-2xl shadow-black rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -612,7 +612,7 @@ const CreateMarket = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow-2xl shadow-black rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -652,11 +652,11 @@ const CreateMarket = () => {
                   />
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end w-full">
-              <button className="w-full md:max-w-xs rounded-lg p-2 bg-custom-green-500 hover:bg-custom-green transition-colors disabled:opacity-20">
-                Create
-              </button>
+              <div className="flex justify-end">
+                <button className="invoke-btn w-2/3">
+                  Create
+                </button>
+              </div>
             </div>
           </div>
         </form>
