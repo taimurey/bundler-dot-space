@@ -46,7 +46,7 @@ const WalletButton: FC = () => {
       >
         <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey
-            ? `${wallet.publicKey.toString().slice(0, 6)}...`
+            ? `${wallet.publicKey.toString().slice(0, 9)}...`
             : <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(199,242,132,1)] to-[rgba(0,190,240,1)] font-semibold font-mono hover:animate-hue">Connect Wallet</span>}
         </div>
         <div className="md:hidden p-1.5">
@@ -55,20 +55,20 @@ const WalletButton: FC = () => {
       </button>
       <ul
         className={`${showDropdown ? "block" : "hidden"
-          } absolute top-full w-64 my-2 settings__connect-btn py-1 flex flex-col space-y-1`}
+          } absolute top-full w-64 my-2 settings__connect-btn  flex flex-col space-y-1 `}
       >
         <li
-          className="hover:bg-neutral-900 p-2 cursor-pointer"
+          className="hover:bg-gradient-to-r from-[#3d5046] font-mono rounded-t-lg to-[#535353] py-2 px-5 cursor-pointer"
           onClick={handleCopyClick}
         >
           <div>
-            <p className="text-sm text-white">
+            <p className="text-sm text-white ">
               {isCopied ? "Copied!" : "Copy Address"}
             </p>
           </div>
         </li>
         <li
-          className={`hover:bg-neutral-900 p-2 cursor-pointer`}
+          className={`hover:bg-gradient-to-r from-[#3d5046] font-mono rounded-b-lg to-[#535353] py-2 px-5 cursor-pointer"`}
           onClick={() => {
             wallet.disconnect();
             setShowDropdown(false);

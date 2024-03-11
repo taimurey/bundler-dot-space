@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
+import Image from "next/image";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -377,8 +378,11 @@ const CreateToken: FC = () => {
                                         </label>
                                     </div>
                                 )}
-                                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[400px]" />}
-
+                                {uploadedImage && (
+                                    <div className="relative mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
+                                        <Image src={uploadedImage} alt="Uploaded" layout="fill" objectFit="contain" />
+                                    </div>
+                                )}
                             </div>
 
                             {/* <div className="pt-2 space-y-2">
@@ -402,19 +406,19 @@ const CreateToken: FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center gap-2">
-                                    <a href={urls[0]} target="_blank">
+                                    <a href={urls[0]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTwitter} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[1]} target="_blank">
+                                    <a href={urls[1]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTelegram} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[2]} target="_blank">
+                                    <a href={urls[2]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faDiscord} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[3]} target="_blank">
+                                    <a href={urls[3]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faWhatsapp} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
@@ -463,22 +467,22 @@ const CreateToken: FC = () => {
                                     {formData.websiteUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Website</p>
                                         <p className="text-[14px] font-light">{formData.websiteUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.twitterUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Twitter</p>
                                         <p className="text-[14px] font-light">{formData.twitterUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.telegramUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Telegram</p>
                                         <p className="text-[14px] font-light">{formData.telegramUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                     {formData.discordUrl && <div className="flex  gap-8 py-2 justify-start items-center ">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Discord</p>
                                         <p className="text-[14px] font-light">{formData.discordUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                                     </div>}
                                 </div>
                                 {tags.length > 0 && (

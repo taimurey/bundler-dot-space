@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
@@ -28,8 +28,8 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     const [buyerKeypair, setBuyerKeypair] = useState("");
     const [airdropChecked, setAirdropChecked] = useState(false);
-    const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
-    const [predictedSupplyAmount, setPredictedSupplyAmount] = useState("NaN%")
+    // const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
+    // const [predictedSupplyAmount, setPredictedSupplyAmount] = useState("NaN%")
     const [wallets, setWallets] = useState({
         Wallet1: "N/A",
         Wallet2: "N/A",
@@ -72,7 +72,7 @@ const LiquidityHandlerRaydium = () => {
         }
 
         if (field === 'deployerPrivateKey') {
-            let wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet2: wallet.publicKey.toString(),
@@ -105,10 +105,10 @@ const LiquidityHandlerRaydium = () => {
 
     const handleloadMintmetadata = async (e: any) => {
         e.preventDefault();
-        let MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(formData.tokenMintAddress)) });
+        const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(formData.tokenMintAddress)) });
 
-        let decimals = MintMetadata.mint.decimals;
-        let supply = MintMetadata.mint.supply.basisPoints;
+        const decimals = MintMetadata.mint.decimals;
+        const supply = MintMetadata.mint.supply.basisPoints;
         console.log(MintMetadata, "mint metadata")
         console.log(decimals, "decimals")
         console.log(supply, "supply")
@@ -120,23 +120,27 @@ const LiquidityHandlerRaydium = () => {
         }));
     }
 
-    const copytoClipboard = (e: any) => {
-        let keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
+    const copytoClipboard = () => {
+        const keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
         navigator.clipboard.writeText(base58.encode(keypair.secretKey));
     }
 
 
 
+    // import { FormEvent } from 'react';
+
     const handlesubmission = async (e: any) => {
         e.preventDefault();
-        console.log(formData, "simple form data")
-        console.log(JSON.stringify(formData), "JSON stringified form data")
-
-        const response = await axios.post('http://localhost:3001/jitoadd', formData, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        try {
+            await axios.post('http://localhost:3001/jitoadd', formData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log('Data submitted successfully');
+        } catch (error) {
+            console.error('An error occurred while submitting the data:', error);
+        }
     }
 
 
@@ -317,11 +321,11 @@ const LiquidityHandlerRaydium = () => {
                                             Wallets:
                                         </label>
                                         <br />
-                                        <div className="relative  rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {Object.entries(wallets).map(([key, value]) => (
+                                        <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
+                                            {Object.entries(wallets).map(([key, value], index) => (
                                                 <p
-
-                                                    className="block w-full  rounded-md text-base   text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                                                    key={index}
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
                                                 >
                                                     {key}: {value}
                                                 </p>
@@ -366,6 +370,6 @@ const LiquidityHandlerRaydium = () => {
 
 
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Raydium Liquidity Remover");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Manage Liquidity");
 
 export default LiquidityHandlerRaydium;

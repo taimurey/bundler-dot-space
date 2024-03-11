@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import 'twin.macro'
-
+import Link from 'next/link';
 import CloseIcon from '../../icons/CloseIcon';
 import JupiterLogo from '../../icons/JupiterLogo';
 import MenuIcon from '../../icons/MenuIcon';
@@ -14,16 +14,18 @@ import { useSerum } from '../../../context';
 import { DEX_PROGRAMS } from '../../../utils/constants';
 import { prettifyPubkey } from '../../../utils/pubkey';
 
-const AppHeader: React.FC<{}> = () => {
+const AppHeader: React.FC = () => {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const handleToggleMenu = () => setOpenMobileMenu(!openMobileMenu);
   const { programID } = useSerum();
   useEffect(() => {
     const body = document.querySelector('body');
-    if (openMobileMenu) {
-      body!.style.overflow = 'hidden';
-    } else {
-      body!.style.overflow = '';
+    if (body) {
+      if (openMobileMenu) {
+        body.style.overflow = 'hidden';
+      } else {
+        body.style.overflow = '';
+      }
     }
   }, [openMobileMenu]);
 
@@ -35,12 +37,12 @@ const AppHeader: React.FC<{}> = () => {
             {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
           </button>
 
-          <a href="/">
+          <Link href="/">
             <h1 className="flex items-center text-lg font-semibold text-white">
               <JupiterLogo />
               <span className="ml-3">Mevarik Labs</span>
             </h1>
-          </a>
+          </Link>
         </div>
 
         <HeaderLinks />

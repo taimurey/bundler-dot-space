@@ -25,11 +25,9 @@ const Header: FC = () => {
 
   return (
     <div
-      tw="bg-v3-bg h-screen w-screen max-w-[100vw] overflow-x-hidden flex flex-col justify-between"
+    //  tw="bg-v3-bg h-screen w-screen max-w-[100vw] overflow-x-hidden flex flex-col justify-between"
     >
-      <AppHeader
-
-      />
+      <AppHeader />
       <Dashboard isExpanded={isExpanded} />
     </div>
   );

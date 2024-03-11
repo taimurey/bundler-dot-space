@@ -9,12 +9,10 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { Connection } from "@solana/web3.js";
-import { useRouter } from "next/router";
 import {
   createContext,
   ReactNode,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -111,7 +109,7 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
       } else {
         _setCustomEndpoint(LOCALNET_URL);
       }
-    };
+    }
 
     _setCluster(selectedCluster);
   };
