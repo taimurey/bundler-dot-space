@@ -1,4 +1,5 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import Link from "next/link";
 import {
     Keypair,
     PublicKey,
@@ -96,6 +97,7 @@ const CreateToken: FC = () => {
         const file = e.target.files && e.target.files[0];
         const key = "uploadedImage"
         handleChange(e, "uploadedImage")
+        console.log(file, "filee");
 
         if (file) {
             const reader = new FileReader();
@@ -130,6 +132,7 @@ const CreateToken: FC = () => {
 
                     // Set the uploadedImage state variable to the HTTP URL of the uploaded image
                     setUploadedImage(httpUrl);
+                    console.log(httpUrl, "ASCsdcasdcs");
                     console.log(httpUrl);
                     uploadedImageUrl = httpUrl;
                 } catch (error) {
@@ -261,7 +264,7 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <div className="py-4  flex bg-[] gap-8 flex-col md:flex-row">
+                <div className="py-4  flex bg-[] gap-8 flex-col lg:flex-row">
                     <div className="lg:w-1/2  ">
                         <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
                         <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
@@ -377,7 +380,9 @@ const CreateToken: FC = () => {
                                 )}
                                 {uploadedImage && (
                                     <div className="relative mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
-                                        <Image src={uploadedImage} alt="Uploaded" layout="fill" objectFit="contain" />
+
+                                        <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[100px]" />
+
                                     </div>
                                 )}
                             </div>
@@ -393,16 +398,16 @@ const CreateToken: FC = () => {
                         <p className="text-[16px] uppercase">Preview</p>
                         <div className="bg-[#262626] border px-4 py-2 my-2 rounded-md border-[#404040]">
                             <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row ">
-                                <div className="flex gap-4 justify-center items-center">
-                                    {image ?
-                                        <img src={image} className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center" alt="" /> :
+                                <div className="flex gap-4 justify-center items-center  ">
+                                    {uploadedImage || image ?
+                                        <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center" alt="" /> :
                                         <div className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center">S</div>}
-                                    <div>
-                                        <p className="font-light text-[#c7f285] ">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                    <div className="">
+                                        <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
                                         <p className="font-light ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                                     </div>
                                 </div>
-                                <div className="flex justify-center items-center gap-2">
+                                <div className="flex justify-center items-center gap-2 w-1/3">
                                     <a href={urls[0]} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTwitter} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
@@ -427,10 +432,14 @@ const CreateToken: FC = () => {
                         <div className="bg-[#262626] px-4 border border-[#404040] py-2 my-2 rounded-md">
                             <p className="text-[16px] capitalize">token Information</p>
 
-                            <div>
-                                <div className="flex  gap-8 py-4">
+                            <div className="overflowhidden">
+                                <div className="flex  gap-8 py-4" style={{ width: "200px" }}>
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Name</p>
-                                    <p className="text-[14px] font-light">{formData.tokenName}</p>
+                                    {/* <div style={{ width: "400px" }}> */}
+                                    <p className="text-[14px] font-light lg:w-[200px] xl:w-[300px] 2xl:w-[450px]" style={{ wordWrap: "break-word" }}>
+                                        {formData.tokenName}
+                                    </p>
+                                    {/* </div> */}
                                 </div>
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Symbol</p>
@@ -496,8 +505,12 @@ const CreateToken: FC = () => {
                                     </div>
                                 )}
                                 <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Recommend Integration</p>
-                                    <div className="flex justify-start border-[#4be099]/10 border px-2 gap-2 font-light flex-col sm:flex-row"><button className=" max-w-[100px] truncate ">OpenBook Market</button><button className="max-w-[100px] truncate ">Go to Tools</button></div>
+                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Create Market</p>
+                                    <div className="flex justify-start border-[#4be099]/10 border px-2 gap-2 font-light flex-col sm:flex-row">
+                                        <Link href="/market/create">
+                                            <button className=" max-w-[100px] truncate ">OpenBook Market</button>
+                                        </Link>
+                                        <button className="max-w-[100px] truncate ">Go to Tools</button></div>
                                 </div>
                             </div>
 

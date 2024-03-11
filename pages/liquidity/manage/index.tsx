@@ -21,6 +21,7 @@ import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiq
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
 import { InputField } from '../../../components/FieldComponents/InputField';
+import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
 
 
 const RaydiumLiquidityRemover = () => {
@@ -219,9 +220,9 @@ const RaydiumLiquidityRemover = () => {
                                 onChange={handleMicroLamportsInputChange}
                                 placeholder="Enter 0.001 etc..."
                             />
+                            fuykgyu
                         </div>
                         <button
-                            type='button'
                             onClick={handleRemoveLiquidity}
                             disabled={isLoading}
                             className="invoke-btn w-full text-white font-bold py-2 px-4 rounded-lg"

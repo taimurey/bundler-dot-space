@@ -325,7 +325,7 @@ const LiquidityHandlerRaydium = () => {
                                             {Object.entries(wallets).map(([key, value], index) => (
                                                 <p
                                                     key={index}
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px]"
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px] truncate"
                                                 >
                                                     {key}: {value}
                                                 </p>

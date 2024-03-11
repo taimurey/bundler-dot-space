@@ -96,3 +96,8 @@ body {
   line-height: 23px;
   font-weight: 300;
 }
+
+.Toastify__toast--default {
+  background-color: transparent !important;
+  padding: 0 !important;
+}

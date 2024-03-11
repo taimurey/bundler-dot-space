@@ -29,7 +29,6 @@ const App: FC<AppPropsWithLayout> = ({
 
     <SolanaProvider>
       <SerumProvider>
-        <ToastContainer theme="light" position="bottom-right" autoClose={2000} />
         <GlobalStyles />
         {getLayout(<Component {...pageProps} />)}
       </SerumProvider>
