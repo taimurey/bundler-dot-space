@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
+// import { bool } from "@raydium-io/raydium-sdk";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -45,8 +46,12 @@ const CreateToken: FC = () => {
         twitterUrl: "",
         telegramUrl: "",
         discordUrl: "",
-        uploadedImage: uploadedImage
-
+        tokenDecimals: "",
+        supply: "",
+        uploadedImage: uploadedImage,
+        freezeAuthority: false,
+        revokeMintAuthority: false,
+        revokeMetadataUpdateAuthority: false
     });
 
 
@@ -61,14 +66,23 @@ const CreateToken: FC = () => {
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
 
-  
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
-        const { value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [field]: value,
-        }));
+        const { value, checked } = e.target as HTMLInputElement;
+        if (e.target.type === 'checkbox') {
+            setFormData(prevState => ({
+                ...prevState,
+                [field]: checked,
+            }));
+        } else {
+            // For other input types (e.g., text, textarea), update the formData with the value
+            setFormData(prevState => ({
+                ...prevState,
+                [field]: value,
+            }));
+        }
+        console.log(formData, "form data")
     };
 
 
@@ -368,6 +382,49 @@ const CreateToken: FC = () => {
 
                                     </div>
                                 )}
+                            </div>
+                            <InputField
+                                id="tokenDecimals"
+                                label="Token Decimals"
+                                value={formData.tokenDecimals}
+                                onChange={(e) => handleChange(e, 'tokenDecimals')}
+                                placeholder={"Enter token decimals(0-9)"}
+                                type="number"
+                            />
+                            <InputField
+                                id="supply"
+                                label="Supply"
+                                value={formData.supply}
+                                onChange={(e) => handleChange(e, 'supply')}
+                                placeholder={"Quantity of tokens to issue"}
+                                type="number"
+                            />
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="freezeAuthority"
+                                    id="freezeAuthority"
+                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="freezeAuthority">Freeze Authority What is Freeze Authority?</label>
+                            </div>
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="revokeMintAuthority"
+                                    id="revokeMintAuthority"
+                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="revokeMintAuthority">Revoke Mint Authority(Fixed Supply)</label>
+                            </div>
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="revokeMetadataUpdateAuthority"
+                                    id="revokeMetadataUpdateAuthority"
+                                    onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
                             </div>
 
                             {/* <div className="pt-2 space-y-2">
