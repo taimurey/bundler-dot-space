@@ -29,7 +29,6 @@ import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
-import Image from "next/image";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -379,9 +378,9 @@ const CreateToken: FC = () => {
                                     </div>
                                 )}
                                 {uploadedImage && (
-                                    <div className="relative mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
+                                    <div className="relative flex justify-center border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
 
-                                        <img src={uploadedImage} alt="Uploaded" className="mt-4 border-b-2 border-y-v3-bg rounded-md w-3/4 h-3/4 object-contain max-w-[100px]" />
+                                        <img src={uploadedImage} alt="Uploaded" className="rounded-md w-3/4 h-3/4 object-contain max-w-[400px]" />
 
                                     </div>
                                 )}
@@ -473,7 +472,9 @@ const CreateToken: FC = () => {
                                     {formData.websiteUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Website</p>
                                         <p className="text-[14px] font-light">{formData.websiteUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-6 h-6">
+                                            <path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
+                                        </svg>
                                     </div>}
                                     {formData.twitterUrl && <div className="flex  gap-8 py-2 justify-start items-center">
                                         <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Twitter</p>
@@ -506,11 +507,12 @@ const CreateToken: FC = () => {
                                 )}
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Create Market</p>
-                                    <div className="flex justify-start border-[#4be099]/10 border px-2 gap-2 font-light flex-col sm:flex-row">
+                                    <div className="invoke-btn-secondary">
                                         <Link href="/market/create">
-                                            <button className=" max-w-[100px] truncate ">OpenBook Market</button>
+                                            <button className="">Create openbook Market</button>
                                         </Link>
-                                        <button className="max-w-[100px] truncate ">Go to Tools</button></div>
+                                    </div>
+
                                 </div>
                             </div>
 

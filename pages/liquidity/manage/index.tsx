@@ -211,16 +211,16 @@ const RaydiumLiquidityRemover = () => {
                                 placeholder="Enter Pool ID..."
                             />
 
-
-                            <InputField
-                                label='Priotiy Fee(Sol)'
-                                id="microLamports"
-                                type="text"
-                                value={microLamportsInput}
-                                onChange={handleMicroLamportsInputChange}
-                                placeholder="Enter 0.001 etc..."
-                            />
-                            fuykgyu
+                            <div className='w-2/3'>
+                                <InputField
+                                    label='Priotiy Fee(Sol)'
+                                    id="microLamports"
+                                    type="text"
+                                    value={microLamportsInput}
+                                    onChange={handleMicroLamportsInputChange}
+                                    placeholder="Enter 0.001 etc..."
+                                />
+                            </div>
                         </div>
                         <button
                             onClick={handleRemoveLiquidity}

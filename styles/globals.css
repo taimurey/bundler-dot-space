@@ -97,7 +97,23 @@ body {
   font-weight: 300;
 }
 
-.Toastify__toast--default {
-  background-color: transparent !important;
-  padding: 0 !important;
+
+
+.invoke-btn-secondary {
+  @apply font-bold rounded-md h-[30px] px-5 flex justify-center items-center text-[16px];
+  background: linear-gradient(to right, #5ceef3 50%, #4441fd 100%);
+  border: 1px solid #535353;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background-image 0.5s ease-in-out, border-image 2s ease-in-out, border-radius 0.5s ease-in-out;
+}
+
+.invoke-btn-secondary:hover {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border: 1px solid #00d9ff;
+}
+
+.toast-container .Toastify__toast {
+  @apply bg-[#010409] text-white border-2 border-neutral-900 hover:border-l-[#ffffff] rounded-r-xl;
 }

@@ -16,7 +16,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 export type ClusterType = "mainnet-beta" | "testnet" | "devnet" | "custom";
 
@@ -147,7 +147,6 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
             }}
           >
             {children}
-            <ToastContainer />
           </SolanaContext.Provider>
         </WalletModalProvider>
       </WalletProvider>

@@ -15,7 +15,8 @@ import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../context';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { toast } from 'react-toastify';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -105,6 +106,10 @@ const LiquidityHandlerRaydium = () => {
 
     const handleloadMintmetadata = async (e: any) => {
         e.preventDefault();
+        if (!formData.tokenMintAddress) {
+            toast.error('No mint address provided');
+            return;
+        }
         const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(formData.tokenMintAddress)) });
 
         const decimals = MintMetadata.mint.decimals;
@@ -121,6 +126,10 @@ const LiquidityHandlerRaydium = () => {
     }
 
     const copytoClipboard = () => {
+        if (!buyerKeypair) {
+            toast.error('No keypair to copy');
+            return;
+        }
         const keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
         navigator.clipboard.writeText(base58.encode(keypair.secretKey));
     }
@@ -128,21 +137,24 @@ const LiquidityHandlerRaydium = () => {
 
 
     // import { FormEvent } from 'react';
-
     const handlesubmission = async (e: any) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:3001/jitoadd', formData, {
+            const response = await axios.post('http://localhost:3001/jitoadd', formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
             console.log('Data submitted successfully');
+            console.log('Response:', response.data);
         } catch (error) {
-            console.error('An error occurred while submitting the data:', error);
+            const axiosError = error as AxiosError;
+            console.error('An error occurred:', axiosError.response?.data);
+            if (axiosError.response && axiosError.response.status === 500) {
+                toast.error('Error occured, Make sure the details are correct');
+            }
         }
     }
-
 
     return (
         <div className="space-y-4 mb-8 mx-auto flex mt-8 justify-center items-center">
