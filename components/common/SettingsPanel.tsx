@@ -2,7 +2,7 @@
 // import Link from "next/link";
 import {
   ChangeEvent,
-  MutableRefObject,
+  // MutableRefObject,
   useEffect,
   useMemo,
   useState,
@@ -29,16 +29,16 @@ import debounce from "lodash.debounce";
 // import { useRouter } from "next/router";
 import AppHeader from "./AppHeader/AppHeader";
 
-type SettingPanelProps = {
-  close: (
-    focusableElement?:
-      | HTMLElement
-      | MutableRefObject<HTMLElement | null>
-      | undefined
-  ) => void;
-};
-
-const SettingsPanel = ({ close }: SettingPanelProps) => {
+// type SettingPanelProps = {
+//   close: (
+//     focusableElement?:
+//       | HTMLElement
+//       | MutableRefObject<HTMLElement | null>
+//       | undefined
+//   ) => void;
+// };
+// { close }: SettingPanelProps
+const SettingsPanel = () => {
   // const router = useRouter();
 
   const wallet = useWallet();

@@ -74,7 +74,9 @@ const AppHeader: React.FC = () => {
                     </Popover.Button>
                   </div>
                   <Popover.Panel className="settings__connect-btn shadow-md border border-gray-700 p-3 absolute right-0 mt-2 w-96 transform ">
-                    {({ close }) => <SettingsPanel close={close} />}
+                    <SettingsPanel
+
+                    />
                   </Popover.Panel>
                 </>
               )}

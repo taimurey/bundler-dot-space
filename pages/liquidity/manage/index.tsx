@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useEffect, useCallback } from 'react';
+import { useEffect} from 'react';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
@@ -21,7 +21,7 @@ import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiq
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
 import { InputField } from '../../../components/FieldComponents/InputField';
-import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
+// import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
 
 
 const RaydiumLiquidityRemover = () => {

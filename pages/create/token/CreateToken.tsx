@@ -8,7 +8,7 @@ import {
 } from "@solana/web3.js";
 import { createImageFromInitials } from "../../../helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTwitter, faTelegram, faDiscord, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
 import {
     MINT_SIZE,
     TOKEN_PROGRAM_ID,
@@ -50,34 +50,18 @@ const CreateToken: FC = () => {
     });
 
 
-
-    // tokenAmount,
-    // publicKey,
-    // connection,
-    // tokenDecimals,
-    // tokenName,
-    // tokenSymbol,
-    // tokenUri,
-    // sendTransaction,
-
-
-    const [tokenUri, setTokenUri] = useState("");
-    const [tokenDecimals, setTokenDecimals] = useState(9);
-    const [tokenAmount, setTokenAmount] = useState(1000000000);
+    const [tokenUri] = useState("");
+    const [tokenDecimals] = useState(9);
+    const [tokenAmount] = useState(1000000000);
     const [tokenMintAddress, setTokenMintAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [tags, setTags] = useState<string[]>([]);
+    const [tags,] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
     const client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDIxZTYwQ2VlQjc5YTlmZTFFQzM1NjhBZkEwMDNFM2Q1MmVCODU4YWQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwODc5MTgyMTg2MiwibmFtZSI6Ik1pbnRlclRva2VuIn0.6h3W2Y9X0WYEioBZhA0va-TqYBT95O48hfxT-y6Fi6I' });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
-    const [urls, setUrls] = useState<string[]>(["", "", "", ""]);
 
-    // const handleChange = (index: number, newValue: string): void => {
-    //     const updatedUrls = [...urls];
-    //     updatedUrls[index] = newValue;
-    //     setUrls(updatedUrls);
-    // };
+  
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
         const { value } = e.target;
@@ -94,7 +78,6 @@ const CreateToken: FC = () => {
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
-        const key = "uploadedImage"
         handleChange(e, "uploadedImage")
         console.log(file, "filee");
 
@@ -118,6 +101,7 @@ const CreateToken: FC = () => {
                     const cid = await client.storeCar(car, {
                         onStoredChunk: (size) => {
                             // Update the upload progress
+                            console.log(percentComplete, "percentComplete")  // added this because i think percent complete state may be use latter so to avoid error.
                             setPercentComplete((prevPercentComplete) => prevPercentComplete + size);
                         },
                     });
@@ -407,21 +391,21 @@ const CreateToken: FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center gap-2 w-1/3">
-                                    <a href={urls[0]} target="_blank" rel="noreferrer">
+                                    <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTwitter} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[1]} target="_blank" rel="noreferrer">
+                                    <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faTelegram} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[2]} target="_blank" rel="noreferrer">
+                                    <a href={formData.discordUrl} target="_blank" rel="noreferrer">
 
                                         <FontAwesomeIcon icon={faDiscord} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
-                                    <a href={urls[3]} target="_blank" rel="noreferrer">
+                                    <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
 
-                                        <FontAwesomeIcon icon={faWhatsapp} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
+                                        <FontAwesomeIcon icon={faWebflow} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
                                     </a>
                                 </div>
 

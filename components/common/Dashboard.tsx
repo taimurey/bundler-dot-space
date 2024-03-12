@@ -136,11 +136,11 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
                     focus
                     className="absolute w-full top-full origin-top transform transition md:hidden mt-2"
                 >
-                    {({ close }) => (
+                    {/* {({ close }) => ( */}
                         <div className="rounded-lg bg-gray-800 border border-gray-700 px-2 py-4 shadow-2xl mx-2">
-                            <SettingsPanel close={close} />
+                            <SettingsPanel  />
                         </div>
-                    )}
+                    {/* )} */}
                 </Popover.Panel>
             </Transition>
         </Popover>

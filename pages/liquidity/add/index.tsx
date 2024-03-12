@@ -1,7 +1,7 @@
 'use client';
 
-import React, { ChangeEvent, FormEvent, useState } from 'react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import React, { ChangeEvent, useState } from 'react';
+// import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
 import { Metaplex } from "@metaplex-foundation/js";
@@ -136,7 +136,6 @@ const LiquidityHandlerRaydium = () => {
 
 
 
-    // import { FormEvent } from 'react';
     const handlesubmission = async (e: any) => {
         e.preventDefault();
         try {
