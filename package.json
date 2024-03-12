@@ -52,6 +52,7 @@
     "@babel/preset-typescript": "^7.23.3",
     "@emotion/babel-plugin": "^11.11.0",
     "@emotion/babel-preset-css-prop": "^11.11.0",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@metaplex-foundation/js": "^0.20.1",
     "@solana/spl-token": "0.4.1",
     "@solana/spl-token-2": "npm:@solana/spl-token@0.4.1",
