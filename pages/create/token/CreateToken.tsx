@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createImageFromInitials } from "../../../helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
@@ -14,7 +14,6 @@ import { useSolana } from "../../../context";
 import { createToken } from "../../../components/TransactionUtils/token";
 import { Connection } from "@solana/web3.js";
 import { NFT_STORAGE_TOKEN } from "../../../components/removeLiquidity/config";
-
 
 
 const CreateToken: FC = () => {
@@ -130,8 +129,42 @@ const CreateToken: FC = () => {
     };
 
 
-    const createTokenCallback = useCallback(async (event: any) => {
-        event.preventDefault();
+    // const createTokenCallback = useCallback(async (e: any) => {
+    //     e.preventDefault();
+    //     console.log("Csadcfasc")
+    //     if (!publicKey) {
+    //         toast.error("Wallet not connected");
+    //         return;
+    //     }
+    //     const TokenMetadata = {
+    //         "name": formData.tokenName,
+    //         "symbol": formData.tokenSymbol,
+    //         "image": uploadedImageUrl,
+    //         "description": formData.tokenDescription,
+    //         "extensions": {
+    //             "website": formData.websiteUrl,
+    //             "twitter": formData.twitterUrl,
+    //             "telegram": formData.telegramUrl,
+    //             "discord": formData.discordUrl
+    //         },
+    //         // "tags": [],
+    //         "creator": {
+    //             "name": "MEVARIK LABS(Market Manipulation Tool)",
+    //             "site": "https://mevarik.com"
+    //         }
+    //     }
+    //     createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+
+
+    // }, [
+    //     uploadedImageUrl,
+    //     formData,
+    //     connection, publicKey,
+    //     sendTransaction
+    // ]);
+    const createTokenCallback = async (e: any) => {
+        e.preventDefault();
+        console.log("Csadcfasc");
         if (!publicKey) {
             toast.error("Wallet not connected");
             return;
@@ -147,21 +180,14 @@ const CreateToken: FC = () => {
                 "telegram": formData.telegramUrl,
                 "discord": formData.discordUrl
             },
-            // "tags": [],
             "creator": {
                 "name": "MEVARIK LABS(Market Manipulation Tool)",
                 "site": "https://mevarik.com"
             }
-        }
+        };
         createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+    };
 
-
-    }, [
-        uploadedImageUrl,
-        formData,
-        connection, publicKey,
-        sendTransaction
-    ]);
 
     const setImageandsymbol = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { value } = e.target;
@@ -180,31 +206,54 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <div className="py-4  flex bg-[] gap-8 flex-col lg:flex-row">
+                <form className="py-4  flex bg-[] gap-8 flex-col lg:flex-row" onSubmit={createTokenCallback}>
                     <div className="lg:w-1/2  ">
                         <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
                         <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                         <div className="sm:gap-4  mt-4">
                             {/* <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} /> */}
                             <InputField
-                                id="tokenName"
+                                id="tokenName*"
                                 label="Token Name (ex. Mevarik)"
                                 value={formData.tokenName}
                                 onChange={(e) => handleChange(e, 'tokenName')}
                                 placeholder="Enter Token Name"
                                 type="text"
+                                required={true}
                             />
                             <InputField
                                 id="tokenSymbol"
-                                label="Token Symbol"
+                                label="Token Symbol*"
                                 value={formData.tokenSymbol}
                                 onChange={(e) => { handleChange(e, 'tokenSymbol'), setImageandsymbol(e) }}
                                 placeholder="Enter Token Symbol"
                                 type="text"
+                                required={true}
+
+                            />
+                            <InputField
+                                id="tokenDecimals"
+                                label="Token Decimals*"
+                                value={formData.tokenDecimals}
+                                onChange={(e) => handleChange(e, 'tokenDecimals')}
+                                placeholder={"Enter token decimals(0-9)"}
+                                type="number"
+                                required={true}
+
+                            />
+                            <InputField
+                                id="supply"
+                                label="Supply*"
+                                value={formData.supply}
+                                onChange={(e) => handleChange(e, 'supply')}
+                                placeholder={"Quantity of tokens to issue"}
+                                type="number"
+                                required={true}
+
                             />
                             <div className="sm:gap-4 mt-4">
                                 <label className=" block mt-5 text-base text-white font-semibold "> Description (Optional)</label>
-                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={5} className="  mt-1 px-4  py-1  bg-neutral-800   sm:text-md block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px]"
+                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={5} className="  mt-1 px-4  py-1  bg-[#202020]   sm:text-md block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px]"
                                     onChange={(e) => handleChange(e, 'tokenDescription')}
                                     placeholder="Enter description..."></textarea>
                             </div>
@@ -217,6 +266,8 @@ const CreateToken: FC = () => {
                                 onChange={(e) => handleChange(e, 'websiteUrl')}
                                 placeholder={"Website URL"}
                                 type="url"
+                                required={false}
+
                             />
                             <InputField
                                 id="twitterUrl"
@@ -225,6 +276,8 @@ const CreateToken: FC = () => {
                                 onChange={(e) => handleChange(e, 'twitterUrl')}
                                 placeholder={"Twitter URL"}
                                 type="url"
+                                required={false}
+
                             /><InputField
                                 id="telegramUrl"
                                 label=""
@@ -232,6 +285,8 @@ const CreateToken: FC = () => {
                                 onChange={(e) => handleChange(e, 'telegramUrl')}
                                 placeholder={"Telegram Group URL"}
                                 type="url"
+                                required={false}
+
                             /><InputField
                                 id="discordUrl"
                                 label=""
@@ -239,22 +294,52 @@ const CreateToken: FC = () => {
                                 onChange={(e) => handleChange(e, 'discordUrl')}
                                 placeholder={"Discord URL"}
                                 type="url"
+                                required={false}
+
                             />
                             {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
                             </div>
                             <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} /> */}
-
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="freezeAuthority"
+                                    id="freezeAuthority"
+                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="freezeAuthority">Freeze Authority What is Freeze Authority?</label>
+                            </div>
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="revokeMintAuthority"
+                                    id="revokeMintAuthority"
+                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="revokeMintAuthority">Revoke Mint Authority(Fixed Supply)</label>
+                            </div>
+                            <div className="flex gap-4 items-center mt-2 ">
+                                <input
+                                    type="checkbox"
+                                    name="revokeMetadataUpdateAuthority"
+                                    id="revokeMetadataUpdateAuthority"
+                                    onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
+                                />
+                                <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
+                            </div>
                             <div className=" text-[14px] font-normal mt-6">
                                 <label className=" block mt-5 text-base text-white font-semibold ">   Symbol Image  (ex. Square size 128x128 or larger is recommended.)
                                 </label>
-                                <InputField
+                                {/* <InputField
                                     id="iconUrl"
                                     label=""
                                     value={formData.iconUrl}
                                     onChange={(e) => handleChange(e, 'iconUrl')}
                                     placeholder={"Enter or Upload symbol icon url"}
                                     type="url"
-                                />
+                                required = {false}
+
+                                /> */}
                             </div>
 
                             {/* image upload  */}
@@ -285,6 +370,7 @@ const CreateToken: FC = () => {
                                             type="file"
                                             accept="image/*"
                                             onChange={handleImageUpload}
+                                        // required
                                         />
                                         <label
                                             className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
@@ -302,49 +388,8 @@ const CreateToken: FC = () => {
                                     </div>
                                 )}
                             </div>
-                            <InputField
-                                id="tokenDecimals"
-                                label="Token Decimals"
-                                value={formData.tokenDecimals}
-                                onChange={(e) => handleChange(e, 'tokenDecimals')}
-                                placeholder={"Enter token decimals(0-9)"}
-                                type="number"
-                            />
-                            <InputField
-                                id="supply"
-                                label="Supply"
-                                value={formData.supply}
-                                onChange={(e) => handleChange(e, 'supply')}
-                                placeholder={"Quantity of tokens to issue"}
-                                type="number"
-                            />
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="freezeAuthority"
-                                    id="freezeAuthority"
-                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="freezeAuthority">Freeze Authority What is Freeze Authority?</label>
-                            </div>
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="revokeMintAuthority"
-                                    id="revokeMintAuthority"
-                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="revokeMintAuthority">Revoke Mint Authority(Fixed Supply)</label>
-                            </div>
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="revokeMetadataUpdateAuthority"
-                                    id="revokeMetadataUpdateAuthority"
-                                    onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
-                            </div>
+
+
 
                             {/* <div className="pt-2 space-y-2">
 
@@ -363,25 +408,24 @@ const CreateToken: FC = () => {
                                         <div className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center">S</div>}
                                     <div className="">
                                         <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                        <p className="font-light ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                                        <p className="font-light lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                                     </div>
                                 </div>
                                 <div className="flex justify-center items-center gap-2 w-1/3">
                                     <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
 
-                                        <FontAwesomeIcon icon={faTwitter} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
+                                        <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                     </a>
                                     <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
 
-                                        <FontAwesomeIcon icon={faTelegram} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
+                                        <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                     </a>
                                     <a href={formData.discordUrl} target="_blank" rel="noreferrer">
 
-                                        <FontAwesomeIcon icon={faDiscord} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
+                                        <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                     </a>
                                     <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-
-                                        <FontAwesomeIcon icon={faWebflow} size="xs" className="bg-white text-black text-[10px] rounded-full p-[3px]" />
+                                        <FontAwesomeIcon icon={faWebflow} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                     </a>
                                 </div>
 
@@ -400,9 +444,9 @@ const CreateToken: FC = () => {
                                     </p>
                                     {/* </div> */}
                                 </div>
-                                <div className="flex  gap-8 py-4">
+                                <div className="flex  gap-8 py-4" style={{ width: "200px" }}>
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Symbol</p>
-                                    <p className="text-[14px] font-light">{formData.tokenSymbol}</p>
+                                    <p className="text-[14px] font-light lg:w-[200px] xl:w-[300px] 2xl:w-[450px]" style={{ wordWrap: "break-word" }}>{formData.tokenSymbol}</p>
                                 </div>
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Program</p>
@@ -481,15 +525,15 @@ const CreateToken: FC = () => {
                             <p className="text-[12px] mt-10">  CREATE TOKEN<br />
                                 Generate a token. In this process, you can get a token mint address.</p>
                             <button
-                                className="invoke-btn w-full"
-                                onClick={(event) => createTokenCallback(event)}
+                                className="invoke-btn w-full custom-button"
+                                type="submit"
                                 disabled={uploading}
                             >
-                                Create token
+                                <span className="btn-text-gradient">Create token</span>
                             </button>
                         </div>
                     </div>
-                </div>
+                </form>
 
             ) : (
                 <div className="mt-4 break-words">
@@ -515,5 +559,4 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-
 

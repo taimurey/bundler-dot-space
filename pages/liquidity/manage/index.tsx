@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { useEffect} from 'react';
+import { useEffect } from 'react';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
@@ -209,6 +209,7 @@ const RaydiumLiquidityRemover = () => {
                                 value={poolID}
                                 onChange={handlePoolIDChange}
                                 placeholder="Enter Pool ID..."
+                                required={true}
                             />
 
                             <div className='w-2/3'>
@@ -219,6 +220,7 @@ const RaydiumLiquidityRemover = () => {
                                     value={microLamportsInput}
                                     onChange={handleMicroLamportsInputChange}
                                     placeholder="Enter 0.001 etc..."
+                                    required={true}
                                 />
                             </div>
                         </div>
@@ -227,7 +229,7 @@ const RaydiumLiquidityRemover = () => {
                             disabled={isLoading}
                             className="invoke-btn w-full text-white font-bold py-2 px-4 rounded-lg"
                         >
-                            {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}
+                            <span className='btn-text-gradient'>  {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}</span>
                         </button>
                         <br />
                         <div>

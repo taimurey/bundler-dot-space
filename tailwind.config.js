@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const defaultTheme = require("tailwindcss/defaultTheme");
-const plugin = require('tailwindcss/plugin');
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",

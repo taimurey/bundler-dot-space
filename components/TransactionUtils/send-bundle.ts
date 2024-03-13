@@ -1,13 +1,12 @@
 
-import {
-  jito_auth_keypair, blockEngineUrl,
-  connection
-} from '../../config';
 
 import { searcherClient } from 'jito-ts/dist/sdk/block-engine/searcher';
 import { build_bundle, onBundleResult } from './build-bundle';
+import { InnerSimpleV0Transaction } from '@raydium-io/raydium-sdk';
+import { blockEngineUrl, connection, jito_auth_keypair } from '../removeLiquidity/config';
+import { Keypair } from '@solana/web3.js';
 
-export async function bull_dozer(lp_ix, swap_ix) {
+export async function bull_dozer(lp_ix: InnerSimpleV0Transaction[], swap_ix: InnerSimpleV0Transaction[], buyerkeypair: Keypair, deployerkeypair: Keypair) {
 
   console.log('BLOCK_ENGINE_URL:', blockEngineUrl);
   const bundleTransactionLimit = parseInt('3');
@@ -20,7 +19,9 @@ export async function bull_dozer(lp_ix, swap_ix) {
     bundleTransactionLimit,
     lp_ix,
     swap_ix,
-    connection
+    connection,
+    buyerkeypair,
+    deployerkeypair
   );
   const bundle_result = await onBundleResult(search)
   return bundle_result

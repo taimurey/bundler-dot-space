@@ -107,6 +107,7 @@ const RevokeAuthorities: FC = () => {
               value={mintAddress}
               placeholder="Mint Address"
               onChange={(e) => setMintAddress(e.target.value)}
+              required={true}
             />
             <button
               className="invoke-btn"

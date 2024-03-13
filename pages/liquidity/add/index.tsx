@@ -203,6 +203,7 @@ const LiquidityHandlerRaydium = () => {
                                     onChange={(e) => handleChange(e, 'deployerPrivateKey')}
                                     placeholder="Enter deployer private key"
                                     type="password"
+                                    required={true}
                                 />
                                 <div>
                                     <input type="checkbox" id="airdropCheck" checked={airdropChecked} onChange={() => setAirdropChecked(!airdropChecked)} />
@@ -215,6 +216,7 @@ const LiquidityHandlerRaydium = () => {
                                     onChange={(e) => handleChange(e, 'walletsNumbers')}
                                     placeholder="Enter the # of Wallets"
                                     type="number"
+                                    required={true}
                                 />
                                 }
                                 <div className='flex flex-col gap-2' id="tokeninfo">
@@ -226,13 +228,14 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'tokenMintAddress')}
                                             placeholder="Enter token mint Address"
                                             type="text"
+                                            required={true}
                                         />
                                         <button
                                             className="invoke-btn w-2/3"
                                             onClick={handleloadMintmetadata}
 
                                         >
-                                            Load Mint
+                                            <span className='btn-text-gradient'> Load Mint</span>
                                         </button>
                                     </div>
                                     <InputField
@@ -242,6 +245,7 @@ const LiquidityHandlerRaydium = () => {
                                         onChange={(e) => handleChange(e, 'tokenMarketID')}
                                         placeholder="Enter Market ID"
                                         type="text"
+                                        required={true}
                                     />
 
                                     <div className='flex justify-center items-center gap-2'>
@@ -253,6 +257,7 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'tokenDecimals')}
                                             placeholder="Enter decimals"
                                             type="number"
+                                            required={true}
                                         />
                                         <InputField
                                             label=''
@@ -261,6 +266,7 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'poolstarttimer')}
                                             placeholder="Enter start timer(secs)"
                                             type="number"
+                                            required={true}
                                         />
                                         <InputField
                                             label=""
@@ -269,6 +275,7 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'totalSupply')}
                                             placeholder="Enter total supply"
                                             type="number"
+                                            required={true}
                                         />
 
                                     </div>
@@ -279,6 +286,7 @@ const LiquidityHandlerRaydium = () => {
                                         onChange={(e) => handleChange(e, 'tokenbuyAmount')}
                                         placeholder="First Buy Amount"
                                         type="number"
+                                        required={true}
                                     />
 
                                     <div className='flex justify-end items-end gap-2'>
@@ -289,6 +297,7 @@ const LiquidityHandlerRaydium = () => {
                                             onChange={(e) => handleChange(e, 'tokenLiquidityAmount')}
                                             placeholder="Enter Liquidity Amount"
                                             type="number"
+                                            required={true}
                                         />
                                         <InputField
                                             id="tokenLiquidityAddPercent"
@@ -297,13 +306,15 @@ const LiquidityHandlerRaydium = () => {
                                             placeholder="Enter % of tokens to add to liquidity"
                                             type="number"
                                             label="Amount Percentage"
+                                            required={true}
                                         />
                                     </div>
                                     <button
                                         onClick={handlesubmission}
                                         className='invoke-btn w-full'
+                                        type='button'
                                     >
-                                        Initiate Deployment Sequence
+                                        <span className='btn-text-gradient'>Initiate Deployment Sequence</span>
 
                                     </button>
                                 </div>

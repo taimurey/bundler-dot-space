@@ -654,7 +654,7 @@ const CreateMarket = () => {
               </div>
               <div className="flex justify-end">
                 <button className="invoke-btn w-2/3">
-                  Create
+                  <span className='btn-text-gradient'>Create</span>
                 </button>
               </div>
             </div>
