@@ -1,27 +1,8 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import {
-    Keypair,
-    PublicKey,
-    SystemProgram,
-    Transaction,
-} from "@solana/web3.js";
 import { createImageFromInitials } from "../../../helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
-import {
-    MINT_SIZE,
-    TOKEN_PROGRAM_ID,
-    createAssociatedTokenAccountInstruction,
-    createInitializeMintInstruction,
-    createMintToInstruction,
-    getAssociatedTokenAddress,
-    getMinimumBalanceForRentExemptMint,
-} from "@solana/spl-token-2";
-import {
-    createCreateMetadataAccountV3Instruction,
-    PROGRAM_ID,
-} from "@metaplex-foundation/mpl-token-metadata";
 import React, { FC, useCallback, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
@@ -29,10 +10,16 @@ import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
-// import { bool } from "@raydium-io/raydium-sdk";
+import { useSolana } from "../../../context";
+import { createToken } from "../../../components/TransactionUtils/token";
+import { Connection } from "@solana/web3.js";
+import { NFT_STORAGE_TOKEN } from "../../../components/removeLiquidity/config";
+
+
 
 const CreateToken: FC = () => {
-    const { connection } = useConnection();
+    const { cluster } = useSolana();
+    const connection = new Connection(cluster.endpoint);
     const { publicKey, sendTransaction } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -55,14 +42,13 @@ const CreateToken: FC = () => {
     });
 
 
-    const [tokenUri] = useState("");
-    const [tokenDecimals] = useState(9);
-    const [tokenAmount] = useState(1000000000);
-    const [tokenMintAddress, setTokenMintAddress] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+
+
+    const [tokenMintAddress] = useState("");
+    const [isLoading] = useState(false);
     const [tags,] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
-    const client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDIxZTYwQ2VlQjc5YTlmZTFFQzM1NjhBZkEwMDNFM2Q1MmVCODU4YWQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwODc5MTgyMTg2MiwibmFtZSI6Ik1pbnRlclRva2VuIn0.6h3W2Y9X0WYEioBZhA0va-TqYBT95O48hfxT-y6Fi6I' });
+    const client = new NFTStorage({ token: NFT_STORAGE_TOKEN });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
 
@@ -142,106 +128,39 @@ const CreateToken: FC = () => {
             reader.readAsDataURL(file);
         }
     };
-    const createToken = useCallback(async (event: any) => {
+
+
+    const createTokenCallback = useCallback(async (event: any) => {
         event.preventDefault();
-        console.log(formData, "simple form data")
-        console.log(JSON.stringify(formData), "JSON stringified form data")
         if (!publicKey) {
             toast.error("Wallet not connected");
             return;
         }
-
-        const lamports = await getMinimumBalanceForRentExemptMint(connection);
-        const mintKeypair = Keypair.generate();
-        const tokenATA = await getAssociatedTokenAddress(mintKeypair.publicKey, publicKey);
-
-        setIsLoading(true);
-        try {
-
-            const createMetadataInstruction = createCreateMetadataAccountV3Instruction(
-                {
-                    metadata: PublicKey.findProgramAddressSync(
-                        [
-                            Buffer.from("metadata"),
-                            PROGRAM_ID.toBuffer(),
-                            mintKeypair.publicKey.toBuffer(),
-                        ],
-                        PROGRAM_ID,
-                    )[0],
-                    mint: mintKeypair.publicKey,
-                    mintAuthority: publicKey,
-                    payer: publicKey,
-                    updateAuthority: publicKey,
-                },
-                {
-                    createMetadataAccountArgsV3: {
-                        data: {
-                            name: formData.tokenName,
-                            symbol: formData.tokenSymbol,
-                            uri: uploadedImageUrl,
-                            creators: null,
-                            sellerFeeBasisPoints: 0,
-                            uses: null,
-                            collection: null,
-                        },
-                        isMutable: false,
-                        collectionDetails: null,
-                    },
-                },
-            );
-            const tx = new Transaction().add(
-                SystemProgram.createAccount({
-                    fromPubkey: publicKey,
-                    newAccountPubkey: mintKeypair.publicKey,
-                    space: MINT_SIZE,
-                    lamports,
-                    programId: TOKEN_PROGRAM_ID,
-                }),
-
-                createInitializeMintInstruction(
-                    mintKeypair.publicKey,
-                    Number(tokenDecimals),
-                    publicKey,
-                    publicKey,
-                    TOKEN_PROGRAM_ID,
-                ),
-                createAssociatedTokenAccountInstruction(
-                    publicKey,
-                    tokenATA,
-                    publicKey,
-                    mintKeypair.publicKey,
-                ),
-                createMintToInstruction(
-                    mintKeypair.publicKey,
-                    tokenATA,
-                    publicKey,
-                    tokenAmount * Math.pow(10, tokenDecimals),
-                ),
-                createMetadataInstruction
-
-            );
-            const signature = await sendTransaction(tx, connection, {
-                signers: [mintKeypair],
-            });
-            setTokenMintAddress(mintKeypair.publicKey.toString());
-            toast.success(`Token created: ${mintKeypair.publicKey.toString()} signature: ${signature}`);
-        } catch (error) {
-            if (error instanceof Error) {
-                toast.error(error.message);
-            } else {
-                toast.error(JSON.stringify(error));
+        const TokenMetadata = {
+            "name": formData.tokenName,
+            "symbol": formData.tokenSymbol,
+            "image": uploadedImageUrl,
+            "description": formData.tokenDescription,
+            "extensions": {
+                "website": formData.websiteUrl,
+                "twitter": formData.twitterUrl,
+                "telegram": formData.telegramUrl,
+                "discord": formData.discordUrl
+            },
+            // "tags": [],
+            "creator": {
+                "name": "MEVARIK LABS(Market Manipulation Tool)",
+                "site": "https://mevarik.com"
             }
         }
-        setIsLoading(false);
+        createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+
+
     }, [
-        tokenAmount,
-        publicKey,
-        connection,
-        tokenDecimals,
-        formData.tokenName,
-        formData.tokenSymbol,
-        tokenUri,
-        sendTransaction,
+        uploadedImageUrl,
+        formData,
+        connection, publicKey,
+        sendTransaction
     ]);
 
     const setImageandsymbol = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -440,8 +359,8 @@ const CreateToken: FC = () => {
                             <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row ">
                                 <div className="flex gap-4 justify-center items-center  ">
                                     {uploadedImage || image ?
-                                        <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center" alt="" /> :
-                                        <div className="w-[65px] h-[65px] bg-green-700 rounded-full flex justify-center items-center">S</div>}
+                                        <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
+                                        <div className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center">S</div>}
                                     <div className="">
                                         <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
                                         <p className="font-light ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
@@ -563,7 +482,7 @@ const CreateToken: FC = () => {
                                 Generate a token. In this process, you can get a token mint address.</p>
                             <button
                                 className="invoke-btn w-full"
-                                onClick={(event) => createToken(event)}
+                                onClick={(event) => createTokenCallback(event)}
                                 disabled={uploading}
                             >
                                 Create token

@@ -39,7 +39,7 @@ export const createImageFromInitials = (name) => {
   context.fillStyle = color;
   context.textBaseline = "middle";
   context.textAlign = "center";
-  context.font = `${size / 3}px Roboto`;
+  context.font = `${size / 3}px monospace`;
   context.fillText(name, size / 2, size / 2);
 
   return canvas.toDataURL();
