@@ -38,7 +38,7 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link href="/">
-            <h1 className="flex items-center text-lg font-semibold text-white">
+            <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
               <JupiterLogo />
               <span className="ml-3">Mevarik Labs</span>
             </h1>
