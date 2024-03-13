@@ -117,3 +117,4 @@ body {
 .toast-container .Toastify__toast {
   @apply bg-[#010409] text-white border-2 border-neutral-900 hover:border-l-[#ffffff] rounded-r-xl;
 }
+
