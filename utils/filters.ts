@@ -1,4 +1,4 @@
-import { SerumMarketInfo } from "../hooks/useSerumMarkets";
+import { SerumMarketInfo } from "./hooks/useSerumMarkets";
 
 export const serumMarketFilter = (
   regexp: RegExp,

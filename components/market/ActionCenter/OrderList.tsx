@@ -1,4 +1,4 @@
-import { useMarket } from "../../../context/market";
+import { useMarket } from "../../context/market";
 import { OrderListItem } from "./OrderListItem";
 
 export const OrderList = () => {

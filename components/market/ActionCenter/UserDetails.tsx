@@ -1,7 +1,7 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useSolana } from "../../../context";
-import { useMarket } from "../../../context/market";
-import { useTokenBalance } from "../../../hooks";
+import { useSolana } from "../../context";
+import { useMarket } from "../../context/market";
+import { useTokenBalance } from "../../../utils/hooks";
 import { getExplorerAccountLink } from "../../../utils/general";
 import { tokenAtomicsToPrettyDecimal } from "../../../utils/numerical";
 import BN from "bn.js";

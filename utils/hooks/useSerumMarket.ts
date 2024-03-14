@@ -3,7 +3,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
 import useSWR from "swr";
-import { useSerum } from "../context/SerumContext";
+import { useSerum } from "../../components/context/SerumContext";
 
 const fetcher = async ({
   marketAddress,

@@ -1,6 +1,6 @@
 import create from "zustand";
 import { persist } from "zustand/middleware";
-import { DEX_PROGRAMS } from "../utils/constants";
+import { DEX_PROGRAMS } from "../constants";
 
 export interface ProgramStore {
   pinnedPrograms: string[];

@@ -10,18 +10,15 @@ import {
 import { SearcherClient } from "jito-ts/dist/sdk/block-engine/searcher";
 import { Bundle } from "jito-ts/dist/sdk/block-engine/types";
 import { isError } from "jito-ts/dist/sdk/block-engine/utils";
-import { buildSimpleTransaction } from "@raydium-io/raydium-sdk";
+import { InnerSimpleV0Transaction, buildSimpleTransaction } from "@raydium-io/raydium-sdk";
 
 import {
-  jito_auth_keypair,
-  LP_wallet_keypair,
-  swap_wallet_keypair,
-  wallet_2_pay_jito_fees_keypair,
+  // jito_auth_keypair,
   connection,
   addLookupTableInfo,
   makeTxVersion,
 } from "../removeLiquidity/config";
-import { BundleResult } from "jito-ts/dist/gen/block-engine/bundle";
+// import { BundleResult } from "jito-ts/dist/gen/block-engine/bundle";
 
 const MEMO_PROGRAM_ID = "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo";
 
@@ -30,16 +27,18 @@ export async function build_bundle(
   // accounts: PublicKey[],
   // regions: string[],
   bundleTransactionLimit: number,
-  lp_ix,
-  swap_ix,
-  conn: Connection
+  lp_ix: InnerSimpleV0Transaction[],
+  swap_ix: InnerSimpleV0Transaction[],
+  conn: Connection,
+  buyerkeypair: Keypair,
+  deployerkeypair: Keypair
 ) {
   const _tipAccount = (await search.getTipAccounts())[0];
   console.log("tip account:", _tipAccount);
   const tipAccount = new PublicKey(_tipAccount);
 
-  let message1 = "First TXN";
-  let message2 = "Second TXN";
+  // let message1 = "First TXN";
+  // let message2 = "Second TXN";
 
   const bund = new Bundle([], bundleTransactionLimit);
   const resp = await connection.getLatestBlockhash("processed");
@@ -47,7 +46,7 @@ export async function build_bundle(
   const willSendTx1 = await buildSimpleTransaction({
     connection,
     makeTxVersion,
-    payer: LP_wallet_keypair.publicKey,
+    payer: deployerkeypair.publicKey,
     innerTransactions: lp_ix,
     addLookupTableInfo: addLookupTableInfo,
   });
@@ -55,19 +54,19 @@ export async function build_bundle(
   const willSendTx2 = await buildSimpleTransaction({
     connection,
     makeTxVersion,
-    payer: swap_wallet_keypair.publicKey,
+    payer: buyerkeypair.publicKey,
     innerTransactions: swap_ix,
     addLookupTableInfo: addLookupTableInfo,
   });
 
   if (willSendTx1[0] instanceof VersionedTransaction) {
-    willSendTx1[0].sign([LP_wallet_keypair]);
+    willSendTx1[0].sign([deployerkeypair]);
     // txids.push(await connection.sendTransaction(iTx, options));
     bund.addTransactions(willSendTx1[0]);
   }
 
   if (willSendTx2[0] instanceof VersionedTransaction) {
-    willSendTx2[0].sign([swap_wallet_keypair]);
+    willSendTx2[0].sign([buyerkeypair]);
     // txids.push(await connection.sendTransaction(iTx, options));
     bund.addTransactions(willSendTx2[0]);
   }
@@ -80,8 +79,8 @@ export async function build_bundle(
   //   buildMemoTransaction(swap_wallet_keypair, resp.blockhash, message2)
   // );
 
-  let maybeBundle = bund.addTipTx(
-    wallet_2_pay_jito_fees_keypair,
+  const maybeBundle = bund.addTipTx(
+    buyerkeypair,
     1000,
     tipAccount,
     resp.blockhash
@@ -127,7 +126,7 @@ export const onBundleResult = (c: SearcherClient): Promise<number> => {
         // clearTimeout(timeout); // Clear the timeout if a bundle is accepted
 
 
-        const bundleId = result.bundleId;
+        // const bundleId = result.bundleId;
         const isAccepted = result.accepted;
         const isRejected = result.rejected;
         if (isResolved == false) {
@@ -137,7 +136,7 @@ export const onBundleResult = (c: SearcherClient): Promise<number> => {
               "bundle accepted, ID:",
               result.bundleId,
               " Slot: ",
-              result.accepted.slot
+              result.accepted?.slot ?? 0
             );
             first += 1;
             isResolved = true;

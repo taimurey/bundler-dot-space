@@ -25,9 +25,10 @@ import {
 import { NFT_STORAGE_TOKEN, tokenData } from "../removeLiquidity/config";
 import { toast } from "react-toastify";
 import { NFTStorage } from "nft.storage";
+import { sendSignedTransaction, signTransaction } from "../../utils/transaction";
 
 
-export async function createToken(tokenInfo: tokenData, connection: Connection, tokenMetadata: any, keypairpubkey: PublicKey, sendTransaction: any) {
+export async function createToken(tokenInfo: tokenData, connection: Connection, tokenMetadata: any, keypairpubkey: PublicKey, wallet: any) {
     const metadata = await uploadMetaData(tokenMetadata);
     const lamports = await getMinimumBalanceForRentExemptMint(connection);
     const mintKeypair = Keypair.generate();
@@ -121,31 +122,66 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         createNewTokenTransaction.add(revokeFreeze);
     }
 
-    if (tokenInfo.revokeMetadataUpdateAuthority) {
-        const revokeMetadata = createSetAuthorityInstruction(
-            mintKeypair.publicKey, // mint acocunt || token account
-            myPublicKey, // current auth
-            AuthorityType.AccountOwner, // authority type
-            null
-        );
+    // if (tokenInfo.revokeMetadataUpdateAuthority) {
+    //     const revokeMetadata = createSetAuthorityInstruction(
+    //         mintKeypair.publicKey, // mint acocunt || token account
+    //         myPublicKey, // current auth
+    //         AuthorityType.AccountOwner, // authority type
+    //         null
+    //     );
 
-        createNewTokenTransaction.add(revokeMetadata);
-    }
+    //     createNewTokenTransaction.add(revokeMetadata);
+    // }
 
+    console.log("Wallet is: ", wallet);
+    console.log("mintKeypair is: ", mintKeypair);
+    const signedTx = await signTransaction({
+        transaction: createNewTokenTransaction,
+        wallet,
+        signers: [mintKeypair],
+        connection,
+    });
 
-    const {
-        context: { slot: minContextSlot },
-        value: { blockhash, lastValidBlockHeight },
-    } = await connection.getLatestBlockhashAndContext();
+    await sendSignedTransaction({
+        signedTransaction: signedTx,
+        connection,
+        skipPreflight: false,
+        sendingCallback: async () => {
+            toast.info(`Minting  tokens...`, { autoClose: 2000 });
+        },
+        successCallback: async (txSig: string) => {
+            toast(() => (
+                toast.info(`Successfully minted tokens.`),
+                toast.success(`Transaction successful! ${txSig}`)
+            ));
+        },
 
-    const signature = await sendTransaction(createNewTokenTransaction, connection, { minContextSlot });
-    toast.info(`Transaction sent: ${signature}`);
-    await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-    toast.success(`Transaction successful! ${signature}`);
+        // successCallback: async (txSig: string) => {
+        //     toast.info(`Successfully minted ${data.amount} tokens.`);
+        //     toast(() => (
+        //         <TransactionToast
+        //             txSig= { txSig }
+        //             message = {`Successfully minted ${data.amount} tokens.`}
+        //         />
+        //     ));
+        // }
+    });
 
-    console.log("Token mint transaction sent. Signature:", signature);
-    console.log("Token Created : ", tokenInfo);
-    console.log("Token Mint Address :", mintKeypair.publicKey.toString());
+    // toast.info("Signing and sending transaction")
+    // const {
+    //     context: { slot: minContextSlot },
+    //     value: { blockhash, lastValidBlockHeight },
+    // } = await connection.getLatestBlockhashAndContext();
+    // try {
+    //     const signature = await sendTransaction(createNewTokenTransaction, connection, { minContextSlot });
+    //     toast.info(`Transaction sent: ${signature}`);
+    //     await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    //     toast.success(`Transaction successful! ${signature}`);
+    // } catch (error: any) {
+    //     console.error('Error with transaction:', error);
+    //     toast.error(`Transaction failed: ${error.message}`);
+    // }
+    // TransactionToast = ({ txSig: mintKeypair, message: "Transaction successful!" });
 
     return mintKeypair.publicKey;
 }

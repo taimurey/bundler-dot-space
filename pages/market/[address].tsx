@@ -1,15 +1,15 @@
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
-import { useSerumMarket } from "../../hooks/useSerumMarket";
+import { useSerumMarket } from "../../utils/hooks/useSerumMarket";
 
 import { EventQueueCard } from "../../components/market/EventQueue";
-import { MarketProvider } from "../../context/market";
+import { MarketProvider } from "../../components/context/market";
 import { TokenDisplay } from "../../components/market/TokenDisplay";
 import { OverviewTable } from "../../components/market/OverviewTable";
 import { VaultDisplay } from "../../components/market/Vault";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { ActionCenter } from "../../components/market/ActionCenter";
-import { useSolana } from "../../context";
+import { useSolana } from "../../components/context";
 import { getSearchLayout } from "../../components/layouts/SearchLayout";
 
 const MarketPage = () => {

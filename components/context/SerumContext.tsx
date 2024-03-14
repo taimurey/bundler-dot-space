@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { toast } from "react-toastify";
-import { OPENBOOK_DEX } from "../utils/constants";
+import { OPENBOOK_DEX } from "../../utils/constants";
 
 type ProgramContextType = {
   programID: PublicKey;

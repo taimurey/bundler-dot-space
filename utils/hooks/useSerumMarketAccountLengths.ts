@@ -10,7 +10,7 @@ import {
   ORDERBOOK_NODE_SIZE,
   REQUEST_QUEUE_HEADER_SIZE,
   REQUEST_SIZE,
-} from "../utils/serum";
+} from "../serum";
 
 type useSerumMarketAccountLengthsProps = {
   eventQueueAddress?: PublicKey;

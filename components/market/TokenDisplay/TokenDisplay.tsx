@@ -1,4 +1,4 @@
-import { useMarket } from "../../../context/market";
+import { useMarket } from "../../context/market";
 
 export const TokenDisplay = () => {
   const { baseMetadata, quoteMetadata } = useMarket();

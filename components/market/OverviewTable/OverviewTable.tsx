@@ -1,6 +1,6 @@
-import { useSolana } from "../../../context";
-import { useMarket } from "../../../context/market";
-import useSerumMarketAccountLengths from "../../../hooks/useSerumMarketAccountLengths";
+import { useSolana } from "../../context";
+import { useMarket } from "../../context/market";
+import useSerumMarketAccountLengths from "../../../utils/hooks/useSerumMarketAccountLengths";
 import { getExplorerAccountLink } from "../../../utils/general";
 import { DataTable, DataTableRow } from "../../common/DataTable";
 

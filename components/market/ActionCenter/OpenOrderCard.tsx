@@ -1,7 +1,7 @@
 import { MouseEventHandler, useMemo, useState } from "react";
 import { DexInstructions, OpenOrders } from "@project-serum/serum";
-import { useSerum, useSolana } from "../../../context";
-import { useMarket } from "../../../context/market";
+import { useSerum, useSolana } from "../../context";
+import { useMarket } from "../../context/market";
 import {
   getExplorerAccountLink,
   getExplorerLink,

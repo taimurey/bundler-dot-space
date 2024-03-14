@@ -7,7 +7,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import TransactionToast from "../../../components/common/Toasts/TransactionToast";
 import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
-import { useSerum } from "../../../context";
+import { useSerum } from "../../../components/context";
 import { validatePubkey } from "../../../utils/pubkey";
 import { getVaultOwnerAndNonce } from "../../../utils/serum";
 import { validateMint, validateTokenAccount } from "../../../utils/token";

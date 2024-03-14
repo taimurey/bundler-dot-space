@@ -1,6 +1,6 @@
 import { Market } from "@project-serum/serum";
 import { useMemo } from "react";
-import { useSerum } from "../context";
+import { useSerum } from "../../components/context";
 import {
   calculateTotalAccountSize,
   EVENT_QUEUE_HEADER_SIZE,
@@ -9,7 +9,7 @@ import {
   ORDERBOOK_NODE_SIZE,
   REQUEST_QUEUE_HEADER_SIZE,
   REQUEST_SIZE,
-} from "../utils/serum";
+} from "../serum";
 import useRentExemption from "./useRentExemption";
 
 type useSerumMarketAccountSizesProps = {

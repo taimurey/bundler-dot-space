@@ -1,4 +1,4 @@
-const getInitials = (name) => {
+export const getInitials = (name) => {
     let initials;
     const nameSplit = name.split(" ");
     const nameLength = nameSplit.length;

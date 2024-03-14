@@ -1,29 +1,25 @@
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import { createImageFromInitials } from "../../../helpers/common/createImage"
+import { createImageFromInitials } from "../../../components/helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { useNetworkConfiguration } from "../../../context/NetworkConfigurationProvider";
+import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
-import { useSolana } from "../../../context";
 import { createToken } from "../../../components/TransactionUtils/token";
-import { Connection } from "@solana/web3.js";
 import { NFT_STORAGE_TOKEN } from "../../../components/removeLiquidity/config";
 import { Button } from "@solana/wallet-adapter-react-ui/lib/types/Button";
 
-
 const CreateToken: FC = () => {
-    const { cluster } = useSolana();
-    const connection = new Connection(cluster.endpoint);
-    const { publicKey, sendTransaction } = useWallet();
+    const { connection } = useConnection();
+    const { publicKey } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-
+    const wallet = useWallet();
     const [formData, setFormData] = useState({
         tokenName: "",
         tokenSymbol: "",
@@ -51,6 +47,7 @@ const CreateToken: FC = () => {
     const client = new NFTStorage({ token: NFT_STORAGE_TOKEN });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
+    const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
 
 
@@ -73,7 +70,6 @@ const CreateToken: FC = () => {
 
 
 
-    let uploadedImageUrl = '';
 
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +113,7 @@ const CreateToken: FC = () => {
                     setUploadedImage(httpUrl);
                     console.log(httpUrl, "ASCsdcasdcs");
                     console.log(httpUrl);
-                    uploadedImageUrl = httpUrl;
+                    setUploadedImageUrl(httpUrl);
                 } catch (error) {
                     console.error('Error uploading file:', error);
                 } finally {
@@ -129,45 +125,14 @@ const CreateToken: FC = () => {
         }
     };
 
-
-    // const createTokenCallback = useCallback(async (e: any) => {
-    //     e.preventDefault();
-    //     console.log("Csadcfasc")
-    //     if (!publicKey) {
-    //         toast.error("Wallet not connected");
-    //         return;
-    //     }
-    //     const TokenMetadata = {
-    //         "name": formData.tokenName,
-    //         "symbol": formData.tokenSymbol,
-    //         "image": uploadedImageUrl,
-    //         "description": formData.tokenDescription,
-    //         "extensions": {
-    //             "website": formData.websiteUrl,
-    //             "twitter": formData.twitterUrl,
-    //             "telegram": formData.telegramUrl,
-    //             "discord": formData.discordUrl
-    //         },
-    //         // "tags": [],
-    //         "creator": {
-    //             "name": "MEVARIK LABS(Market Manipulation Tool)",
-    //             "site": "https://mevarik.com"
-    //         }
-    //     }
-    //     createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
-
-
-    // }, [
-    //     uploadedImageUrl,
-    //     formData,
-    //     connection, publicKey,
-    //     sendTransaction
-    // ]);
     const createTokenCallback = async (e: any) => {
         e.preventDefault();
-        console.log("Csadcfasc");
         if (!publicKey) {
             toast.error("Wallet not connected");
+            return;
+        }
+        if (!uploadedImageUrl) {
+            toast.error("Please upload an image");
             return;
         }
         const TokenMetadata = {
@@ -186,7 +151,8 @@ const CreateToken: FC = () => {
                 "site": "https://mevarik.com"
             }
         };
-        createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+        toast.info("Creating token...");
+        createToken(formData, connection, TokenMetadata, publicKey, wallet);
     };
 
 
@@ -527,10 +493,12 @@ const CreateToken: FC = () => {
                                 Generate a token. In this process, you can get a token mint address.</p>
                             <button
                                 className="invoke-btn w-full custom-button"
-                                type="submit"
                                 disabled={uploading}
+                                onClick={createTokenCallback}
                             >
-                                Create token
+                                <span className="btn-text-gradient">
+                                    {uploading ? <span className="italic font-i ellipsis">Uploading Metadata</span> : 'Create token'}
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -560,5 +528,4 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-
 

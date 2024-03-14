@@ -3,8 +3,8 @@ import { Order } from "@project-serum/serum/lib/market";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { MouseEventHandler, useState } from "react";
 import { toast } from "react-toastify";
-import { useSolana } from "../../../context";
-import { useMarket } from "../../../context/market";
+import { useSolana } from "../../context";
+import { useMarket } from "../../context/market";
 import {
   classNames,
   getExplorerAccountLink,
