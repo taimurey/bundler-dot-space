@@ -4,8 +4,8 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useSolana } from "../../../context";
-import { useMarket } from "../../../context/market";
+import { useSolana } from "../../context";
+import { useMarket } from "../../context/market";
 import { getExplorerLink } from "../../../utils/general";
 import { sendWalletTransaction } from "../../../utils/transaction";
 

@@ -1,4 +1,4 @@
-import { useMarket } from "../../../context/market";
+import { useMarket } from "../../context/market";
 import OpenOrderCard from "./OpenOrderCard";
 
 const OpenOrdersGrid = () => {

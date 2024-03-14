@@ -10,7 +10,7 @@ import WalletButton from '../WalletButton';
 import { Popover } from '@headlessui/react';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import SettingsPanel from '../SettingsPanel';
-import { useSerum } from '../../../context';
+import { useSerum } from '../../context';
 import { DEX_PROGRAMS } from '../../../utils/constants';
 import { prettifyPubkey } from '../../../utils/pubkey';
 

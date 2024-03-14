@@ -12,7 +12,7 @@ import {
   CUSTOM_RPC_CLUSTER,
   // useSerum,
   useSolana,
-} from "../../context";
+} from "../context";
 // import { DEX_PROGRAMS } from "../../utils/constants";
 // import { BookmarkIcon as BookmarkIconSolid } from "@heroicons/react/24/solid";
 // import {

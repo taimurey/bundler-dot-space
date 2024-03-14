@@ -1,7 +1,7 @@
 import { Tab } from "@headlessui/react";
 import { Event } from "@project-serum/serum/lib/queue";
 import { Fragment, useEffect, useState } from "react";
-import { useMarket } from "../../../context/market";
+import { useMarket } from "../../context/market";
 import { EventData } from "./EventData";
 import { EventList } from "./EventList";
 import { classNames } from "../../../utils/general";
@@ -64,9 +64,8 @@ export const EventQueueCard = () => {
                     tabIndex={tabIndex}
                   />
                   <ArrowPathIcon
-                    className={`h-5 w-5 cursor-pointer ${
-                      eventQueue.isValidating ? "animate-spin" : null
-                    }`}
+                    className={`h-5 w-5 cursor-pointer ${eventQueue.isValidating ? "animate-spin" : null
+                      }`}
                     onClick={() => eventQueue.mutate()}
                   />
                 </div>
@@ -77,9 +76,8 @@ export const EventQueueCard = () => {
                   No events to crank.
                 </p>
                 <ArrowPathIcon
-                  className={`h-5 w-5 cursor-pointer text-cyan-400 ${
-                    eventQueue.isValidating ? "animate-spin" : null
-                  }`}
+                  className={`h-5 w-5 cursor-pointer text-cyan-400 ${eventQueue.isValidating ? "animate-spin" : null
+                    }`}
                   onClick={() => eventQueue.mutate()}
                 />
               </div>

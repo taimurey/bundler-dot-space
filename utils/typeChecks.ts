@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SerumMarketInfo } from "../hooks/useSerumMarkets";
+import { SerumMarketInfo } from "./hooks/useSerumMarkets";
 
 export enum AccountTypes {
   SerumMarketInfo = "serum_market_info",

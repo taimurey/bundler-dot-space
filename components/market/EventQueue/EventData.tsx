@@ -1,5 +1,5 @@
 import { Event } from "@project-serum/serum/lib/queue";
-import { useMarket } from "../../../context/market";
+import { useMarket } from "../../context/market";
 import { tokenAtomicsToPrettyDecimal } from "../../../utils/numerical";
 import { DataTable, DataTableRow } from "../../common/DataTable";
 
@@ -59,30 +59,28 @@ export const EventData = ({ event }: EventDataProps) => {
         />
         <DataTableRow label={`Fee Tier`} value={event.feeTier.toString()} />
         <DataTableRow
-          label={`${
-            event.eventFlags.bid
+          label={`${event.eventFlags.bid
               ? quoteMetadata
                 ? quoteMetadata.data.data.symbol
                 : "Quote Tokens"
               : baseMetadata
-              ? baseMetadata.data.data.symbol
-              : "Base Tokens"
-          } Paid`}
+                ? baseMetadata.data.data.symbol
+                : "Base Tokens"
+            } Paid`}
           value={tokenAtomicsToPrettyDecimal(
             event.nativeQuantityPaid,
             event.eventFlags.bid ? quoteMint.decimals : baseMint.decimals
           )}
         />
         <DataTableRow
-          label={`${
-            event.eventFlags.bid
+          label={`${event.eventFlags.bid
               ? baseMetadata
                 ? baseMetadata.data.data.symbol
                 : "Quote Tokens"
               : quoteMetadata
-              ? quoteMetadata.data.data.symbol
-              : "Base Tokens"
-          }  Received`}
+                ? quoteMetadata.data.data.symbol
+                : "Base Tokens"
+            }  Received`}
           value={tokenAtomicsToPrettyDecimal(
             event.nativeQuantityReleased,
             event.eventFlags.bid ? baseMint.decimals : quoteMint.decimals

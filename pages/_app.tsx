@@ -2,8 +2,8 @@ import { NextPage } from "next";
 import { AppProps } from "next/app";
 import { FC } from "react";
 import "react-toastify/dist/ReactToastify.css";
-import { SerumProvider } from "../context/SerumContext";
-import { SolanaProvider } from "../context/SolanaContext";
+import { SerumProvider } from "../components/context/SerumContext";
+import { SolanaProvider } from "../components/context/SolanaContext";
 import GlobalStyles from "../styles/GlobalStyles";
 import { ToastContainer, toast } from "react-toastify";
 

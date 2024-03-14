@@ -14,7 +14,7 @@ import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
-import { useSolana } from '../../../context';
+import { useSolana } from '../../../components/context';
 import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 

@@ -2,7 +2,7 @@ import { KeyIcon } from "@heroicons/react/24/outline";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { FC, useRef, useState } from "react";
-import { useOutsideAlerter } from "../../hooks/useOutsideAlerter";
+import { useOutsideAlerter } from "../../utils/hooks/useOutsideAlerter";
 import { copyTextToClipboard } from "../../utils/general";
 
 const WalletButton: FC = () => {

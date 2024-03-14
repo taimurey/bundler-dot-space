@@ -9,7 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { SerumMarketInfo, useSerumMarkets } from "../../hooks/useSerumMarkets";
+import { SerumMarketInfo, useSerumMarkets } from "../../utils/hooks/useSerumMarkets";
 import { serumMarketFilter } from "../../utils/filters";
 import { prettifyPubkey } from "../../utils/pubkey";
 import debounce from "lodash.debounce";

@@ -32,7 +32,7 @@ import ExistingMintForm from "../../../components/createMarket/ExistingMintForm"
 import NewMintForm from "../../../components/createMarket/NewMintForm";
 import TickerForm from "../../../components/createMarket/TickerForm";
 import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
-import { useSerum } from "../../../context";
+import { useSerum } from "../../../components/context";
 import { tokenAtomicsToPrettyDecimal } from "../../../utils/numerical";
 import {
   EVENT_QUEUE_LENGTH,
@@ -45,8 +45,8 @@ import {
   signTransactions,
   TransactionWithSigners,
 } from "../../../utils/transaction";
-import useSerumMarketAccountSizes from "../../../hooks/useSerumMarketAccountSizes";
-import useRentExemption from "../../../hooks/useRentExemption";
+import useSerumMarketAccountSizes from "../../../utils/hooks/useSerumMarketAccountSizes";
+import useRentExemption from "../../../utils/hooks/useRentExemption";
 
 const TRANSACTION_MESSAGES = [
   {

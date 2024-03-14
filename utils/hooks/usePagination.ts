@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isSerumMarketInfo } from "../utils/typeChecks";
+import { isSerumMarketInfo } from "../typeChecks";
 
 //crayz hook
 export const usePagination = <T>(
