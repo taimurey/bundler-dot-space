@@ -11,7 +11,7 @@ import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { createToken } from "../../../components/TransactionUtils/token";
 import Link from "next/link";
-import { FormEvent } from 'react';
+// import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
