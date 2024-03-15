@@ -1,5 +1,4 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import Link from "next/link";
 import { createImageFromInitials } from "../../../components/helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
@@ -11,8 +10,8 @@ import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { createToken } from "../../../components/TransactionUtils/token";
-import { NFT_STORAGE_TOKEN } from "../../../components/removeLiquidity/config";
-
+import Link from "next/link";
+import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -44,7 +43,10 @@ const CreateToken: FC = () => {
     const [isLoading] = useState(false);
     const [tags,] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
-    const client = new NFTStorage({ token: NFT_STORAGE_TOKEN });
+    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
+        throw new Error('NFT_STORAGE is not defined');
+    }
+    const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
@@ -65,7 +67,6 @@ const CreateToken: FC = () => {
                 [field]: value,
             }));
         }
-        console.log(formData, "form data")
     };
 
 
@@ -135,22 +136,39 @@ const CreateToken: FC = () => {
             toast.error("Please upload an image");
             return;
         }
-        const TokenMetadata = {
+        const TokenMetadata: any = {
             "name": formData.tokenName,
             "symbol": formData.tokenSymbol,
             "image": uploadedImageUrl,
-            "description": formData.tokenDescription,
-            "extensions": {
-                "website": formData.websiteUrl,
-                "twitter": formData.twitterUrl,
-                "telegram": formData.telegramUrl,
-                "discord": formData.discordUrl
-            },
             "creator": {
                 "name": "MEVARIK LABS(Market Manipulation Tool)",
                 "site": "https://mevarik.com"
             }
         };
+
+        // Conditionally add description if it exists
+        if (formData.tokenDescription) {
+            TokenMetadata.description = formData.tokenDescription;
+        }
+
+        // Conditionally add extensions if any of them exist
+        const extensions = {
+            "website": formData.websiteUrl,
+            "twitter": formData.twitterUrl,
+            "telegram": formData.telegramUrl,
+            "discord": formData.discordUrl
+        };
+
+        for (const [key, value] of Object.entries(extensions)) {
+            if (value) {
+                if (!TokenMetadata.extensions) {
+                    TokenMetadata.extensions = {};
+                }
+                TokenMetadata.extensions[key] = value;
+            }
+        }
+
+        console.log(TokenMetadata, "TokenMetadata")
         toast.info("Creating token...");
         createToken(formData, connection, TokenMetadata, publicKey, wallet);
     };
@@ -163,8 +181,11 @@ const CreateToken: FC = () => {
         handleChange(e, "tokenSymbol")
     }
 
+
+
     return (
         <div className="divide-y divide-neutral-700 ">
+
 
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
@@ -173,7 +194,7 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <form className="py-4  flex bg-[] gap-8 flex-col lg:flex-row" onSubmit={createTokenCallback}>
+                <form className="py-4  flex bg-[] gap-8 flex-col lg:flex-row" onSubmit={createTokenCallback} id="form">
                     <div className="lg:w-1/2  ">
                         <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
                         <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
@@ -478,9 +499,9 @@ const CreateToken: FC = () => {
                                 )}
                                 <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Create Market</p>
-                                    <div className="invoke-btn-secondary">
+                                    <div className="secondary-btn">
                                         <Link href="/market/create">
-                                            <button className="">Create openbook Market</button>
+                                            <button className="">Openbook Market Creation</button>
                                         </Link>
                                     </div>
 
@@ -494,7 +515,10 @@ const CreateToken: FC = () => {
                             <button
                                 className="invoke-btn w-full custom-button"
                                 disabled={uploading}
+                                type="submit"
+                                id="formbutton"
                                 onClick={createTokenCallback}
+
                             >
                                 <span className="btn-text-gradient">
                                     {uploading ? <span className="italic font-i ellipsis">Uploading Metadata</span> : 'Create token'}
@@ -517,9 +541,10 @@ const CreateToken: FC = () => {
                     </a>
                 </div>
 
-            )}
+            )
+            }
 
-        </div>
+        </div >
     );
 
 
@@ -528,4 +553,3 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-

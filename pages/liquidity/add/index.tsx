@@ -15,12 +15,12 @@ import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
-import axios, { AxiosError } from 'axios';
+// import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
+//import encryptWithPublicKey from '../../../components/Encryptor/encryption';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
-
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
@@ -35,9 +35,6 @@ const LiquidityHandlerRaydium = () => {
         Wallet1: "N/A",
         Wallet2: "N/A",
     });
-
-
-
 
     const [formData, setFormData] = useState({
         buyerPrivateKey: '',
@@ -82,7 +79,7 @@ const LiquidityHandlerRaydium = () => {
 
             setFormData(prevState => ({
                 ...prevState,
-                deployerPrivateKey: wallet.publicKey.toString(),
+                deployerPrivateKey: wallet.secretKey.toString(),
             }));
         }
     };
@@ -96,7 +93,7 @@ const LiquidityHandlerRaydium = () => {
         setBuyerKeypair(secretKey);
         setFormData(prevState => ({
             ...prevState,
-            buyerPrivateKey: keypair.publicKey.toString(),
+            // buyerPrivateKey: encryptWithPublicKey(process.env.NEXT_PUBLIC_KEY_RSA, keypair.secretKey.toString()),
         }));
         setWallets({
             Wallet1: `${keypair.publicKey.toString()}`,
@@ -139,21 +136,21 @@ const LiquidityHandlerRaydium = () => {
 
     const handlesubmission = async (e: any) => {
         e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:3001/jitoadd', formData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            console.log('Data submitted successfully');
-            console.log('Response:', response.data);
-        } catch (error) {
-            const axiosError = error as AxiosError;
-            console.error('An error occurred:', axiosError.response?.data);
-            if (axiosError.response && axiosError.response.status === 500) {
-                toast.error('Error occured, Make sure the details are correct');
-            }
-        }
+        // try {
+        //     const response = await axios.post('http://localhost:3001/jitoadd', formData, {
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //     });
+        //     console.log('Data submitted successfully');
+        //     console.log('Response:', response.data);
+        // } catch (error) {
+        //     const axiosError = error as AxiosError;
+        //     console.error('An error occurred:', axiosError.response?.data);
+        //     if (axiosError.response && axiosError.response.status === 500) {
+        //         toast.error('Error occured, Make sure the details are correct');
+        //     }
+        // }
     }
 
     return (

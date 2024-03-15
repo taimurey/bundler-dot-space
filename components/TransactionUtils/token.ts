@@ -22,7 +22,7 @@ import {
     PROGRAM_ID,
 }
     from "@metaplex-foundation/mpl-token-metadata";
-import { NFT_STORAGE_TOKEN, tokenData } from "../removeLiquidity/config";
+import { tokenData } from "../removeLiquidity/config";
 import { toast } from "react-toastify";
 import { NFTStorage } from "nft.storage";
 import { sendSignedTransaction, signTransaction } from "../../utils/transaction";
@@ -188,7 +188,10 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
 
 async function uploadMetaData(metadata: any) {
     const endpoint = new URL('https://api.nft.storage');
-    const storage = new NFTStorage({ endpoint, token: NFT_STORAGE_TOKEN });
+    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
+        throw new Error('NEXT_PUBLIC_NFT_STORAGE_TOKEN is not defined');
+    }
+    const storage = new NFTStorage({ endpoint, token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
     // Store image
     // const data = await fs.promises.readFile('./image.png')
     //const cid1 = await storage.storeBlob(new Blob([data]))
