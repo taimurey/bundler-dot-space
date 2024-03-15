@@ -10,7 +10,7 @@ import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { createToken } from "../../../components/TransactionUtils/token";
-import { NFT_STORAGE_TOKEN } from "../../../components/removeLiquidity/config";
+import Link from "next/link";
 import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
@@ -43,7 +43,10 @@ const CreateToken: FC = () => {
     const [isLoading] = useState(false);
     const [tags,] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
-    const client = new NFTStorage({ token: NFT_STORAGE_TOKEN });
+    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
+        throw new Error('NFT_STORAGE is not defined');
+    }
+    const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
     const [uploading, setUploading] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
@@ -496,11 +499,11 @@ const CreateToken: FC = () => {
                                 )}
                                 {/* <div className="flex  gap-8 py-4">
                                     <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Create Market</p>
-                                    {/* <div className="invoke-btn-secondary"> */}
-                                {/* <Link href="/market/create">
-                                            <p className="">Create openbook Market</p>
-                                        </Link> */}
-                                {/* </div> */}
+                                    <div className="secondary-btn">
+                                        <Link href="/market/create">
+                                            <button className="">Openbook Market Creation</button>
+                                        </Link>
+                                    </div>
 
                                 {/* </div> */}
                             </div>
@@ -525,21 +528,21 @@ const CreateToken: FC = () => {
                 </div>
                 </form>
 
-    ) : (
-        <div className="mt-4 break-words">
-            <p className="font-medium">Link to your new token.</p>
-            <a
-                className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
-                href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
-                target="_blank"
-                rel="noreferrer"
-            >
-                {tokenMintAddress}
-            </a>
-        </div>
+            ) : (
+                <div className="mt-4 break-words">
+                    <p className="font-medium">Link to your new token.</p>
+                    <a
+                        className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
+                        href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        {tokenMintAddress}
+                    </a>
+                </div>
 
-    )
-}
+            )
+            }
 
         </div >
     );
@@ -550,4 +553,3 @@ const CreateToken: FC = () => {
 
 
 export default CreateToken;
-

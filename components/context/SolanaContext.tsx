@@ -48,9 +48,7 @@ export const CLUSTERS: SolanaCluster[] = [
   {
     label: "Mainnet Beta",
     network: "mainnet-beta",
-    // endpoint:
-    //   process.env.NEXT_PUBLIC_MAINNET_URL || clusterApiUrl("mainnet-beta"),
-    endpoint: "https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7",
+    endpoint: process.env.NEXT_PUBLIC_MAINNET_URL ? process.env.NEXT_PUBLIC_MAINNET_URL : (() => { throw new Error("NEXT_PUBLIC_MAINNET_URL is not set") })()
   },
   //{
   //  label: "Testnet",

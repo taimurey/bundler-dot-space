@@ -15,7 +15,7 @@ import {
 } from '@solana/web3.js';
 import base58 from 'bs58';
 
-export const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7');
+export const connection = new Connection(process.env.NEXT_PUBLIC_MAINNET_URL ? process.env.NEXT_PUBLIC_MAINNET_URL : (() => { throw new Error("NEXT_PUBLIC_MAINNET_URL is not set") })());
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
@@ -36,7 +36,6 @@ export const DEFAULT_TOKEN = {
 }
 
 
-export const NFT_STORAGE_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDIxZTYwQ2VlQjc5YTlmZTFFQzM1NjhBZkEwMDNFM2Q1MmVCODU4YWQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwODc5MTgyMTg2MiwibmFtZSI6Ik1pbnRlclRva2VuIn0.6h3W2Y9X0WYEioBZhA0va-TqYBT95O48hfxT-y6Fi6I';
 
 
 // define these
@@ -49,7 +48,6 @@ const LP_wallet_private_key = "aaaaaaaaaaaaaaaa";
 
 // const swap_wallet_private_key = "aaaaaaaaaaaaaaaa";
 
-export const rpc_https_url = "https://mainnet.helius-rpc.com/?api-key=d9e80c44-bc75-4139-8cc7-084cefe506c7";
 
 
 // export const market_id = new PublicKey("aaaaaaaaaaaaaaaaaaag6snCe2iUR3A");
@@ -85,23 +83,8 @@ export function LP_wallet_keypair() {
 
 export const lookupTableCache = {}
 
+export const PUBLIC_KEY_RSA = process.env.NEXT_PUBLIC_KEY_RSA ? process.env.NEXT_PUBLIC_KEY_RSA : (() => { throw new Error("PUBLIC_KEY_RSA is not set") })()
 
-// const [formData, setFormData] = useState({
-//   tokenName: "",
-//   tokenSymbol: "",
-//   tokenDescription: "",
-//   iconUrl: "",
-//   websiteUrl: "",
-//   twitterUrl: "",
-//   telegramUrl: "",
-//   discordUrl: "",
-//   tokenDecimals: "",
-//   supply: "",
-//   uploadedImage: uploadedImage,
-//   freezeAuthority: false,
-//   revokeMintAuthority: false,
-//   revokeMetadataUpdateAuthority: false
-// });
 
 
 export interface tokenData {

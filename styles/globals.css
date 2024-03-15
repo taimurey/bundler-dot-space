@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-[#11171f] text-white ;
+  @apply bg-[#11171f] text-white;
   /* background-image: linear-gradient(0deg, transparent 24px, rgba(255, 255, 255, 0.1) 5px, transparent 26px),
     linear-gradient(90deg, transparent 24px, rgba(255, 255, 255, 0.1) 5px, transparent 26px); */
   /* background-size: 330px 330px, 330px 330px, 400px 400px;
@@ -47,7 +47,7 @@ body {
   @apply font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
 }
 
-.btn-text-gradient{
+.btn-text-gradient {
   @apply bg-gradient-to-r from-[#5cf3ac] to-[#f0b661] bg-clip-text text-transparent;
 }
 
@@ -65,7 +65,7 @@ body {
 
 
 .settings__connect-btn {
-  @apply font-bold rounded-lg bg-[#2c3135] border-[#00ffdd34] border duration-300 ease-in-out ;
+  @apply font-bold rounded-lg bg-[#2c3135] border-[#00ffdd34] border duration-300 ease-in-out;
   isolation: isolate;
 }
 
@@ -91,19 +91,8 @@ body {
 
 
 
-.invoke-btn-secondary {
-  @apply font-bold rounded-md h-[30px] px-5 flex justify-center items-center text-[16px];
-  background: linear-gradient(to right, #5ceef3 50%, #4441fd 100%);
-  border: 1px solid #535353;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: background-image 0.5s ease-in-out, border-image 2s ease-in-out, border-radius 0.5s ease-in-out;
-}
-
-.invoke-btn-secondary:hover {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  border: 1px solid #00d9ff;
+.secondary-btn {
+  @apply font-bold rounded-xl h-[35px] hover:border-[#45c7c0] px-5 flex justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out bg-gradient-to-r from-[#5cf3eb] to-[#32ff54] bg-clip-text text-transparent;
 }
 
 .toast-container .Toastify__toast {
@@ -111,15 +100,13 @@ body {
 }
 
 .bg-purple-gradient {
-  background: linear-gradient(
-    157.81deg,
-    #def9fa -43.27%,
-    #ecbef5 -21.24%,
-    #e99df0 12.19%,
-    #e27deb 29.82%,
-    #cf5ce6 51.94%,
-    #bd33cf 90.29%
-  );
+  background: linear-gradient(157.81deg,
+      #def9fa -43.27%,
+      #ecbef5 -21.24%,
+      #e99df0 12.19%,
+      #e27deb 29.82%,
+      #cf5ce6 51.94%,
+      #bd33cf 90.29%);
 }
 
 .pink__gradient {
@@ -128,11 +115,25 @@ body {
 }
 
 @keyframes ellipsis {
-  0% { content: ""; }
-  25% { content: "."; }
-  50% { content: ".."; }
-  75% { content: "..."; }
-  100% { content: ""; }
+  0% {
+    content: "";
+  }
+
+  25% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  75% {
+    content: "...";
+  }
+
+  100% {
+    content: "";
+  }
 }
 
 .ellipsis:after {
