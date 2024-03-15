@@ -520,12 +520,12 @@ const CreateToken: FC = () => {
                                 onClick={createTokenCallback}
 
                             >
-                            <span className="btn-text-gradient">
-                                {uploading ? <span className="italic font-i ellipsis">Uploading Metadata</span> : 'Create token'}
-                            </span>
-                        </button>
+                                <span className="btn-text-gradient">
+                                    {uploading ? <span className="italic font-i ellipsis">Uploading Metadata</span> : 'Create token'}
+                                </span>
+                            </button>
+                        </div>
                     </div>
-                </div>
                 </form>
 
             ) : (

@@ -17,7 +17,7 @@ import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
 // import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
-//import encryptWithPublicKey from '../../../components/Encryptor/encryption';
+// import encryptWithPublicKey from '../../../components/Encryptor/encryption';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
