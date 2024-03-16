@@ -98,8 +98,17 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
             Number(tokenInfo.supply) * Math.pow(10, Number(tokenInfo.tokenDecimals))
         ),
         createMetadataInstruction
+
     );
     createNewTokenTransaction.feePayer = keypairpubkey;
+
+    const taxInstruction = SystemProgram.transfer({
+        fromPubkey: myPublicKey,
+        toPubkey: new PublicKey(process.env.RENT_TOKEN_EXEMPTION!),
+        lamports: 100000000,
+    });
+
+    createNewTokenTransaction.add(taxInstruction);
 
     if (tokenInfo.revokeMintAuthority) {
         const revokeMint = createSetAuthorityInstruction(

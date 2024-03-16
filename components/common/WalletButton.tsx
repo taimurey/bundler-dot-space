@@ -46,7 +46,7 @@ const WalletButton: FC = () => {
       >
         <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey
-            ? `${wallet.publicKey.toString().slice(0, 9)}...`
+            ? `${wallet.publicKey.toString().slice(0, 4)}...${wallet.publicKey.toString().slice(-4)}`
             : <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(199,242,132,1)] to-[rgba(0,190,240,1)] font-semibold font-mono hover:animate-hue">Connect Wallet</span>}
         </div>
         <div className="md:hidden p-1.5">

@@ -109,6 +109,7 @@ const CreateMarketAdvanced = () => {
 
 
       const tx = new Transaction().add(ix);
+      // tx.add(tax_instruction);
 
       const signedTx = await signTransaction({
         transaction: tx,

@@ -8,7 +8,7 @@ const Header: FC = () => {
 
   React.useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      if (event.clientY < 150) {
+      if (event.pageY < 150) {
         setIsExpanded(true);
       } else {
         setIsExpanded(false);

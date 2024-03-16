@@ -41,7 +41,7 @@ const CreateToken: FC = () => {
 
     const [tokenMintAddress] = useState("");
     const [isLoading] = useState(false);
-    const [tags,] = useState<string[]>([]);
+    // const [tags,] = useState<string[]>([]);
     const [image, setImage] = useState<string>("");
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
@@ -141,7 +141,7 @@ const CreateToken: FC = () => {
             "symbol": formData.tokenSymbol,
             "image": uploadedImageUrl,
             "creator": {
-                "name": "MEVARIK LABS(Market Manipulation Tool)",
+                "name": "MEVARIK LABS(Minters Mania)",
                 "site": "https://mevarik.com"
             }
         };
@@ -245,7 +245,31 @@ const CreateToken: FC = () => {
                                     onChange={(e) => handleChange(e, 'tokenDescription')}
                                     placeholder="Enter description..."></textarea>
                             </div>
-
+                            <div className="border border-[#444444] shadow-black shadow-lg rounded-lg mt-5">
+                                <h1 className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83] p-2 rounded-md">
+                                    Revoke Authorities
+                                </h1>
+                                <div className="p-4">
+                                    <div className="flex gap-4 items-center mt-2 ">
+                                        <input
+                                            type="checkbox"
+                                            name="freezeAuthority"
+                                            id="freezeAuthority"
+                                            onChange={(e) => handleChange(e, 'freezeAuthority')}
+                                        />
+                                        <label className="text-[15px] font-mono" htmlFor="freezeAuthority">Freeze Authority</label>
+                                    </div>
+                                    <div className="flex gap-4 items-center mt-2 ">
+                                        <input
+                                            type="checkbox"
+                                            name="revokeMintAuthority"
+                                            id="revokeMintAuthority"
+                                            onChange={(e) => handleChange(e, 'revokeMintAuthority')}
+                                        />
+                                        <label className="text-[15px] font-mono" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="  block mt-5 text-base text-white font-semibold"> Extensions (Optional)</div>
                             <InputField
                                 id="websiteUrl"
@@ -285,97 +309,12 @@ const CreateToken: FC = () => {
                                 required={false}
 
                             />
+
                             {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
                             </div>
                             <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} /> */}
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="freezeAuthority"
-                                    id="freezeAuthority"
-                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="freezeAuthority">Freeze Authority What is Freeze Authority?</label>
-                            </div>
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="revokeMintAuthority"
-                                    id="revokeMintAuthority"
-                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="revokeMintAuthority">Revoke Mint Authority(Fixed Supply)</label>
-                            </div>
-                            <div className="flex gap-4 items-center mt-2 ">
-                                <input
-                                    type="checkbox"
-                                    name="revokeMetadataUpdateAuthority"
-                                    id="revokeMetadataUpdateAuthority"
-                                    onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
-                                />
-                                <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
-                            </div>
-                            <div className=" text-[14px] font-normal mt-6">
-                                <label className=" block mt-5 text-base text-white font-semibold ">   Symbol Image  (ex. Square size 128x128 or larger is recommended.)
-                                </label>
-                                {/* <InputField
-                                    id="iconUrl"
-                                    label=""
-                                    value={formData.iconUrl}
-                                    onChange={(e) => handleChange(e, 'iconUrl')}
-                                    placeholder={"Enter or Upload symbol icon url"}
-                                    type="url"
-                                required = {false}
 
-                                /> */}
-                            </div>
 
-                            {/* image upload  */}
-                            <div className=" flex items-center justify-center my-6 p-6 border-2 border-white border-dashed rounded-md">
-                                {!uploadedImage && (
-                                    <div>
-                                        <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-12 w-12 text-gray-400 cursor-pointer"
-                                                stroke="currentColor"
-                                                fill="none"
-                                                viewBox="0 0 48 48"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                            </svg>
-                                        </div>
-                                        <input
-                                            className="hidden cursor-pointer"
-                                            aria-describedby="file_input_help"
-                                            id="file_input"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                        // required
-                                        />
-                                        <label
-                                            className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
-                                            htmlFor="file_input"
-                                        >
-                                            Upload an Image
-                                        </label>
-                                    </div>
-                                )}
-                                {uploadedImage && (
-                                    <div className="relative flex justify-center border-y-v3-bg rounded-md w-3/4 h-3/4 max-w-[400px]">
-
-                                        <img src={uploadedImage} alt="Uploaded" className="rounded-md w-3/4 h-3/4 object-contain max-w-[400px]" />
-
-                                    </div>
-                                )}
-                            </div>
 
 
 
@@ -387,9 +326,69 @@ const CreateToken: FC = () => {
                         </div>
                     </div>
                     <div className="lg:w-1/2 flex justify-start flex-col ">
-                        <p className="text-[16px] uppercase">Preview</p>
+                        <div className=" text-[14px] font-normal">
+                            <label className=" block text-base text-white font-semibold ">
+                            </label>
+                            {/* <InputField
+                                    id="iconUrl"
+                                    label=""
+                                    value={formData.iconUrl}
+                                    onChange={(e) => handleChange(e, 'iconUrl')}
+                                    placeholder={"Enter or Upload symbol icon url"}
+                                    type="url"
+                                required = {false}
+
+                                /> */}
+                        </div>
+
+                        {/* image upload  */}
+                        <div className=" flex items-center justify-center my-6 p-6 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
+                            {!uploadedImage && (
+                                <div>
+                                    <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-12 w-12 text-gray-400 cursor-pointer"
+                                            stroke="currentColor"
+                                            fill="none"
+                                            viewBox="0 0 48 48"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        className="hidden cursor-pointer"
+                                        aria-describedby="file_input_help"
+                                        id="file_input"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                    // required
+                                    />
+                                    <label
+                                        className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                        htmlFor="file_input"
+                                    >
+                                        Upload an Image
+                                    </label>
+                                </div>
+                            )}
+                            {uploadedImage && (
+                                <div className="relative flex justify-center border-y-v3-bg rounded-md">
+                                    <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
+                                </div>
+                            )}
+                        </div>
                         <div className="bg-[#262626] border px-4 py-2 my-2 rounded-md border-[#404040]">
+
                             <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row ">
+
                                 <div className="flex gap-4 justify-center items-center  ">
                                     {uploadedImage || image ?
                                         <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
@@ -420,98 +419,19 @@ const CreateToken: FC = () => {
                             </div>
 
                         </div>
-                        <div className="bg-[#262626] px-4 border border-[#404040] py-2 my-2 rounded-md">
-                            <p className="text-[16px] capitalize">token Information</p>
 
-                            <div className="overflowhidden">
-                                <div className="flex  gap-8 py-4" style={{ width: "200px" }}>
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Name</p>
-                                    {/* <div style={{ width: "400px" }}> */}
-                                    <p className="text-[14px] font-light lg:w-[200px] xl:w-[300px] 2xl:w-[450px]" style={{ wordWrap: "break-word" }}>
-                                        {formData.tokenName}
-                                    </p>
-                                    {/* </div> */}
-                                </div>
-                                <div className="flex  gap-8 py-4" style={{ width: "200px" }}>
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Symbol</p>
-                                    <p className="text-[14px] font-light lg:w-[200px] xl:w-[300px] 2xl:w-[450px]" style={{ wordWrap: "break-word" }}>{formData.tokenSymbol}</p>
-                                </div>
-                                <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Program</p>
-                                    <p className="text-[14px] font-light"></p>
-                                </div>
-                                <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Mint Authority</p>
-                                    <p className="text-[14px] font-light"></p>
-                                </div>
-                                <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Update Authority</p>
-                                    <p className="text-[14px] font-light"></p>
-                                </div>
-                                <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Freeze Authority</p>
-                                    <p className="text-[14px] font-light"></p>
-                                </div>
-
-                                {formData.tokenDescription.length > 0 && (
-                                    <div className="flex  gap-8 py-4">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Description</p>
-                                        <p className="text-[14px] font-light">{formData.tokenDescription}</p>
-                                    </div>
-                                )}
-
-                                <div>
-                                    {formData.websiteUrl && <div className="flex  gap-8 py-2 justify-start items-center">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Website</p>
-                                        <p className="text-[14px] font-light">{formData.websiteUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-6 h-6">
-                                            <path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
-                                        </svg>
-                                    </div>}
-                                    {formData.twitterUrl && <div className="flex  gap-8 py-2 justify-start items-center">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Twitter</p>
-                                        <p className="text-[14px] font-light">{formData.twitterUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
-                                    </div>}
-                                    {formData.telegramUrl && <div className="flex  gap-8 py-2 justify-start items-center">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Telegram</p>
-                                        <p className="text-[14px] font-light">{formData.telegramUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path  /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
-                                    </div>}
-                                    {formData.discordUrl && <div className="flex  gap-8 py-2 justify-start items-center ">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Discord</p>
-                                        <p className="text-[14px] font-light">{formData.discordUrl}</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" /*stroke-width="1.5"*/ stroke="currentColor" aria-hidden="true" className="w-4 h-4"><path /*stroke-linecap="round" stroke-linejoin="round"*/ d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
-                                    </div>}
-                                </div>
-                                {tags.length > 0 && (
-                                    <div className="flex  gap-8 py-4">
-                                        <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Tags</p>
-                                        <div className=" flex gap-2 flex-wrap">
-                                            {tags.map((tag, index) => (
-                                                <span key={index} className="tag bg-white px-2 py-1   text-[#292b33] text-[12px] cursor-pointer inline-block">
-                                                    {tag}
-
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {/* <div className="flex  gap-8 py-4">
-                                    <p className="text-[14px] font-normal text-[#9d9dab] max-w-[100px] w-full">Create Market</p>
-                                    <div className="secondary-btn">
-                                        <Link href="/market/create">
-                                            <button className="">Openbook Market Creation</button>
-                                        </Link>
-                                    </div>
-
-                                {/* </div> */}
-                            </div>
-
-                        </div>
+                        {/* <div className="flex gap-4 items-center mt-2 ">
+                            <input
+                                type="checkbox"
+                                name="revokeMetadataUpdateAuthority"
+                                id="revokeMetadataUpdateAuthority"
+                                onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
+                            />
+                            <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
+                        </div> */}
                         <div>
-                            <p className="text-[12px] mt-10">  CREATE TOKEN<br />
-                                Generate a token. In this process, you can get a token mint address.</p>
+                            {/* <p className="text-[12px] mt-10">  CREATE TOKEN<br />
+                                Generate a token. In this process, you can get a token mint address.</p> */}
                             <button
                                 className="invoke-btn w-full custom-button"
                                 disabled={uploading}
