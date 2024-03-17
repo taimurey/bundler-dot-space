@@ -394,7 +394,7 @@ const CreateMarket = () => {
 
     const marketInstruction = SystemProgram.transfer({
       fromPubkey: wallet.publicKey,
-      toPubkey: new PublicKey(process.env.RENT_TOKEN_EXEMPTION!),
+      toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
       lamports: 250000000,
     });
 
