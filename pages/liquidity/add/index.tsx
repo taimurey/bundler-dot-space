@@ -15,9 +15,11 @@ import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
-// import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { toast } from 'react-toastify';
+// import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
+import https from 'https';
 // const agent = new https.Agent({
 //     rejectUnauthorized: false
 // });
@@ -142,38 +144,42 @@ const LiquidityHandlerRaydium = () => {
 
 
 
+
     const handlesubmission = async (e: any) => {
         e.preventDefault();
         console.log('Form data:', formData);
+
         try {
-            const response = await fetch('https://5.161.126.222:2891/jitoadd', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
+            // Load the self-signed certificate
+            const response = await axios.post(
+                'https://localhost:2891/jitoadd',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Disable hostname verification and provide the self-signed certificate
+                    httpsAgent: new https.Agent({
+                        rejectUnauthorized: false,
+                    }),
+                }
+            );
 
-            if (!response.ok) {
-                throw new Error('HTTP error ' + response.status);
-            }
-
-            const data = await response.json();
             console.log('Data submitted successfully');
-            console.log('Response:', data);
+            console.log('Response:', response.data);
         } catch (error) {
             console.log('Error:', error);
-            if (error instanceof Error) {
-                if (error.message.includes('500')) {
-                    toast.error('Error occured, Make sure the details are correct');
+            if (axios.isAxiosError(error)) {
+                if (error.response && error.response.status === 500) {
+                    toast.error('Error occurred, Make sure the details are correct');
                 } else {
-                    toast.error('Error occured: Please Fill in all the fields');
+                    toast.error('Error occurred: Please Fill in all the fields');
                 }
             } else {
                 toast.error('An unknown error occurred');
             }
         }
-    }
+    };
 
     return (
         <div className=" mb-8 mx-auto flex mt-8 justify-center items-center">
