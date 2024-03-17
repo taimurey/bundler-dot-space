@@ -152,7 +152,7 @@ const LiquidityHandlerRaydium = () => {
         try {
             // Load the self-signed certificate
             const response = await axios.post(
-                'https://localhost:2891/jitoadd',
+                'https://mevarik-deployer.xyz:2891/jitoadd',
                 formData,
                 {
                     headers: {
