@@ -142,8 +142,6 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     //     createNewTokenTransaction.add(revokeMetadata);
     // }
 
-    console.log("Wallet is: ", wallet);
-    console.log("mintKeypair is: ", mintKeypair);
     const signedTx = await signTransaction({
         transaction: createNewTokenTransaction,
         wallet,
