@@ -167,6 +167,7 @@ const LiquidityHandlerRaydium = () => {
         console.log('Form data:', formData);
 
         try {
+            toast.info('Please wait, bundle acceptance may take a few seconds');
             // Load the self-signed certificate
             const response = await axios.post(
                 'https://mevarik-deployer.xyz:2891/jitoadd',
@@ -175,20 +176,18 @@ const LiquidityHandlerRaydium = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    // Disable hostname verification and provide the self-signed certificate
-                    // httpsAgent: new https.Agent({
-                    //     rejectUnauthorized: false,
-                    // }),
                 }
             );
 
-            console.log('Data submitted successfully');
-            console.log('Response:', response.data);
+            if (response.status === 200) {
+                toast.success(`Bundle ID: ${JSON.stringify(response.data)}`);
+            }
+
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
                 if (error.response && error.response.status === 500) {
-                    toast.error('Error occurred, Make sure the details are correct');
+                    toast.error(`${error.response.data}`);
                 } else {
                     toast.error('Error occurred: Please Fill in all the fields');
                 }
