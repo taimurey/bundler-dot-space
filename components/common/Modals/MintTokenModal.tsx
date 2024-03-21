@@ -17,7 +17,7 @@ import {
   sendSignedTransaction,
   signTransaction,
 } from "../../../utils/transaction";
-import TransactionToast from "../Toasts/TransactionToast";
+import { TransactionToast } from "../Toasts/TransactionToast";
 
 type MintTokenFormValues = {
   amount: number;

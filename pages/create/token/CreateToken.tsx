@@ -10,15 +10,15 @@ import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { createToken } from "../../../components/TransactionUtils/token";
+import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
 // import Link from "next/link";
 // import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
-    const { publicKey } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const wallet = useWallet();
     const [formData, setFormData] = useState({
         tokenName: "",
         tokenSymbol: "",
@@ -173,7 +173,24 @@ const CreateToken: FC = () => {
 
         console.log(TokenMetadata, "TokenMetadata")
         toast.info("Creating token...");
-        await createToken(formData, connection, TokenMetadata, publicKey, wallet);
+        try {
+            const signature = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+
+            toast(
+                () => (<TransactionToast
+                    txSig={signature}
+                    message={"Token created successfully!"}
+                />
+                ),
+                { autoClose: 5000 }
+            );
+        }
+        catch (error: any) {
+            toast.error("Error creating the token");
+        } finally {
+            // Set the creatingToken state to false
+            setCreatingToken(false);
+        }
         setCreatingToken(false);
     };
 
@@ -191,7 +208,7 @@ const CreateToken: FC = () => {
         <div className="relative divide-y divide-neutral-700 ">
             {creatingToken && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
-                    <ClipLoader />
+                    <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-white"></div>
                 </div>
             )}
             <div className="divide-y divide-neutral-700 ">

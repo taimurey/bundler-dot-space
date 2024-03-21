@@ -17,6 +17,7 @@ import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 // import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
 // const agent = new https.Agent({
@@ -178,9 +179,16 @@ const LiquidityHandlerRaydium = () => {
                     },
                 }
             );
-
             if (response.status === 200) {
-                toast.success(`Bundle ID: ${JSON.stringify(response.data)}`);
+
+                toast(
+                    () => (<BundleToast
+                        txSig={JSON.stringify(response.data)}
+                        message={'Bundle ID:'}
+                    />
+                    ),
+                    { autoClose: 5000 }
+                );
             }
 
         } catch (error) {
