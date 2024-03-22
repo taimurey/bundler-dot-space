@@ -6,7 +6,7 @@ type TransactionSuccessProps = {
   message: string;
 };
 
-export default function TransactionToast({
+export function TransactionToast({
   txSig,
   message,
 }: TransactionSuccessProps) {
@@ -16,6 +16,26 @@ export default function TransactionToast({
       <p>{message}</p>
       <a
         href={getExplorerLink(txSig, cluster.network)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="italic font-light text-sm"
+      >
+        View transaction
+      </a>
+    </div>
+  );
+}
+
+
+export function BundleToast({
+  txSig,
+  message,
+}: TransactionSuccessProps) {
+  return (
+    <div className="flex flex-col space-y-1">
+      <p>{message}</p>
+      <a
+        href={`https://explorer.jito.wtf/bundle/${txSig}`}
         target="_blank"
         rel="noopener noreferrer"
         className="italic font-light text-sm"

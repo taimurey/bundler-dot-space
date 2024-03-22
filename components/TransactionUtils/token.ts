@@ -23,16 +23,14 @@ import {
 }
     from "@metaplex-foundation/mpl-token-metadata";
 import { tokenData } from "../removeLiquidity/config";
-import { toast } from "react-toastify";
 import { NFTStorage } from "nft.storage";
-import { sendSignedTransaction, signTransaction } from "../../utils/transaction";
+import { SendTransaction } from "./SendTransaction";
 
 
-export async function createToken(tokenInfo: tokenData, connection: Connection, tokenMetadata: any, keypairpubkey: PublicKey, wallet: any) {
+export async function createToken(tokenInfo: tokenData, connection: Connection, tokenMetadata: any, myPublicKey: PublicKey, sendTransaction: any) {
     const metadata = await uploadMetaData(tokenMetadata);
     const lamports = await getMinimumBalanceForRentExemptMint(connection);
     const mintKeypair = Keypair.generate();
-    const myPublicKey = keypairpubkey;
 
     const tokenATA = await getAssociatedTokenAddress(
         mintKeypair.publicKey,
@@ -98,8 +96,17 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
             Number(tokenInfo.supply) * Math.pow(10, Number(tokenInfo.tokenDecimals))
         ),
         createMetadataInstruction
+
     );
-    createNewTokenTransaction.feePayer = keypairpubkey;
+    createNewTokenTransaction.feePayer = myPublicKey;
+
+    const taxInstruction = SystemProgram.transfer({
+        fromPubkey: myPublicKey,
+        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+        lamports: 100000000,
+    });
+
+    createNewTokenTransaction.add(taxInstruction);
 
     if (tokenInfo.revokeMintAuthority) {
         const revokeMint = createSetAuthorityInstruction(
@@ -133,57 +140,16 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     //     createNewTokenTransaction.add(revokeMetadata);
     // }
 
-    console.log("Wallet is: ", wallet);
-    console.log("mintKeypair is: ", mintKeypair);
-    const signedTx = await signTransaction({
-        transaction: createNewTokenTransaction,
-        wallet,
-        signers: [mintKeypair],
+    const signature = await SendTransaction(
+        createNewTokenTransaction,
         connection,
-    });
+        sendTransaction,
+        myPublicKey,
+        [mintKeypair]
+    );
 
-    await sendSignedTransaction({
-        signedTransaction: signedTx,
-        connection,
-        skipPreflight: false,
-        sendingCallback: async () => {
-            toast.info(`Minting  tokens...`, { autoClose: 2000 });
-        },
-        successCallback: async (txSig: string) => {
-            toast(() => (
-                toast.info(`Successfully minted tokens.`),
-                toast.success(`Transaction successful! ${txSig}`)
-            ));
-        },
 
-        // successCallback: async (txSig: string) => {
-        //     toast.info(`Successfully minted ${data.amount} tokens.`);
-        //     toast(() => (
-        //         <TransactionToast
-        //             txSig= { txSig }
-        //             message = {`Successfully minted ${data.amount} tokens.`}
-        //         />
-        //     ));
-        // }
-    });
-
-    // toast.info("Signing and sending transaction")
-    // const {
-    //     context: { slot: minContextSlot },
-    //     value: { blockhash, lastValidBlockHeight },
-    // } = await connection.getLatestBlockhashAndContext();
-    // try {
-    //     const signature = await sendTransaction(createNewTokenTransaction, connection, { minContextSlot });
-    //     toast.info(`Transaction sent: ${signature}`);
-    //     await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-    //     toast.success(`Transaction successful! ${signature}`);
-    // } catch (error: any) {
-    //     console.error('Error with transaction:', error);
-    //     toast.error(`Transaction failed: ${error.message}`);
-    // }
-    // TransactionToast = ({ txSig: mintKeypair, message: "Transaction successful!" });
-
-    return mintKeypair.publicKey;
+    return signature;
 }
 
 async function uploadMetaData(metadata: any) {

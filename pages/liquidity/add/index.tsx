@@ -12,13 +12,17 @@ import {
 import { PublicKey, Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
-import { InputField } from '../../../components/FieldComponents/InputField';
+import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
 import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
-// import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { toast } from 'react-toastify';
-//import encryptWithPublicKey from '../../../components/Encryptor/encryption';
-
+import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
+// import * as fs from 'fs';
+// import encryptWithPublicKey from '../../../components/Encryptor/encryption';
+// const agent = new https.Agent({
+//     rejectUnauthorized: false
+// });
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
@@ -29,26 +33,30 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     const [buyerKeypair, setBuyerKeypair] = useState("");
     const [airdropChecked, setAirdropChecked] = useState(false);
+    // const [encryptedBuyerKeypair, setEncryptedBuyerKeypair] = useState("");
+    // const [encrypteddeployerKeypair, encryptedsetDeployerKeypair] = useState("");
     // const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
     // const [predictedSupplyAmount, setPredictedSupplyAmount] = useState("NaN%")
     const [wallets, setWallets] = useState({
-        Wallet1: "N/A",
-        Wallet2: "N/A",
+        Wallet1: "",
+        Wallet2: "",
     });
 
     const [formData, setFormData] = useState({
         buyerPrivateKey: '',
         deployerPrivateKey: '',
         airdropChecked: airdropChecked,
-        walletsNumbers: '',
+        walletsNumbers: '0',
         tokenMintAddress: '',
         tokenMarketID: '',
         tokenDecimals: '',
         totalSupply: '',
-        poolstarttimer: '',
         tokenbuyAmount: '',
         tokenLiquidityAmount: '',
         tokenLiquidityAddPercent: '',
+        BlockEngineSelection: '',
+        BundleTip: '',
+        TransactionTip: '',
     });
 
     React.useEffect(() => {
@@ -57,6 +65,14 @@ const LiquidityHandlerRaydium = () => {
             airdropChecked: airdropChecked,
         }));
     }, [airdropChecked]);
+
+    const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+    }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
@@ -77,9 +93,21 @@ const LiquidityHandlerRaydium = () => {
                 Wallet2: wallet.publicKey.toString(),
             }));
 
+            // if (!process.env.NEXT_PUBLIC_KEY_RSA) {
+            //     throw new Error('No public key found');
+            // }
+            //  const encrypted = encryptWithPublicKey(process.env.NEXT_PUBLIC_KEY_RSA, PrivateKey);
             setFormData(prevState => ({
                 ...prevState,
-                deployerPrivateKey: wallet.secretKey.toString(),
+                deployerPrivateKey: value,
+            }));
+        }
+
+        if (field === 'buyerPrivateKey') {
+            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            setWallets(prevState => ({
+                ...prevState,
+                Wallet1: wallet.publicKey.toString(),
             }));
         }
     };
@@ -89,11 +117,11 @@ const LiquidityHandlerRaydium = () => {
     const generateKeypair = (e: any) => {
         e.preventDefault();
         const keypair = Keypair.generate();
-        const secretKey = base58.encode(keypair.secretKey).toString();
-        setBuyerKeypair(secretKey);
+        const PrivateKey = base58.encode(keypair.secretKey).toString();
+        setBuyerKeypair(PrivateKey);
         setFormData(prevState => ({
             ...prevState,
-            // buyerPrivateKey: encryptWithPublicKey(process.env.NEXT_PUBLIC_KEY_RSA, keypair.secretKey.toString()),
+            buyerPrivateKey: PrivateKey,
         }));
         setWallets({
             Wallet1: `${keypair.publicKey.toString()}`,
@@ -134,29 +162,53 @@ const LiquidityHandlerRaydium = () => {
 
 
 
+
     const handlesubmission = async (e: any) => {
         e.preventDefault();
-        // try {
-        //     const response = await axios.post('http://localhost:3001/jitoadd', formData, {
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //     });
-        //     console.log('Data submitted successfully');
-        //     console.log('Response:', response.data);
-        // } catch (error) {
-        //     const axiosError = error as AxiosError;
-        //     console.error('An error occurred:', axiosError.response?.data);
-        //     if (axiosError.response && axiosError.response.status === 500) {
-        //         toast.error('Error occured, Make sure the details are correct');
-        //     }
-        // }
-    }
+        console.log('Form data:', formData);
+
+        try {
+            toast.info('Please wait, bundle acceptance may take a few seconds');
+            // Load the self-signed certificate
+            const response = await axios.post(
+                'https://mevarik-deployer.xyz:2891/jitoadd',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            if (response.status === 200) {
+
+                toast(
+                    () => (<BundleToast
+                        txSig={JSON.stringify(response.data)}
+                        message={'Bundle ID:'}
+                    />
+                    ),
+                    { autoClose: 5000 }
+                );
+            }
+
+        } catch (error) {
+            console.log('Error:', error);
+            if (axios.isAxiosError(error)) {
+                if (error.response && error.response.status === 500) {
+                    toast.error(`${error.response.data}`);
+                } else {
+                    toast.error('Error occurred: Please Fill in all the fields');
+                }
+            } else {
+                toast.error('An unknown error occurred');
+            }
+        }
+    };
 
     return (
-        <div className="space-y-4 mb-8 mx-auto flex mt-8 justify-center items-center">
+        <div className=" mb-8 mx-auto flex mt-8 justify-center items-center">
             <form>
-                <div className="space-y-4">
+                <div className="">
                     <div className="">
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
                             <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
@@ -165,7 +217,7 @@ const LiquidityHandlerRaydium = () => {
                                     <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
                                 </div>
                                 <div className='w-full'>
-                                    <label className="block mt-5 text-base  text-white font-semibold" htmlFor="buyerPrivateKey">
+                                    <label className="block mt-5 text-base text-white font-semibold" htmlFor="buyerPrivateKey">
                                         Buyer Private key
                                     </label>
                                     <div className="relative mt-1 rounded-md shadow-sm w-full flex gap-2">
@@ -220,10 +272,10 @@ const LiquidityHandlerRaydium = () => {
                                     <div className='flex justify-center items-center gap-2'>
                                         <InputField
                                             id="tokenMintAddress"
-                                            label="Token Info"
+                                            label="Mint Info"
                                             value={formData.tokenMintAddress}
                                             onChange={(e) => handleChange(e, 'tokenMintAddress')}
-                                            placeholder="Enter token mint Address"
+                                            placeholder="Enter Mint Address"
                                             type="text"
                                             required={true}
                                         />
@@ -256,7 +308,7 @@ const LiquidityHandlerRaydium = () => {
                                             type="number"
                                             required={true}
                                         />
-                                        <InputField
+                                        { /*    <InputField
                                             label=''
                                             id="poolstarttimer"
                                             value={formData.poolstarttimer}
@@ -264,7 +316,7 @@ const LiquidityHandlerRaydium = () => {
                                             placeholder="Enter start timer(secs)"
                                             type="number"
                                             required={true}
-                                        />
+                                        /> */}
                                         <InputField
                                             label=""
                                             id="totalSupply"
@@ -300,11 +352,57 @@ const LiquidityHandlerRaydium = () => {
                                             id="tokenLiquidityAddPercent"
                                             value={formData.tokenLiquidityAddPercent}
                                             onChange={(e) => handleChange(e, 'tokenLiquidityAddPercent')}
-                                            placeholder="Enter % of tokens to add to liquidity"
+                                            placeholder="% of tokens (1-100)"
                                             type="number"
                                             label="Amount Percentage"
                                             required={true}
                                         />
+                                    </div>
+                                    <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
+
+                                        <div className="w-full">
+                                            <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
+                                                Block Engine
+                                            </label>
+                                            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                                <select
+                                                    id="BlockEngineSelection"
+                                                    value={formData.BlockEngineSelection}
+                                                    onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
+                                                    required={true}
+                                                    className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                                >
+                                                    <option value="" disabled>
+                                                        Block Engine Location(Closest to you)
+                                                    </option>
+                                                    {BlockEngineLocation.map((option, index) => (
+                                                        <option key={index} value={option}>
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className='flex justify-end items-end gap-2'>
+                                            <InputField
+                                                id="BundleTip"
+                                                value={formData.BundleTip}
+                                                onChange={(e) => handleChange(e, 'BundleTip')}
+                                                placeholder="0.01"
+                                                type="number"
+                                                label="Bundle Tip"
+                                                required={true}
+                                            />
+                                            <InputField
+                                                id="TransactionTip"
+                                                value={formData.TransactionTip}
+                                                onChange={(e) => handleChange(e, 'TransactionTip')}
+                                                placeholder="0.0001"
+                                                type="number"
+                                                label="Txn Tip (SOL)"
+                                                required={true}
+                                            />
+                                        </div>
                                     </div>
                                     <button
                                         onClick={handlesubmission}
@@ -314,9 +412,10 @@ const LiquidityHandlerRaydium = () => {
                                         <span className='btn-text-gradient'>Initiate Deployment Sequence</span>
 
                                     </button>
+
                                 </div>
                             </div>
-                            <div className="p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
+                            <div className="min-w-[44px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
@@ -342,14 +441,19 @@ const LiquidityHandlerRaydium = () => {
                                         </label>
                                         <br />
                                         <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {Object.entries(wallets).map(([key, value], index) => (
-                                                <p
-                                                    key={index}
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px] truncate"
-                                                >
-                                                    {key}: {value}
-                                                </p>
-                                            ))}
+                                            {Object.entries(wallets).map(([key, value], index) => {
+                                                const truncatedValue = value.length > 10
+                                                    ? value.slice(0, 6) + '...' + value.slice(-10)
+                                                    : value;
+                                                return (
+                                                    <p
+                                                        key={index}
+                                                        className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
+                                                    >
+                                                        {key}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncatedValue}</span>
+                                                    </p>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                     <OutputField

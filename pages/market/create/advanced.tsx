@@ -5,7 +5,7 @@ import BN from "bn.js";
 import { ReactNode } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import TransactionToast from "../../../components/common/Toasts/TransactionToast";
+import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
 import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
 import { useSerum } from "../../../components/context";
 import { validatePubkey } from "../../../utils/pubkey";
@@ -109,6 +109,7 @@ const CreateMarketAdvanced = () => {
 
 
       const tx = new Transaction().add(ix);
+      // tx.add(tax_instruction);
 
       const signedTx = await signTransaction({
         transaction: tx,

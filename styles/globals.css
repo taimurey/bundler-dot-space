@@ -4,10 +4,7 @@
 
 body {
   @apply bg-[#11171f] text-white;
-  /* background-image: linear-gradient(0deg, transparent 24px, rgba(255, 255, 255, 0.1) 5px, transparent 26px),
-    linear-gradient(90deg, transparent 24px, rgba(255, 255, 255, 0.1) 5px, transparent 26px); */
-  /* background-size: 330px 330px, 330px 330px, 400px 400px;
-  background-position: 70px 0, 0 0, 0 0; */
+
 }
 
 /* .card-header {
