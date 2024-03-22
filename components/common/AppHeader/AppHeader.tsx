@@ -9,6 +9,8 @@ import HeaderLinksMobile from './HeaderLinksMobile';
 import WalletButton from '../WalletButton';
 import { Popover } from '@headlessui/react';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import DiscordIcon from '../../icons/DiscordIcon';
+
 import SettingsPanel from '../SettingsPanel';
 import { useSerum } from '../../context';
 import { DEX_PROGRAMS } from '../../../utils/constants';
@@ -32,23 +34,31 @@ const AppHeader: React.FC = () => {
   return (
     <>
       <div className="relative flex items-center justify-between w-full bg-[#010409]">
-        <div className="flex items-center pr-4 pl-4">
-          <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
-            {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
-          </button>
+        <div className="flex items-center px-6 gap-6">
+          <div className="flex items-center  ">
+            <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
+              {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
+            </button>
 
-          <Link href="/">
-            <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
-              <JupiterLogo />
-              <span className="ml-3">Mevarik Labs</span>
-            </h1>
-          </Link>
+            <Link href="/">
+              <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
+                <JupiterLogo />
+                <span className="ml-3">Mevarik Labs</span>
+              </h1>
+            </Link>
+          </div>
+          <div className="flex items-center ">
+            <HeaderLinks />
+          </div>
         </div>
 
-        <HeaderLinks />
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
 
           <div className="hidden items-center justify-end md:flex space-x-4">
+            <a href='https://discord.gg/HGFf7NNHrp' target='_blank' className={`text-opacity-90
+                group inline-flex items-center solape__connect-btn hover:bg-neutral-700 px-3 py-2 text-sm focus-style transition-colors`}>
+              <DiscordIcon width="20" height="20" />
+            </a>
             <Popover className="relative">
               {({ open }) => (
                 <>
@@ -81,7 +91,9 @@ const AppHeader: React.FC = () => {
                 </>
               )}
             </Popover>
+
             <WalletButton />
+
           </div>
         </div>
       </div>

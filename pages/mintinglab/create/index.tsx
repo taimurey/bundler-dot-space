@@ -1,9 +1,9 @@
 import { useState } from "react";
 import CreateToken from "./token/CreateToken";
-import { getHeaderLayout } from "../../components/layouts/HeaderLayout";
+import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
 import { ReactNode } from "react";
 import { RadioGroup } from "@headlessui/react";
-import CreateMintOption from "../../components/createMarket/CreateMintOption";
+import CreateMintOption from "../../../components/createMarket/CreateMintOption";
 import React from 'react';
 import RevokeAuthorities from "./metadata";
 export const Create = () => {

@@ -86,8 +86,8 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
             <div className="flex justify-center items-center w-full bg-[#0d1117]  border-b border-gray-700">
                 <div className="grid grid-cols-4 gap-8 place-items-center">
                     <HeaderLink
-                        href="/create"
-                        isActive={router.pathname === "/create"}
+                        href="/mintinglab/create"
+                        isActive={router.pathname === "/mintinglab/create"}
                         title="Create Token"
                         description="Mint SPL Tokens"
                         icon={<TokenIcon />}
@@ -137,9 +137,9 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
                     className="absolute w-full top-full origin-top transform transition md:hidden mt-2"
                 >
                     {/* {({ close }) => ( */}
-                        <div className="rounded-lg bg-gray-800 border border-gray-700 px-2 py-4 shadow-2xl mx-2">
-                            <SettingsPanel  />
-                        </div>
+                    <div className="rounded-lg bg-gray-800 border border-gray-700 px-2 py-4 shadow-2xl mx-2">
+                        <SettingsPanel />
+                    </div>
                     {/* )} */}
                 </Popover.Panel>
             </Transition>

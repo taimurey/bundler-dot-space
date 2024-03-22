@@ -1,16 +1,16 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createImageFromInitials } from "../../../components/helpers/common/createImage"
+import { createImageFromInitials } from "../../../../components/helpers/common/createImage"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
+import { useNetworkConfiguration } from "../../../../components/context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
-import { InputField } from '../../../components/FieldComponents/InputField';
-import { createToken } from "../../../components/TransactionUtils/token";
-import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
+import { InputField } from '../../../../components/FieldComponents/InputField';
+import { createToken } from "../../../../components/TransactionUtils/token";
+import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
 // import Link from "next/link";
 // import { FormEvent } from 'react';
 

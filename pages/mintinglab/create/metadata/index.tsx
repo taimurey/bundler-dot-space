@@ -8,7 +8,7 @@ import {
   createSetAuthorityInstruction,
 } from '@solana/spl-token-2';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { InputField } from "../../../components/FieldComponents/InputField";
+import { InputField } from "../../../../components/FieldComponents/InputField";
 import { toast } from "react-toastify";
 
 const RevokeAuthorities: FC = () => {
