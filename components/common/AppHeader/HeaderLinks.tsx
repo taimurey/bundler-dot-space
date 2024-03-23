@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import SwapIcon from '../../icons/SwapIcon';
-import RepoLogo from '../../icons/RepoLogo';
+// import RepoLogo from '../../icons/RepoLogo';
 import HomeIcon from '../../icons/HomeIcon';
 
 import LiquidityIcon from '../../icons/LiquidityIcon';
@@ -43,7 +43,9 @@ const HeaderLink = ({
   return (
     <Link href={href} passHref>
       <a
-        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-3xl ${isActive ? ' bg-[#0d1117] !text-v3-primary' : ""}`}
+        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-3xl ${isActive
+          ?
+          ' bg-[#0d1117] !text-[#ffac40] ' : ""}`}
         {...linkProps}
         onClick={() => {
           setActive(index);
@@ -78,7 +80,7 @@ const HeaderLinks = () => {
       id: 0,
       href: '/',
       title: 'Home',
-      icon: <HomeIcon width="20" height="20" />,
+      icon: <HomeIcon />,
     },
     {
       id: 1,
@@ -93,12 +95,12 @@ const HeaderLinks = () => {
       icon: <LiquidityIcon width="20" height="20" />,
     }
     ,
-    {
-      id: 3,
-      href: '/docs',
-      title: 'Docs',
-      icon: <RepoLogo width="20" height="20" />,
-    },
+    // {
+    //   id: 3,
+    //   href: '/docs',
+    //   title: 'Docs',
+    //   icon: <RepoLogo width="20" height="20" />,
+    // },
     // {
     //   id: 4,
     //   href: 'https://discord.gg/HGFf7NNHrp',

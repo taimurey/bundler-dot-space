@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import SpaceLogo from '../../public/spacesuit.png'
 
-const JupiterLogo: React.FC<{ width?: number; height?: number }> = ({ width = 45, height = 45 }) => {
+const MevLabLogo: React.FC<{ width?: number; height?: number }> = ({ width = 45, height = 45 }) => {
   return (
     <Image
       src={SpaceLogo}
@@ -13,4 +13,4 @@ const JupiterLogo: React.FC<{ width?: number; height?: number }> = ({ width = 45
   );
 };
 
-export default JupiterLogo;
+export default MevLabLogo;

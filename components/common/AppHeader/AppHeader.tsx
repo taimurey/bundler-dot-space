@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import 'twin.macro'
 import Link from 'next/link';
 import CloseIcon from '../../icons/CloseIcon';
-import JupiterLogo from '../../icons/JupiterLogo';
+import MevLabLogo from '../../icons/JupiterLogo';
 import MenuIcon from '../../icons/MenuIcon';
 import HeaderLinks from './HeaderLinks';
 import HeaderLinksMobile from './HeaderLinksMobile';
@@ -42,8 +42,8 @@ const AppHeader: React.FC = () => {
 
             <Link href="/">
               <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
-                <JupiterLogo />
-                <span className="ml-3">Mevarik Labs</span>
+                <MevLabLogo />
+                <span className="ml-3 text-lg">Mevarik Labs</span>
               </h1>
             </Link>
           </div>
@@ -55,9 +55,8 @@ const AppHeader: React.FC = () => {
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
 
           <div className="hidden items-center justify-end md:flex space-x-4">
-            <a href='https://discord.gg/HGFf7NNHrp' target='_blank' className={`text-opacity-90
-                group inline-flex items-center solape__connect-btn hover:bg-neutral-700 px-3 py-2 text-sm focus-style transition-colors`}>
-              <DiscordIcon width="20" height="20" />
+            <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
+              <DiscordIcon width="40" height="40" />
             </a>
             <Popover className="relative">
               {({ open }) => (
