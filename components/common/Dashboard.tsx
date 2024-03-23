@@ -84,7 +84,7 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
     return (
         <Popover className="relative ">
             <div className="flex justify-center items-center w-full bg-[#0d1117]  border-b border-gray-700">
-                <div className="grid grid-cols-4 gap-8 place-items-center">
+                {router.pathname != "/" && <div className="grid grid-cols-4 gap-8 place-items-center">
                     <HeaderLink
                         href="/mintinglab/create"
                         isActive={router.pathname === "/mintinglab/create"}
@@ -121,7 +121,7 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
                         isExpanded={isExpanded}
 
                     />
-                </div>
+                </div>}
             </div>
             <Transition
                 as={Fragment}

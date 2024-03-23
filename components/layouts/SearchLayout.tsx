@@ -70,7 +70,7 @@ export const SearchLayout: FC<SearchLayoutProps> = ({
   return (
     <HeaderLayout title={title}>
       <div>
-        <Combobox value={selected} onChange={(value) => handleSelect(value)}>
+        {/* <Combobox value={selected} onChange={(value) => handleSelect(value)}>
           <div className="relative mt-1">
             <div className="relative w-full cursor-default overflow-hidden rounded-md bg-neutral-900 text-left border border-neutral-700 focus-visible:border-0 focus-visible:outline-none focus-visible:ring-0">
               <Combobox.Button as="div">
@@ -129,7 +129,7 @@ export const SearchLayout: FC<SearchLayoutProps> = ({
               </Combobox.Options>
             </Transition>
           </div>
-        </Combobox>
+        </Combobox> */}
       </div>
       {children}
     </HeaderLayout>
