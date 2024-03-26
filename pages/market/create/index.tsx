@@ -90,7 +90,8 @@ export type CreateMarketFormValues = {
 
 const CreateMarket = () => {
   const router = useRouter();
-
+  // const { String: token } = router.query;
+  const token = router.query.token as string | undefined;
   const { connection } = useConnection();
   const wallet = useWallet();
 
@@ -606,6 +607,7 @@ const CreateMarket = () => {
                       <ExistingMintForm
                         register={register}
                         formState={formState}
+                        Token={token}
                       />
                     ) : (
                       <NewMintForm

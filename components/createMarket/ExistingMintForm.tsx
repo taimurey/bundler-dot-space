@@ -5,10 +5,12 @@ import { validatePubkey } from "../../utils/pubkey";
 type ExistingMintFormProps = {
   register: UseFormRegister<CreateMarketFormValues>;
   formState: FormState<CreateMarketFormValues>;
+  Token: string | undefined;
 };
 export default function ExistingMintForm({
   register,
   formState: { errors },
+  Token,
 }: ExistingMintFormProps) {
   return (
     <div className="space-y-2">
@@ -17,6 +19,7 @@ export default function ExistingMintForm({
         <div className="mt-1">
           <input
             type="text"
+            value={Token}
             className="block w-full rounded-md p-2 bg-neutral-700 focus-style sm:text-sm"
             {...register("existingMints.baseMint", {
               required: true,
