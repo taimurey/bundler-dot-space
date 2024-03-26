@@ -13,6 +13,7 @@ import {
 } from "@solana/spl-token-2";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
+  ComputeBudgetProgram,
   Keypair,
   PublicKey,
   SystemProgram,
@@ -25,6 +26,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
 import AdvancedOptionsForm from "../../../components/createMarket/AdvancedOptionsForm";
 import CreateMintOption from "../../../components/createMarket/CreateMintOption";
 import ExistingMintForm from "../../../components/createMarket/ExistingMintForm";
@@ -40,13 +42,12 @@ import {
   REQUEST_QUEUE_LENGTH,
 } from "../../../utils/serum";
 import {
-
+  sendSignedTransaction,
+  signTransactions,
   TransactionWithSigners,
 } from "../../../utils/transaction";
 import useSerumMarketAccountSizes from "../../../utils/hooks/useSerumMarketAccountSizes";
 import useRentExemption from "../../../utils/hooks/useRentExemption";
-import { SendTransaction } from '../../../components/TransactionUtils/SendTransaction';
-import { TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 
 const TRANSACTION_MESSAGES = [
   {
@@ -92,7 +93,6 @@ const CreateMarket = () => {
 
   const { connection } = useConnection();
   const wallet = useWallet();
-  const { sendTransaction, publicKey } = useWallet();
 
   const { programID } = useSerum();
 
@@ -146,7 +146,7 @@ const CreateMarket = () => {
   const handleCreateMarket: SubmitHandler<CreateMarketFormValues> = async (
     data
   ) => {
-    if (!wallet || !wallet.publicKey || !publicKey) {
+    if (!wallet || !wallet.publicKey) {
       toast.error("Wallet not connected");
       return;
     }
@@ -400,6 +400,19 @@ const CreateMarket = () => {
     });
 
     marketInstructions.push(marketInstruction);
+
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 100000000
+    });
+
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 1000000
+    });
+
+    marketInstructions.push(modifyComputeUnits, addPriorityFee);
+    vaultInstructions.push(modifyComputeUnits, addPriorityFee);
+
+
     // const tax_instruction = SystemProgram.transfer({
     //   fromPubkey: wallet.publicKey,
     //   toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
@@ -415,161 +428,118 @@ const CreateMarket = () => {
         signers: mintSigners,
       });
     }
-    // transactionWithSigners.push(
-    //   {
-    //     transaction: new Transaction().add(...vaultInstructions),
-    //     signers: vaultSigners,
-    //   },
-    //   {
-    //     transaction: new Transaction().add(...marketInstructions),
-    //     signers: marketSigners,
-    //   }
-    // );
+    transactionWithSigners.push(
+      {
+        transaction: new Transaction().add(...vaultInstructions),
+        signers: vaultSigners,
+      },
+      {
+        transaction: new Transaction().add(...marketInstructions),
+        signers: marketSigners,
+      }
+    );
 
-    // try {
-
-    //2 iteration loop
     try {
-      const vaultSignature = await SendTransaction(
-        new Transaction().add(...vaultInstructions),
+      const signedTransactions = await signTransactions({
+        transactionsAndSigners: transactionWithSigners,
+        wallet,
         connection,
-        sendTransaction,
-        publicKey,
-        vaultSigners
-      );
+      });
 
-      const Marketsignature = await SendTransaction(
-        new Transaction().add(...marketInstructions),
+      // looping creates weird indexing issue with transactionMessages
+      await sendSignedTransaction({
+        signedTransaction: signedTransactions[0],
         connection,
-        sendTransaction,
-        publicKey,
-        marketSigners
-      );
+        skipPreflight: false,
+        successCallback: async (txSig) => {
+          toast(
+            () => (
+              <TransactionToast
+                txSig={txSig}
+                message={
+                  signedTransactions.length > 2
+                    ? TRANSACTION_MESSAGES[0].successMessage
+                    : TRANSACTION_MESSAGES[1].successMessage
+                }
+              />
+            ),
+            { autoClose: 5000 }
+          );
+        },
+        sendingCallback: async () => {
+          toast.info(
+            signedTransactions.length > 2
+              ? TRANSACTION_MESSAGES[0].sendingMessage
+              : TRANSACTION_MESSAGES[1].sendingMessage,
+            {
+              autoClose: 2000,
+            }
+          );
+        },
+      });
+      await sendSignedTransaction({
+        signedTransaction: signedTransactions[1],
+        connection,
+        skipPreflight: false,
+        successCallback: async (txSig) => {
+          toast(
+            () => (
+              <TransactionToast
+                txSig={txSig}
+                message={
+                  signedTransactions.length > 2
+                    ? TRANSACTION_MESSAGES[1].successMessage
+                    : TRANSACTION_MESSAGES[2].successMessage
+                }
+              />
+            ),
+            { autoClose: 5000 }
+          );
+        },
+        sendingCallback: async () => {
+          toast.info(
+            signedTransactions.length > 2
+              ? TRANSACTION_MESSAGES[1].sendingMessage
+              : TRANSACTION_MESSAGES[2].sendingMessage,
+            {
+              autoClose: 2000,
+            }
+          );
+        },
+      });
+
+      if (signedTransactions.length > 2) {
+        await sendSignedTransaction({
+          signedTransaction: signedTransactions[2],
+          connection,
+          skipPreflight: false,
+          successCallback: async (txSig) => {
+            toast(
+              () => (
+                <TransactionToast
+                  txSig={txSig}
+                  message={TRANSACTION_MESSAGES[2].successMessage}
+                />
+              ),
+              { autoClose: 5000 }
+            );
+          },
+          sendingCallback: async () => {
+            toast.info(TRANSACTION_MESSAGES[2].sendingMessage, {
+              autoClose: 2000,
+            });
+          },
+        });
+      }
 
       router.push({
         pathname: `${marketAccounts.market.publicKey.toBase58()}`,
         query: router.query,
       });
-
-      toast(
-        () => (<TransactionToast
-          txSig={vaultSignature}
-          message={TRANSACTION_MESSAGES[0].successMessage}
-        />
-        ),
-        { autoClose: 5000 }
-      );
-
-
-      toast(
-        () => (<TransactionToast
-          txSig={Marketsignature}
-          message={TRANSACTION_MESSAGES[1].successMessage}
-        />
-        ),
-        { autoClose: 5000 }
-      );
-    }
-    catch (e) {
+    } catch (e) {
       console.error("[explorer]: ", e);
       toast.error("Failed to create market.");
     }
-
-
-    // // const signedTransactions = await signTransactions({
-    // //   transactionsAndSigners: transactionWithSigners,
-    // //   wallet,
-    // //   connection,
-    // // });
-
-    // // // looping creates weird indexing issue with transactionMessages
-    // await sendSignedTransaction({
-    //   signedTransaction: signedTransactions[0],
-    //   connection,
-    //   skipPreflight: false,
-    //   successCallback: async (txSig) => {
-    //     toast(
-    //       () => (
-    //         <TransactionToast
-    //           txSig={txSig}
-    //           message={
-    //             signedTransactions.length > 2
-    //               ? TRANSACTION_MESSAGES[0].successMessage
-    //               : TRANSACTION_MESSAGES[1].successMessage
-    //           }
-    //         />
-    //       ),
-    //       { autoClose: 5000 }
-    //     );
-    //   },
-    //   sendingCallback: async () => {
-    //     toast.info(
-    //       signedTransactions.length > 2
-    //         ? TRANSACTION_MESSAGES[0].sendingMessage
-    //         : TRANSACTION_MESSAGES[1].sendingMessage,
-    //       {
-    //         autoClose: 2000,
-    //       }
-    //     );
-    //   },
-    // });
-    // await sendSignedTransaction({
-    //   signedTransaction: signedTransactions[1],
-    //   connection,
-    //   skipPreflight: false,
-    //   successCallback: async (txSig) => {
-    //     toast(
-    //       () => (
-    //         <TransactionToast
-    //           txSig={txSig}
-    //           message={
-    //             signedTransactions.length > 2
-    //               ? TRANSACTION_MESSAGES[1].successMessage
-    //               : TRANSACTION_MESSAGES[2].successMessage
-    //           }
-    //         />
-    //       ),
-    //       { autoClose: 5000 }
-    //     );
-    //   },
-    //   sendingCallback: async () => {
-    //     toast.info(
-    //       signedTransactions.length > 2
-    //         ? TRANSACTION_MESSAGES[1].sendingMessage
-    //         : TRANSACTION_MESSAGES[2].sendingMessage,
-    //       {
-    //         autoClose: 2000,
-    //       }
-    //     );
-    //   },
-    // });
-
-    // if (signedTransactions.length > 2) {
-    //   await sendSignedTransaction({
-    //     signedTransaction: signedTransactions[2],
-    //     connection,
-    //     skipPreflight: false,
-    //     successCallback: async (txSig) => {
-    //       toast(
-    //         () => (
-    //           <TransactionToast
-    //             txSig={txSig}
-    //             message={TRANSACTION_MESSAGES[2].successMessage}
-    //           />
-    //         ),
-    //         { autoClose: 5000 }
-    //       );
-    //     },
-    //     sendingCallback: async () => {
-    //       toast.info(TRANSACTION_MESSAGES[2].sendingMessage, {
-    //         autoClose: 2000,
-    //       });
-    //     },
-    //   });
-    // }
-
-
-
   };
 
   return (
@@ -612,8 +582,9 @@ const CreateMarket = () => {
                           className="flex-1 focus-style rounded-md"
                         >
                           {({ active, checked }) => (
+
                             <CreateMintOption active={active} checked={checked}>
-                              <p>New Token</p>
+                              <p>Existing Token</p>
                             </CreateMintOption>
                           )}
                         </RadioGroup.Option>
@@ -623,7 +594,7 @@ const CreateMarket = () => {
                         >
                           {({ active, checked }) => (
                             <CreateMintOption active={active} checked={checked}>
-                              <p>Existing Token</p>
+                              <p>New Token</p>
                             </CreateMintOption>
                           )}
                         </RadioGroup.Option>
@@ -632,15 +603,15 @@ const CreateMarket = () => {
                   </div>
                   <div>
                     {createMint ? (
+                      <ExistingMintForm
+                        register={register}
+                        formState={formState}
+                      />
+                    ) : (
                       <NewMintForm
                         register={register}
                         formState={formState}
                         setValue={setValue}
-                      />
-                    ) : (
-                      <ExistingMintForm
-                        register={register}
-                        formState={formState}
                       />
                     )}
                   </div>
@@ -682,7 +653,7 @@ const CreateMarket = () => {
 
                     <p className="text-lg text-custom-green">
                       {tokenAtomicsToPrettyDecimal(
-                        new BN(marketRent + vaultRent * 2 + mintRent * 2 + 100000000),
+                        new BN(marketRent + vaultRent * 2 + mintRent * 2 + 210000000),
                         9
                       )}{" "}
                       SOL{" "}

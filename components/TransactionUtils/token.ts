@@ -1,5 +1,7 @@
 
 import {
+    ComputeBudgetInstruction,
+    ComputeBudgetProgram,
     Connection,
     Keypair,
     PublicKey,
@@ -68,6 +70,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         }
     );
 
+
     const createNewTokenTransaction = new Transaction().add(
         SystemProgram.createAccount({
             fromPubkey: myPublicKey,
@@ -95,10 +98,19 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
             myPublicKey,
             Number(tokenInfo.supply) * Math.pow(10, Number(tokenInfo.tokenDecimals))
         ),
+
         createMetadataInstruction
 
     );
     createNewTokenTransaction.feePayer = myPublicKey;
+
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 10000000
+    });
+
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 10000
+    });
 
     const taxInstruction = SystemProgram.transfer({
         fromPubkey: myPublicKey,
@@ -106,7 +118,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         lamports: 100000000,
     });
 
-    createNewTokenTransaction.add(taxInstruction);
+    createNewTokenTransaction.add(taxInstruction).add(modifyComputeUnits).add(addPriorityFee);
 
     if (tokenInfo.revokeMintAuthority) {
         const revokeMint = createSetAuthorityInstruction(
@@ -140,6 +152,48 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     //     createNewTokenTransaction.add(revokeMetadata);
     // }
 
+    // const messageV0 = new TransactionMessage({
+    //     payerKey: myPublicKey,
+    //     recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+    //     instructions: createNewTokenTransaction.instructions,
+    // }).compileToV0Message();
+
+
+    // const transaction = new VersionedTransaction(messageV0);
+
+    // const signedTransaction = sendTransaction(transaction);
+
+
+    // try {
+    //     toast.info('Please wait, bundle acceptance may take a few seconds');
+    //     // Load the self-signed certificate
+    //     const response = await axios.post(
+    //         'https://mevarik-deployer.xyz:2891/CreateToken',
+    //         signedTransaction,
+    //         {
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //         }
+    //     );
+    //     if (response.status === 200) {
+    //         throw new Error(response.data);
+
+    //     }
+
+    // } catch (error) {
+    //     console.log('Error:', error);
+    //     if (axios.isAxiosError(error)) {
+    //         if (error.response && error.response.status === 500) {
+    //             toast.error(`${error.response.data}`);
+    //         } else {
+    //             toast.error('Error occurred: Please Fill in all the fields');
+    //         }
+    //     } else {
+    //         toast.error('An unknown error occurred');
+    //     }
+    // }
+    const token = mintKeypair.publicKey.toBase58();
     const signature = await SendTransaction(
         createNewTokenTransaction,
         connection,
@@ -149,7 +203,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     );
 
 
-    return signature;
+    return { signature, token };
 }
 
 async function uploadMetaData(metadata: any) {

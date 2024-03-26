@@ -11,11 +11,13 @@ import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../../components/FieldComponents/InputField';
 import { createToken } from "../../../../components/TransactionUtils/token";
 import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
+import { useRouter } from "next/router";
 // import Link from "next/link";
 // import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
+    const router = useRouter();
     const { publicKey, sendTransaction } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -174,8 +176,8 @@ const CreateToken: FC = () => {
         console.log(TokenMetadata, "TokenMetadata")
         toast.info("Creating token...");
         try {
-            const signature = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
-
+            const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+            router.push("/market/create");
             toast(
                 () => (<TransactionToast
                     txSig={signature}
@@ -369,7 +371,7 @@ const CreateToken: FC = () => {
                             </div>
 
                             {/* image upload  */}
-                            <div className=" flex items-center justify-center my-6 p-6 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
+                            <div className=" flex items-center justify-center my-6 p-2 h-1/3 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
                                 {!uploadedImage && (
                                     <div>
                                         <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
@@ -407,7 +409,7 @@ const CreateToken: FC = () => {
                                     </div>
                                 )}
                                 {uploadedImage && (
-                                    <div className="relative flex justify-center border-y-v3-bg rounded-md">
+                                    <div className="relative flex justify-center h-4/5 border-y-v3-bg rounded-md">
                                         <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
                                     </div>
                                 )}
