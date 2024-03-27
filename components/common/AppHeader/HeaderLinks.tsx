@@ -43,7 +43,7 @@ const HeaderLink = ({
   return (
     <Link href={href} passHref>
       <a
-        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-3xl ${isActive
+        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-full ${isActive
           ?
           ' bg-[#0d1117] !text-[#ffac40] ' : ""}`}
         {...linkProps}

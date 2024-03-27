@@ -4,10 +4,13 @@
 
 @font-face {
   font-family: 'HeliukBrave';
-  src: url('/fonts/HeliukBrave.ttf')  format('truetype');;
+  src: url('/fonts/HeliukBrave.ttf') format('truetype');
 }
 
-
+@font-face {
+  font-family: 'HeliukBrave1';
+  src: url('/fonts/HeliukRegular.otf') format('opentype');
+}
 
 
 body {
