@@ -1,6 +1,5 @@
 
 import {
-    ComputeBudgetInstruction,
     ComputeBudgetProgram,
     Connection,
     Keypair,

@@ -171,15 +171,15 @@ const CreateToken: FC = () => {
         console.log(TokenMetadata, "TokenMetadata")
         toast.info("Creating token...");
         try {
-            // const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+            const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
             // router.push("/market/create");
             router.push({
                 pathname: "/market/create",
-                query: { token: "fefefeffe" }
+                query: { token }
             });
             toast(
                 () => (<TransactionToast
-                    txSig={"Bdbfgbgf"}
+                    txSig={signature}
                     message={"Token created successfully!"}
                 />
                 ),

@@ -1,19 +1,7 @@
-import { Combobox, Transition } from "@headlessui/react";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import {
-  ChangeEvent,
   FC,
-  Fragment,
   ReactNode,
-  useEffect,
-  useMemo,
-  useState,
 } from "react";
-import { SerumMarketInfo, useSerumMarkets } from "../../utils/hooks/useSerumMarkets";
-import { serumMarketFilter } from "../../utils/filters";
-import { prettifyPubkey } from "../../utils/pubkey";
-import debounce from "lodash.debounce";
-import { useRouter } from "next/router";
 import { HeaderLayout } from "./HeaderLayout";
 
 type SearchLayoutProps = {
@@ -25,47 +13,34 @@ export const SearchLayout: FC<SearchLayoutProps> = ({
   title,
   children,
 }: SearchLayoutProps) => {
-  const router = useRouter();
-  const { serumMarkets } = useSerumMarkets();
 
-  const [selected, setSelected] = useState<SerumMarketInfo | undefined>(
-    serumMarkets && serumMarkets[0]
-  );
-  const [marketQuery, setMarketQuery] = useState("");
 
-  const [filteredMarkets, setFilteredMarkets] = useState(
-    serumMarkets ? serumMarkets : []
-  );
 
-  const queryChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    setMarketQuery(e.target.value);
-  };
 
-  const debouncedChangeHandler = useMemo(
-    () => debounce(queryChangeHandler, 500),
-    []
-  );
 
-  const handleSelect = (value: SerumMarketInfo | undefined) => {
-    if (value) {
-      setSelected(value);
-      router.push({
-        pathname: `/market/${value.address.toString()}`,
-        query: router.query,
-      });
-    }
-  };
 
-  useEffect(() => {
-    if (serumMarkets) {
-      if (marketQuery !== "") {
-        const q = new RegExp(marketQuery, "i");
-        setFilteredMarkets(
-          serumMarkets.filter((row) => serumMarketFilter(q, row)).slice(0, 5)
-        );
-      } else setFilteredMarkets(serumMarkets.slice(0, 5));
-    } else setFilteredMarkets([]);
-  }, [marketQuery, serumMarkets]);
+
+
+  // const handleSelect = (value: SerumMarketInfo | undefined) => {
+  //   if (value) {
+  //     setSelected(value);
+  //     router.push({
+  //       pathname: `/market/${value.address.toString()}`,
+  //       query: router.query,
+  //     });
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (serumMarkets) {
+  //     if (marketQuery !== "") {
+  //       const q = new RegExp(marketQuery, "i");
+  //       setFilteredMarkets(
+  //         serumMarkets.filter((row) => serumMarketFilter(q, row)).slice(0, 5)
+  //       );
+  //     } else setFilteredMarkets(serumMarkets.slice(0, 5));
+  //   } else setFilteredMarkets([]);
+  // }, [marketQuery, serumMarkets]);
 
   return (
     <HeaderLayout title={title}>
