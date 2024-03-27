@@ -70,7 +70,7 @@ const HeaderLinks = () => {
   }, [router.pathname]);
   function getActiveLink(pathname: string): number {
     if (pathname === '/') return 0; // Home link
-    if (pathname.startsWith('/mintinglab')) return 1; // Minting Lab link
+    if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1; // Minting Lab link
     if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
     return -1; // None of the above
   }
