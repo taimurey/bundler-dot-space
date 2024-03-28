@@ -111,7 +111,7 @@ const HeaderLinks = () => {
   ];
 
   return (
-    <div className="flex-1 justify-center hidden md:!flex text-sm h-full py">
+    <div className="flex-1 justify-center hidden md:!flex text-sm h-full py-1">
       {headerLinks.map((link, index) => (
         <HeaderLink
           key={index}

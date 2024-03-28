@@ -43,7 +43,9 @@ const AppHeader: React.FC = () => {
             <Link href="/">
               <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
                 <MevLabLogo />
-                <span className="text-[40px] font-normal text-center font-[HeliukBrave] ml-3 uppercase mt-2 tracking-widest">Mevarik</span>
+                <span className="text-[29px] font-normal text-center font-[kanit-medium] ml-1 uppercase mt-1">Mevarik
+                  <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
+                </span>
               </h1>
             </Link>
           </div>
