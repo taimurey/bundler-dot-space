@@ -43,7 +43,7 @@ const HeaderLink = ({
   return (
     <Link href={href} passHref>
       <a
-        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-full ${isActive
+        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[50px] my-[10px] px-4 rounded-3xl ${isActive
           ?
           ' bg-[#0d1117] !text-[#ffac40] ' : ""}`}
         {...linkProps}
@@ -70,7 +70,7 @@ const HeaderLinks = () => {
   }, [router.pathname]);
   function getActiveLink(pathname: string): number {
     if (pathname === '/') return 0; // Home link
-    if (pathname.startsWith('/mintinglab')) return 1; // Minting Lab link
+    if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1; // Minting Lab link
     if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
     return -1; // None of the above
   }
