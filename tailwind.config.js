@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
-        custom: ["HeliukBrave", 'sans-serif'],
+        heliukBrave: ["HeliukBrave", 'sans-serif'],
       },
 
       colors: {

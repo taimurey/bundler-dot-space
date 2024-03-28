@@ -4,10 +4,33 @@
 
 @font-face {
   font-family: 'HeliukBrave';
-  src: url('/fonts/HeliukBrave.ttf')  format('truetype');;
+  src: url('/fonts/HeliukBrave.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'HeliukBrave1';
+  src: url('/fonts/HeliukRegular.otf') format('opentype');
+}
 
+@font-face {
+  font-family: 'kanit';
+  src: url('/fonts/Kanit-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'kanit-regular';
+  src: url('/fonts/Kanit-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'kanit-medium';
+  src: url('/fonts/Kanit-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'kanit-light';
+  src: url('/fonts/Kanit-Light.ttf') format('truetype');
+}
 
 
 body {

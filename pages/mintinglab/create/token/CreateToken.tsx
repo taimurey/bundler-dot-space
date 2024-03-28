@@ -206,7 +206,7 @@ const CreateToken: FC = () => {
 
 
     return (
-        <div className="relative divide-y divide-neutral-700  w-full">
+        <div className="relative divide-y divide-neutral-700 w-full">
             {creatingToken && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-white"></div>
@@ -222,7 +222,7 @@ const CreateToken: FC = () => {
                 )}
 
                 {!tokenMintAddress ? (
-                    <form className="py-4  flex bg-[] gap-8 flex-col lg:flex-row w-full" onSubmit={createTokenCallback} id="form">
+                    <form className="py-4 flex bg-[] gap-8 flex-col lg:flex-row w-full" onSubmit={createTokenCallback} id="form">
                         <div className="lg:w-1/2  ">
                             <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
                             <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>

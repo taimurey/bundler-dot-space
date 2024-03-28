@@ -33,8 +33,8 @@ const HeaderLink = ({
         <div>
             <Link href={href}>
                 <div
-                    className={`flex justify-start  font-semibold text-white/50 hover:text-white fill-current   px-6 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer 
-                    ${isActive && `!text-v3-primary`}`}
+                    className={`flex justify-start  font-semibold text-white/50 hover:text-white fill-current   px-6 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer py-4
+                    ${isActive && `!text-v3-primary bg-[#11171f]  rounded-[35px]`}`}
                 >
                     <div className="flex justify-start items-center gap-4">
                         <div className={`w-10 h-10 bg-v3-bg border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-b-xl`}>
@@ -111,7 +111,7 @@ const Sidebar: FC<{}> = ({ }) => {
         <>
             <div className="h-full">
                 <div className="flex  justify-start items-start w-full  max-w-[220px] h-full py-8">
-                    <div className="flex  flex-col gap-8 h-full">
+                    <div className="flex  flex-col gap-2 h-full px-4">
                         {filteredLinks.map((link, index) => (
                             <HeaderLink
                                 key={index}

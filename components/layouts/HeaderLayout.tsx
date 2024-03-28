@@ -5,6 +5,7 @@ import React from 'react';
 import Sidebar from "../common/Sidebar";
 import { useRouter } from "next/router";
 
+
 type HeaderLayoutProps = {
   title?: string;
   children: ReactNode;
@@ -22,12 +23,12 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
         <div className="w-full mx-auto">
           <Header />
           <div className="flex  justify-start items-start h-full w-full">
-          {router.pathname != "/" &&
+            {router.pathname != "/" &&
 
-            <div className=" hidden md:flex min-w-[250px] h-full  bg-[#0d1117] border-gray-700">
-            <Sidebar />
-            </div>
-}
+              <div className=" hidden md:flex min-w-[250px] h-full  bg-[#0d1117] border-gray-700">
+                <Sidebar />
+              </div>
+            }
             <div className="px-4 py-10 mx-auto space-y-6 w-full h-full">
               {children}
             </div>
