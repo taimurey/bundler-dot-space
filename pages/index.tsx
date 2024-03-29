@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { getSearchLayout } from "../components/layouts/SearchLayout";
 import { ReactNode } from "react";
-function increaseNumberAnimation(elementId: string, endNumber: number, speed = 100) {
-  const element = document.getElementById(elementId);
 
-  if (!element) return;
-
-  const animationRunning = JSON.parse(element.dataset.animationRunning ?? "false");
-
-  if (animationRunning) return;
-
-  element.dataset.animationRunning = "true";
-
-  incNbrRec(1000, endNumber, element, speed);
-}
-
-function incNbrRec(currentNumber: number, endNumber: number, element: HTMLElement, speed: number) {
-  if (currentNumber <= endNumber) {
-    element.innerHTML = currentNumber.toString();
-    setTimeout(function () {
-      incNbrRec(currentNumber + 53, endNumber, element, speed);
-    }, speed);
-  } else {
-    delete element.dataset.animationRunning;
-  }
+function animateValue(id: string, start: number, end: number, duration: number) {
+  if (start === end) return;
+  const range = end - start;
+  let current = start;
+  const increment = end > start ? 1 : -1;
+  const stepTime = Math.max(Math.abs(Math.floor(duration / range)), 1);
+  const obj = document.getElementById(id);
+  if (!obj) { return; }
+  const timer = setInterval(function () {
+    current += increment;
+    if (obj) {
+      if (id === 'stat1') {
+        obj.innerHTML = `$${current.toLocaleString()} M+`;
+      } else {
+        obj.innerHTML = current.toLocaleString();
+      }
+    }
+    if (current == end) {
+      clearInterval(timer);
+    }
+  }, stepTime);
 }
 
 const Home = () => {
@@ -33,9 +32,9 @@ const Home = () => {
     const timer = setTimeout(() => {
       setIsVisible(true);
       // Trigger number increase animation for each statistic
-      increaseNumberAnimation('stat1', 2535);
-      increaseNumberAnimation('stat2', 2123);
-      increaseNumberAnimation('stat3', 1500);
+      animateValue('stat1', 0, 18, 0);
+      animateValue('stat2', 0, 2123, 100);
+      animateValue('stat3', 0, 1123, 100);
     }, 500);
     return () => clearTimeout(timer);
   }, []);
@@ -61,15 +60,15 @@ const Home = () => {
         {/* Counting Statistics */}
         <div className="flex justify-center items-center flex-col">
           <p id="stat1" className="font-semibold text-[25px]">0</p>
-          <p className="text-[#7f8083] font-light text-[14px]">Mintinglab Minted Token</p>
+          <p className="text-[#7f8083] font-light text-[14px]">Tokens Volume</p>
         </div>
         <div className="flex justify-center items-center flex-col">
           <p id="stat2" className="font-semibold text-[25px]">0</p>
-          <p className="text-[#7f8083] font-light text-[14px]">Mintinglab User</p>
+          <p className="text-[#7f8083] font-light text-[14px]">Tokens Minted</p>
         </div>
         <div className="flex justify-center items-center flex-col">
           <p id="stat3" className="font-semibold text-[25px]">0</p>
-          <p className="text-[#7f8083] font-light text-[14px]">7 Days New Mint
+          <p className="text-[#7f8083] font-light text-[14px]">Liquidity Launched
           </p>
         </div>
       </div>

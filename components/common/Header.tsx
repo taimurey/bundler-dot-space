@@ -1,27 +1,27 @@
 import { FC, } from "react";
 import React from 'react';
 import AppHeader from "./AppHeader/AppHeader";
-import Dashboard from "./Dashboard";
+// import Dashboard from "./Dashboard";
 
 const Header: FC = () => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  // const [isExpanded, setIsExpanded] = React.useState(false);
 
-  React.useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (event.pageY < 150) {
-        setIsExpanded(true);
-      } else {
-        setIsExpanded(false);
-      }
-    };
+  // React.useEffect(() => {
+  //   const handleMouseMove = (event: MouseEvent) => {
+  //     if (event.pageY < 150) {
+  //       setIsExpanded(true);
+  //     } else {
+  //       setIsExpanded(false);
+  //     }
+  //   };
 
-    window.addEventListener('mousemove', handleMouseMove);
+  //   window.addEventListener('mousemove', handleMouseMove);
 
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
+  //   // Clean up the event listener when the component unmounts
+  //   return () => {
+  //     window.removeEventListener('mousemove', handleMouseMove);
+  //   };
+  // }, []);
 
   return (
     <div

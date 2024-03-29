@@ -11,13 +11,9 @@ import { packToBlob } from 'ipfs-car/pack/blob';
 import { InputField } from '../../../../components/FieldComponents/InputField';
 import { createToken } from "../../../../components/TransactionUtils/token";
 import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
-import { useRouter } from "next/router";
-// import Link from "next/link";
-// import { FormEvent } from 'react';
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
-    const router = useRouter();
     const { publicKey, sendTransaction } = useWallet();
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -172,11 +168,12 @@ const CreateToken: FC = () => {
         toast.info("Creating token...");
         try {
             const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+
             // router.push("/market/create");
-            router.push({
-                pathname: "/market/create",
-                query: { token }
-            });
+            // router.push({
+            //     pathname: "/market/create",
+            //     query: { token }
+            // });
             toast(
                 () => (<TransactionToast
                     txSig={signature}
@@ -185,6 +182,24 @@ const CreateToken: FC = () => {
                 ),
                 { autoClose: 5000 }
             );
+
+            toast(
+                () => (
+                    <div className="flex justify-between items-center">
+                        <p className="text-white">Mint Address</p>
+                        <a
+                            href={`https://solscan.io/account/${token}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-500"
+                        >
+                            View on Solana Explorer
+                        </a>
+                    </div>
+                ),
+                { autoClose: 5000 }
+            );
+
         }
         catch (error: any) {
             toast.error("Error creating the token");

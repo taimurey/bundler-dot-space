@@ -17,7 +17,7 @@ import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
+import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 // import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
 // const agent = new https.Agent({
@@ -162,14 +162,12 @@ const LiquidityHandlerRaydium = () => {
 
 
 
-
     const handlesubmission = async (e: any) => {
         e.preventDefault();
         console.log('Form data:', formData);
 
         try {
             toast.info('Please wait, bundle acceptance may take a few seconds');
-            // Load the self-signed certificate
             const response = await axios.post(
                 'https://mevarik-deployer.xyz:2891/jitoadd',
                 formData,
@@ -180,17 +178,29 @@ const LiquidityHandlerRaydium = () => {
                 }
             );
             if (response.status === 200) {
+                const bundleId = response.data.bundleId;
+                const ammId = response.data.Id;
 
                 toast(
-                    () => (<BundleToast
-                        txSig={JSON.stringify(response.data)}
-                        message={'Bundle ID:'}
-                    />
+                    () => (
+                        <BundleToast
+                            txSig={bundleId}
+                            message={'Bundle ID:'}
+                        />
+                    ),
+                    { autoClose: 5000 }
+                );
+
+                toast(
+                    () => (
+                        <TransactionToast
+                            txSig={ammId}
+                            message={'AMM ID:'}
+                        />
                     ),
                     { autoClose: 5000 }
                 );
             }
-
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {

@@ -57,6 +57,10 @@ body {
   @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-custom-green-200 focus-visible:border-none
 }
 
+.highlight-dasboard-text {
+  @apply text-amber-500
+}
+
 .input {
   @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
 }

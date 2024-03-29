@@ -92,7 +92,7 @@ const CreateMarket = () => {
   const router = useRouter();
   // const { String: token } = router.query;
   // const token = router.query.token as string | undefined;
-  const [token, setToken] = React.useState<string | undefined>(router.query.token as string | undefined);
+  // const [token, setToken] = React.useState<string | undefined>(router.query.token as string | undefined);
   const { connection } = useConnection();
   const wallet = useWallet();
 
@@ -104,9 +104,9 @@ const CreateMarket = () => {
         createMint: true,
       },
     });
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setToken(event.target.value);
-  };
+  // const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setToken(event.target.value);
+  // };
   const createMint = watch("createMint");
   const useAdvancedOptions = watch("useAdvancedOptions");
 
@@ -610,8 +610,8 @@ const CreateMarket = () => {
                       <ExistingMintForm
                         register={register}
                         formState={formState}
-                        Token={token}
-                        handleInputChange={handleInputChange}
+                      // Token={token}
+                      // handleInputChange={handleInputChange}
                       />
                     ) : (
                       <NewMintForm
