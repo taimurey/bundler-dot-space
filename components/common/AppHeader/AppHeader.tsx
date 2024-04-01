@@ -34,7 +34,7 @@ const AppHeader: React.FC = () => {
   return (
     <>
       <div className="relative flex items-center justify-between w-full bg-[#010409]">
-        <div className="flex items-center px-6 gap-6">
+        <div className="flex items-center px-2 gap-1">
           <div className="flex items-center  ">
             <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
               {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
@@ -49,9 +49,7 @@ const AppHeader: React.FC = () => {
               </h1>
             </Link>
           </div>
-          <div className="flex items-center ">
-            <HeaderLinks />
-          </div>
+          <HeaderLinks />
         </div>
 
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">

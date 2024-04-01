@@ -32,6 +32,11 @@
   src: url('/fonts/Kanit-Light.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Regular.ttf') format('truetype');
+}
+
 
 body {
   @apply bg-[#11171f] text-white;

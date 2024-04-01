@@ -24,7 +24,7 @@ const HeaderLink = ({
 }: LinkProps & {
   href: string;
   title: string | React.ReactNode;
-  icon: React.ReactNode;
+  icon?: React.ReactNode; // icon is now optional
   external?: boolean;
   index: number;
   active: number;
@@ -40,19 +40,21 @@ const HeaderLink = ({
     linkProps.rel = 'noopener noreferrer';
   }
 
+  const linkStyle = icon ?
+    `ml-5 flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-4 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
+    `flex items-center justify-center font-[Roboto] text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4`;
+
   return (
     <Link href={href} passHref>
       <a
-        className={`flex items-center font-semibold text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4 rounded-xl ${isActive
-          ?
-          ' bg-[#0d1117] !text-[#ffac40] ' : ""}`}
+        className={linkStyle}
         {...linkProps}
         onClick={() => {
           setActive(index);
         }}
       >
-        <span className="flex items-center w-5">{icon}</span>
-        <span className="ml-2 whitespace-nowrap">{title}</span>
+        {icon && <span className="flex items-center w-5">{icon}</span>} {/* Conditional rendering for icon */}
+        <span className={`ml-2 whitespace-nowrap ${isActive && !icon ? 'border-b-2 border-[#ffac40]' : ''}`}>{title}</span>
       </a>
     </Link>
   );
@@ -76,12 +78,12 @@ const HeaderLinks = () => {
   }
 
   const headerLinks = [
-    {
-      id: 0,
-      href: '/',
-      title: 'Home',
-      icon: <HomeIcon />,
-    },
+    // {
+    //   id: 0,
+    //   href: '/',
+    //   title: 'Home',
+    //   icon: <HomeIcon />,
+    // },
     {
       id: 1,
       href: '/mintinglab/create',
@@ -91,8 +93,13 @@ const HeaderLinks = () => {
     {
       id: 2,
       href: '/liquidity/add',
+      title: 'Swap',
+    },
+    {
+      id: 3,
+      href: '/liquidity/add',
       title: 'Liquidity',
-      icon: <LiquidityIcon width="20" height="20" />,
+      // icon: <LiquidityIcon width="20" height="20" />,
     }
     ,
     // {
@@ -111,7 +118,7 @@ const HeaderLinks = () => {
   ];
 
   return (
-    <div className="flex-1 justify-center hidden md:!flex text-sm h-full py-1">
+    <div className="flex-1 justify-center hidden md:!flex text-sm h-full">
       {headerLinks.map((link, index) => (
         <HeaderLink
           key={index}

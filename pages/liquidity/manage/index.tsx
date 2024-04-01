@@ -1,5 +1,5 @@
 'use client';
-
+import { Router } from 'next/router';
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useEffect } from 'react';
