@@ -18,6 +18,8 @@ import { useSolana } from '../../../components/context';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
+import { useMyContext } from '../../../contexts/Maincontext';
+import Allprofiles from '../../../components/common/Allprofiles';
 // import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
 // const agent = new https.Agent({
@@ -214,9 +216,21 @@ const LiquidityHandlerRaydium = () => {
             }
         }
     };
-
+    const { isProfilesActive } = useMyContext();
+    let data = [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "price": "Pkr424234"
+        },
+        {
+            "id": 2,
+            "name": "Jane Doe",
+            "price": "Pkr234214214"
+        }
+    ]
     return (
-        <div className=" mb-8 mx-auto flex mt-8 justify-center items-center">
+        <div className=" mb-8 mx-auto flex mt-8 justify-center items-center relative">
             <form>
                 <div className="">
                     <div className="">
@@ -498,6 +512,9 @@ const LiquidityHandlerRaydium = () => {
                     </div>
                 </div>
             </form>
+            <div className='absolute -top-[70px] right-0 h-full'>
+                <Allprofiles />
+            </div>
         </div>
     );
 }

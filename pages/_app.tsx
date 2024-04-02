@@ -6,8 +6,8 @@ import { SerumProvider } from "../components/context/SerumContext";
 import { SolanaProvider } from "../components/context/SolanaContext";
 import GlobalStyles from "../styles/GlobalStyles";
 import { ToastContainer, toast } from "react-toastify";
-
-// Use require instead of import since order matters
+import { MyContextProvider } from "../contexts/Maincontext";
+// Use require instead of import  since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("../styles/globals.css");
 require("react-toastify/dist/ReactToastify.css");
@@ -27,13 +27,15 @@ const App: FC<AppPropsWithLayout> = ({
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
-    <SolanaProvider>
-      <SerumProvider>
-        <GlobalStyles />
-        <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toast-container" />
-        {getLayout(<Component {...pageProps} />)}
-      </SerumProvider>
-    </SolanaProvider>
+    <MyContextProvider>
+      <SolanaProvider>
+        <SerumProvider>
+          <GlobalStyles />
+          <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toast-container" />
+          {getLayout(<Component {...pageProps} />)}
+        </SerumProvider>
+      </SolanaProvider>
+    </MyContextProvider>
   );
 };
 

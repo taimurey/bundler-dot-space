@@ -23,7 +23,8 @@ import { toast } from "react-toastify";
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { Metaplex } from '@metaplex-foundation/js';
 // import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
-
+import { useMyContext } from '../../../contexts/Maincontext';
+import Allprofiles from '../../../components/common/Allprofiles';
 
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
@@ -224,8 +225,21 @@ const RaydiumLiquidityRemover = () => {
             }
         }
     };
+    const { isProfilesActive } = useMyContext();
+    let data = [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "price": "Pkr424234"
+        },
+        {
+            "id": 2,
+            "name": "Jane Doe",
+            "price": "Pkr234214214"
+        }
+    ]
     return (
-        <div className="space-y-4 mb-8 mt-10">
+        <div className="space-y-4 mb-8 mt-10 relative  mx-auto h-full">
             <form>
                 <div className="flex justify-between">
                     <div className="space-y-4 w-1/2 mx-auto">
@@ -326,6 +340,9 @@ const RaydiumLiquidityRemover = () => {
 
                 </div>
             </form>
+            <div className='absolute -top-[95px] right-0 h-full min-h-[100vh]'>
+                <Allprofiles />
+            </div>
         </div>
     );
 }

@@ -19,7 +19,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
       <Head>
         <title>{title ? `${title} - Mevarik` : `Mevarik`}</title>
       </Head>
-      <div className="w-full h-screen overflow-y-auto flex flex-col space-y-4 justify-between  ">
+      <div className="w-full h-screen overflow-y-auto flex flex-col space-y-4 justify-between  overflow-x-hidden ">
         <div className="w-full mx-auto">
           <Header />
           <div className="flex  justify-start items-start h-full w-full">
