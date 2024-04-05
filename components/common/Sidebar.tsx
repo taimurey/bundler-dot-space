@@ -89,14 +89,16 @@ const Sidebar: FC = () => {
             description: 'Handle liquidity on Raydium',
             icon: <ManageIcon />,
         },
+
+
     ];
 
     // Filter links based on the current route
     const filterLinks: FilterLink = (link) => {
         if (router.pathname === '/mintinglab/create' || router.pathname === '/market/create' || router.pathname === '/dashboard') {
             return link.href === '/mintinglab/create' || link.href === '/market/create' || link.href === '/dashboard';
-        } else if (router.pathname === '/liquidity/add' || router.pathname === '/liquidity/manage') {
-            return link.href === '/liquidity/add' || link.href === '/liquidity/manage'
+        } else if (router.pathname === '/liquidity/add' || router.pathname === '/liquidity/manage' || router.pathname === '/liquidity/swap') {
+            return link.href === '/liquidity/add' || link.href === '/liquidity/manage' || link.href === '/liquidity/swap';
 
         }
         return false;
@@ -136,6 +138,18 @@ const Sidebar: FC = () => {
                             />
                         ))}
                     </div>
+                    {router.pathname.includes('/liquidity/') &&
+                        <>
+                            <hr className=" bg-white  w-full my-4" />
+                            <Link href="/liquidity/swap">
+                                <div className="mx-6 mb-2 p-2 w-full max-w-[200px] rounded-xl flex justify-center items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3 " onClick={() => setisProfilesActive(true)}>
+                                    <div className="flex flex-col justify-center items-center">
+                                        <p className="font-bold text-white/80 text-center text-xl ">Swap</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </>
+                    }
                 </div>
             </div>
             {/* } */}

@@ -4,6 +4,7 @@ import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import VirusIcon from '../icons/VirusIcon';
 import { toast } from 'react-toastify';
+import { set } from 'lodash';
 
 const randomColor = () => {
     return '#' + Math.floor(Math.random() * 16777215).toString(16);
@@ -16,45 +17,39 @@ interface Profile {
     color: string;
 }
 
+
 const Allprofiles: React.FC = () => {
-    const { isProfilesActive } = useMyContext();
+    const { isProfilesActive, DeployerWallets, setDeployerWallets, activeWallet, setActiveWallet } = useMyContext();
     const [isEditable, setIsEditable] = useState<number | null>(null);
+    // const [data, setData] = useState<Profile[]>(() => {
+    //     const isWindowAvailable = typeof window !== 'undefined';
+    //     if (isWindowAvailable) {
+    //         const savedData = window.localStorage.getItem('data');
+    //         if (savedData) {
+    //             const parsedData: Profile[] = JSON.parse(savedData);
+    //             return parsedData.map(item => ({
+    //                 ...item,
+    //                 color: item.color || randomColor(),
+    //             }));
+    //         }
+    //     }
+    //     return [];
+    // });
 
-    const [data, setData] = useState<Profile[]>(() => {
-        const isWindowAvailable = typeof window !== 'undefined';
-        if (isWindowAvailable) {
-            const savedData = window.localStorage.getItem('data');
-            if (savedData) {
-                const parsedData: Profile[] = JSON.parse(savedData);
-                return parsedData.map(item => ({
-                    ...item,
-                    color: item.color || randomColor(),
-                }));
-            }
-        }
-        return [];
-    });
+    // useEffect(() => {
+    //     const isWindowAvailable = typeof window !== 'undefined';
+    //     if (isWindowAvailable) {
+    //         window.localStorage.setItem('data', JSON.stringify(data));
+    //     }
+    // }, [data]);
 
-    useEffect(() => {
-        const isWindowAvailable = typeof window !== 'undefined';
-        if (isWindowAvailable) {
-            window.localStorage.setItem('data', JSON.stringify(data));
-        }
-    }, [data]);
-
-    const addWallet = () => {
-        const newWallet: Profile = {
-            id: data.length + 1,
-            name: "New Wallet",
-            wallet: "Private Key",
-            color: randomColor()
-        };
-
-        setData([...data, newWallet]);
+    const clearWallet = () => {
+        localStorage.removeItem('deployerwallets');
+        setDeployerWallets([]);
     };
 
     const handleChange = (index: number, field: keyof Profile, event: React.ChangeEvent<HTMLInputElement>) => {
-        const newData = [...data];
+        const newData = [...DeployerWallets];
         if (field === 'wallet') {
             try {
                 const keypair = Keypair.fromSecretKey(base58.decode(event.target.value));
@@ -64,7 +59,7 @@ const Allprofiles: React.FC = () => {
             }
         }
         newData[index][field as 'name' | 'wallet'] = truncate(event.target.value, 5, 5);
-        setData(newData);
+        setDeployerWallets(newData);
     };
 
     const handleKeyPress = (event: React.KeyboardEvent) => {
@@ -75,7 +70,7 @@ const Allprofiles: React.FC = () => {
     };
 
     const handleBlur = (index: number, field: keyof Profile, event: React.FocusEvent<HTMLParagraphElement>) => {
-        const newData = [...data];
+        const newData = [...DeployerWallets];
         if (field === 'wallet') {
             try {
                 const keypair = Keypair.fromSecretKey(base58.decode(event.target.innerText));
@@ -85,7 +80,7 @@ const Allprofiles: React.FC = () => {
             }
         }
         newData[index][field as 'name' | 'wallet'] = truncate(event.target.innerText, 5, 5);
-        setData(newData);
+        setDeployerWallets(newData);
         setIsEditable(null);
     };
 
@@ -105,28 +100,31 @@ const Allprofiles: React.FC = () => {
                 <p className='px-1 font-bold'>Deployer Wallets</p>
                 <p className='p-2 font-light text-sm  border-[#f5ac41] border-b'>Wallets will be automatically loaded after successful deployment</p>
                 <div className='flex flex-col gap-4 py-4'>
-                    {data.map((item: Profile, index: number) => (
+                    {DeployerWallets?.map((item: Profile, index: number) => (
                         <div
                             key={index}
-                            className='flex justify-start items-center gap-2 bg-[#262626] hover:bg-gray-700 ease-in-out cursor-pointer duration-300 px-3 py-2 rounded-lg'
-                            onClick={() => setIsEditable(index)}
+                            className={`flex justify-start items-center gap-2  ${activeWallet.id == item.id ? "bg-gray-700" : "bg-[#262626]"} hover:bg-gray-700 ease-in-out cursor-pointer duration-300 px-3 py-2 rounded-lg`}
+                            onClick={() => { setIsEditable(index); setActiveWallet(item) }}
                         >
                             <div className="circle">
                                 <VirusIcon color={item.color} />
                             </div>
                             <div className='flex flex-col justify-start items-start'>
                                 <p className='text-[#bababb] text-sm'>{truncate(item.name, 7, 8)}</p>
-                                <p className={`text-[#96989c]  hover:text-white rounded-md bg-[#202429] hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out
+                                <p className={`text-[#96989c]  hover:text-white rounded-md bg-[#202429] hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out overflow-hidden min-h-[25px]
                                 ${isEditable === index
                                         ? 'hover:text-white rounded-xl bg-black hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out' : ''} w-32`} contentEditable={isEditable === index} onBlur={event => handleBlur(index, 'wallet', event)}>{truncate(item.wallet, 5, 5)}</p>
+
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
-            <div className='invoke-btn btn-text-gradient mb-16' onClick={addWallet}>
-                Add Wallet
-            </div>
+            {DeployerWallets.length > 0 &&
+                <div className='invoke-btn btn-text-gradient mb-16 ' onClick={clearWallet}>
+                    Clear wallets
+                </div>
+            }
         </div>
     );
 };

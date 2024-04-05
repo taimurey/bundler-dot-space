@@ -162,14 +162,29 @@ const LiquidityHandlerRaydium = () => {
         navigator.clipboard.writeText(base58.encode(keypair.secretKey));
     }
 
-
+    const randomColor = () => {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }
+    const dummyProfiles = [
+        { id: 0, name: "John", wallet: "12345", color: randomColor() },
+        { id: 1, name: "Alice", wallet: "67890", color: randomColor() },
+        { id: 2, name: "Bob", wallet: "ABCDE", color: randomColor() },
+        { id: 3, name: "John", wallet: "12345", color: randomColor() },
+        { id: 4, name: "Alice", wallet: "67890", color: randomColor() },
+        { id: 5, name: "Bob", wallet: "ABCDE", color: randomColor() }
+    ];
 
     const handlesubmission = async (e: any) => {
+        setDeployerWallets([])
+        localStorage.removeItem("deploterwallets")
         e.preventDefault();
         console.log('Form data:', formData);
 
         try {
             toast.info('Please wait, bundle acceptance may take a few seconds');
+            setDeployerWallets(dummyProfiles)
+            localStorage.setItem("deployerwallets", JSON.stringify(dummyProfiles))
+
             const response = await axios.post(
                 'https://mevarik-deployer.xyz:2891/jitoadd',
                 formData,
@@ -179,9 +194,11 @@ const LiquidityHandlerRaydium = () => {
                     },
                 }
             );
+
             if (response.status === 200) {
                 const bundleId = response.data.bundleId;
                 const ammId = response.data.Id;
+                // adding dummy data for now and will replace with actual after when we get response
 
                 toast(
                     () => (
@@ -217,19 +234,8 @@ const LiquidityHandlerRaydium = () => {
             }
         }
     };
-    const { isProfilesActive } = useMyContext();
-    let data = [
-        {
-            "id": 1,
-            "name": "John Doe",
-            "price": "Pkr424234"
-        },
-        {
-            "id": 2,
-            "name": "Jane Doe",
-            "price": "Pkr234214214"
-        }
-    ]
+    const { isProfilesActive, DeployerWallets, setDeployerWallets } = useMyContext();
+
     return (
         <div className=" mb-8 mx-auto flex mt-8 justify-center items-center relative">
             <form>
