@@ -110,12 +110,12 @@ const Sidebar: FC = () => {
     return (
         <>
             <div className="h-full  ">
-                <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] h-full py-8 flex-col">
+                <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
                     {showAllPortfolios && (
                         <div className="mx-6 mb-2 p-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3" onClick={() => setisProfilesActive(!isProfilesActive)}>
                             <div className="bg-[#333333] px-3 py-3  rounded-full"><div className="bg-[#7a7a7a] rounded-full px-2 font-bold ">?</div></div>
                             <div className="flex flex-col">
-                                <p className="font-bold text-white/80 ">All Portfolios</p>
+                                <p className="font-bold text-white/80 ">Wallets</p>
                             </div>
                             <div className="font-bold">
                                 {'>'}

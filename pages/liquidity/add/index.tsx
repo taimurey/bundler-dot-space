@@ -203,6 +203,7 @@ const LiquidityHandlerRaydium = () => {
                     { autoClose: 5000 }
                 );
             }
+
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
@@ -459,7 +460,7 @@ const LiquidityHandlerRaydium = () => {
 
                                     /> */}
 
-                                    <div className='w-full '>
+                                    <div className='w-full'>
                                         <label className="block mt-5 text-base text-white font-semibold" >
                                             Wallets:
                                         </label>
@@ -512,7 +513,7 @@ const LiquidityHandlerRaydium = () => {
                     </div>
                 </div>
             </form>
-            <div className='absolute -top-[70px] right-0 h-full'>
+            <div className='absolute -top-[70px] right-0 h-screen'>
                 <Allprofiles />
             </div>
         </div>

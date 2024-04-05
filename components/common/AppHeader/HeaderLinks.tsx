@@ -78,28 +78,28 @@ const HeaderLinks = () => {
   }
 
   const headerLinks = [
-    // {
-    //   id: 0,
-    //   href: '/',
-    //   title: 'Home',
-    //   icon: <HomeIcon />,
-    // },
+    {
+      id: 0,
+      href: '/',
+      title: 'Home',
+      icon: <HomeIcon />,
+    },
     {
       id: 1,
       href: '/mintinglab/create',
       title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
     },
+    // {
+    //   id: 2,
+    //   href: '/liquidity/add',
+    //   title: 'Swap',
+    // },
     {
       id: 2,
       href: '/liquidity/add',
-      title: 'Swap',
-    },
-    {
-      id: 3,
-      href: '/liquidity/add',
       title: 'Liquidity',
-      // icon: <LiquidityIcon width="20" height="20" />,
+      icon: <LiquidityIcon width="20" height="20" />,
     }
     ,
     // {
