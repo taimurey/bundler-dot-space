@@ -1,6 +1,6 @@
 'use client';
 import { Router } from 'next/router';
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useEffect } from 'react';
 import { ReactNode } from 'react';
@@ -20,7 +20,7 @@ import { getWalletTokenAccount } from '../../../components/removeLiquidity/util'
 import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiquidity/config';
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
-import { InputField } from '../../../components/FieldComponents/InputField';
+import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
 import { Metaplex } from '@metaplex-foundation/js';
 // import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
 import { useMyContext } from '../../../contexts/Maincontext';
@@ -36,6 +36,7 @@ const RaydiumLiquidityRemover = () => {
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isMintLoading, setIsMintLoading] = useState(true);
+    const [isToggle, setIsToggle] = useState(false);
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMicroLamportsInput(event.target.value);
@@ -226,6 +227,26 @@ const RaydiumLiquidityRemover = () => {
         }
     };
     const { isProfilesActive } = useMyContext();
+    const [formData, setFormData] = useState({
+        BlockEngineSelection: "",
+        BundleTip: "0.01",
+        TransactionTip: "0.00001",
+    });
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+    }
+    const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+    }
     let data = [
         {
             "id": 1,
@@ -249,7 +270,7 @@ const RaydiumLiquidityRemover = () => {
                                     Liquidity Manager
                                 </h1>
                             </div>
-                            <div className='border bg-[#0c0e11] border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
+                            {/* <div className='border bg-[#0c0e11] border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
                                 <div className='flex items-center justify-center gap-2 '>
                                     <InputField
                                         label='Mint Address'
@@ -282,8 +303,68 @@ const RaydiumLiquidityRemover = () => {
                                         </span>
                                     </button>
                                 </div>
-                            </div>
+                            </div> */}
+
                             <div className='border bg-[#0c0e11]  border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="toggle"
+                                        name="toggle"
+                                        checked={isToggle}
+                                        onChange={() => setIsToggle(!isToggle)}
+                                        className="form-checkbox h-5 w-5 text-[#ff0000] border-[#535353] duration-200 ease-in-out"
+                                    />
+                                    <label className="text-white font-normal" htmlFor="toggle">
+                                        Use Jito Bundles
+                                    </label>
+                                </div>
+
+                                {isToggle && (
+                                    <div className="w-full">
+                                        <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
+                                            Block Engine
+                                        </label>
+                                        <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                            <select
+                                                id="BlockEngineSelection"
+                                                value={formData.BlockEngineSelection}
+                                                onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
+                                                required={true}
+                                                className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                            >
+                                                <option value="" disabled>
+                                                    Block Engine Location(Closest to you)
+                                                </option>
+                                                {BlockEngineLocation.map((option, index) => (
+                                                    <option key={index} value={option}>
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className='flex justify-end items-end gap-2'>
+                                            <InputField
+                                                id="BundleTip"
+                                                value={formData.BundleTip}
+                                                onChange={(e) => handleChange(e, 'BundleTip')}
+                                                placeholder="0.01"
+                                                type="number"
+                                                label="Bundle Tip"
+                                                required={true}
+                                            />
+                                            <InputField
+                                                id="TransactionTip"
+                                                value={formData.TransactionTip}
+                                                onChange={(e) => handleChange(e, 'TransactionTip')}
+                                                placeholder="0.0001"
+                                                type="number"
+                                                label="Txn Tip (SOL)"
+                                                required={true}
+                                            />
+                                        </div>
+                                    </div>)}
+
                                 <div className="flex items-center justify-center gap-2 ">
                                     {/* <div className="space-y-4  mt-20">
                                 <div className="relative mt-1 rounded-md shadow-sm"> */}
@@ -299,7 +380,7 @@ const RaydiumLiquidityRemover = () => {
                                     />
 
 
-                                    <div className='w-2/3'>
+                                    {!isToggle && (<div className='w-2/3'>
                                         <InputField
                                             label='Priotiy Fee(Sol)'
                                             id="microLamports"
@@ -309,7 +390,7 @@ const RaydiumLiquidityRemover = () => {
                                             placeholder="Enter 0.001 etc..."
                                             required={true}
                                         />
-                                    </div>
+                                    </div>)}
 
                                 </div>
                                 <button
@@ -340,7 +421,7 @@ const RaydiumLiquidityRemover = () => {
 
                 </div>
             </form>
-            <div className='absolute -top-[95px] right-0 h-full min-h-[100vh]'>
+            <div className='absolute -top-[95px] right-0 min-h-screen '>
                 <Allprofiles />
             </div>
         </div>

@@ -34,7 +34,7 @@ const HeaderLink = ({
     }, [isExpanded]);
 
     const styles = [
-        `flex items-center font-semibold text-white/50 hover:text-white fill-current  min-w-[230px] px-4 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer`,
+        `fill-current  min-w-[230px] px-4 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer`,
         isActive && `!text-v3-primary border-v3-primary`,
         isExpandedState ? `h-[80px]` : `h-0`,
     ].join(' ');

@@ -8,6 +8,8 @@ import { LinkProps } from "./AppHeader/HeaderLinks";
 import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
+import SwapIcon from "../icons/SwapIcon";
+import VirusIcon from "../icons/VirusIcon";
 
 const HeaderLink = ({
     href,
@@ -30,11 +32,11 @@ const HeaderLink = ({
                 <div
                     // className={`flex justify-start  font-semibold text-white/50 hover:text-white fill-current   px-6 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer py-4
                     // ${isActive && `!text-v3-primary bg-[#11171f]  rounded-[35px]`}`}
-                    className={`flex justify-start  text-white/50 hover:text-white fill-current font-extralight  px-6 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer 
-                    ${isActive && `!text-[#baf775]`}`}
+                    className={`flex justify-start  text-white/50 duration-300 ease-in-out hover:text-white fill-current font-extralight  px-6 border-b-2 border-transparent transition-height cursor-pointer 
+                    ${isActive && `!text-[#baf775] duration-300 ease-in-out`}`}
                 >
                     <div className="flex justify-start items-center gap-4">
-                        <div className={`w-10 h-10 bg-[#343536] border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
+                        <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
                             {icon}
                         </div>
                         <div className={`flex flex-col transition-opacity ease-in-out`}>
@@ -83,14 +85,19 @@ const Sidebar: FC = () => {
             icon: <FlaskIcon />,
         },
         {
+            href: '/liquidity/swap',
+            isActive: router.pathname === '/liquidity/swap',
+            title: 'Token Manager',
+            description: 'Swap tokens',
+            icon: <TokenIcon />,
+        },
+        {
             href: '/liquidity/manage',
             isActive: router.pathname === '/liquidity/manage',
             title: 'Manage Liquidity',
             description: 'Handle liquidity on Raydium',
             icon: <ManageIcon />,
         },
-
-
     ];
 
     // Filter links based on the current route
@@ -111,11 +118,12 @@ const Sidebar: FC = () => {
 
     return (
         <>
-            <div className="h-full  ">
+            <div className="h-screen">
                 <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
                     {showAllPortfolios && (
-                        <div className="mx-6 mb-2 p-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3" onClick={() => setisProfilesActive(!isProfilesActive)}>
-                            <div className="bg-[#333333] px-3 py-3  rounded-full"><div className="bg-[#7a7a7a] rounded-full px-2 font-bold ">?</div></div>
+                        <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3" onClick={() => setisProfilesActive(!isProfilesActive)}>
+                            <div className="bg-[#333333] px-3 py-3  rounded-full">
+                                <VirusIcon color="#37db9c" /></div>
                             <div className="flex flex-col">
                                 <p className="font-bold text-white/80 ">Wallets</p>
                             </div>
@@ -126,7 +134,7 @@ const Sidebar: FC = () => {
                     )}
 
 
-                    <div className="flex  flex-col gap-2 h-full px-4">
+                    <div className="flex  flex-col gap-2 h-full p-2">
                         {filteredLinks.map((link, index) => (
                             <HeaderLink
                                 key={index}
@@ -138,7 +146,7 @@ const Sidebar: FC = () => {
                             />
                         ))}
                     </div>
-                    {router.pathname.includes('/liquidity/') &&
+                    {/* {router.pathname.includes('/liquidity/') &&
                         <>
                             <hr className=" bg-white  w-full my-4" />
                             <Link href="/liquidity/swap">
@@ -149,7 +157,7 @@ const Sidebar: FC = () => {
                                 </div>
                             </Link>
                         </>
-                    }
+                    } */}
                 </div>
             </div>
             {/* } */}
