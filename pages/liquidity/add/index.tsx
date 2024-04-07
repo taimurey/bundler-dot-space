@@ -56,9 +56,9 @@ const LiquidityHandlerRaydium = () => {
         tokenbuyAmount: '',
         tokenLiquidityAmount: '',
         tokenLiquidityAddPercent: '',
-        BlockEngineSelection: '',
-        BundleTip: '',
-        TransactionTip: '',
+        BlockEngineSelection: BlockEngineLocation[2],
+        BundleTip: '0.01',
+        TransactionTip: '0.00001',
     });
 
     React.useEffect(() => {
@@ -176,7 +176,10 @@ const LiquidityHandlerRaydium = () => {
 
     const handlesubmission = async (e: any) => {
         setDeployerWallets([])
-        localStorage.removeItem("deploterwallets")
+        try { localStorage.removeItem("deploterwallets") }
+        catch (error) {
+            console.log('Error:', error);
+        }
         e.preventDefault();
         console.log('Form data:', formData);
 
@@ -260,20 +263,20 @@ const LiquidityHandlerRaydium = () => {
                                             className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px]"
                                             placeholder="Enter your private key"
                                         />
-                                        <button
-                                            type='button'
-                                            className='bg-white text-#171717  h-40px rounded-md px-3 flex justify-center items-center text-15px'
+                                        {/* <button
+                                            className='btn-text-gradient border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] p-2 rounded-md duration-300 ease-in-out'
                                             onClick={generateKeypair}
                                         >
                                             Gen
-                                        </button>
+                                        </button> 
                                         <button
                                             type='button'
-                                            className='bg-white text-#171717 h-40px rounded-md px-3 flex justify-center items-center text-15px'
+                                            className='border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] p-2 rounded-md duration-300 ease-in-out'
                                             onClick={copytoClipboard}
                                         >
                                             Copy
                                         </button>
+                                        */}
                                     </div>
                                 </div>
                                 <InputField

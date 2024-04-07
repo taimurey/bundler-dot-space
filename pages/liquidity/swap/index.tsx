@@ -139,21 +139,21 @@ const Swap = () => {
                                 </div>
                                 <button
 
-                                    className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex  justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
+                                    className="font-bold rounded-xl h-[40px] hover:border-[#50fc92] px-5 flex  justify-center items-center border border-[#949494] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
                                 >
-                                    <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent'>
+                                    <span className='bg-gradient-to-r from-[#6afc76] to-[#00d8e7] bg-clip-text text-transparent'>
                                         {'Sell Tokens'}
                                     </span>
                                 </button>
                                 <button
-                                    className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex  justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
+                                    className="font-bold rounded-xl h-[40px] hover:border-[#50fc92] px-5 flex  justify-center items-center border border-[#949494] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
                                 >
-                                    <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent'>
+                                    <span className='bg-gradient-to-r from-[#6afc76] to-[#00d8e7] bg-clip-text text-transparent'>
                                         {'Update balance'}
                                     </span>
                                 </button>
                                 <button
-                                    className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex  justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
+                                    className="font-bold rounded-xl h-[40px] hover:border-[#50fc92] px-5 flex  justify-center items-center border border-[#949494] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
                                 >
                                     <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent'>
                                         {'Burn Liquidity'}
@@ -163,9 +163,9 @@ const Swap = () => {
                                 </button>
                                 <div className='flex '>
                                     <button
-                                        className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex  justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
+                                        className="font-bold rounded-xl h-[40px] hover:border-[#50fc92] px-5 flex  justify-center items-center border border-[#949494] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
                                     >
-                                        <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent'>
+                                        <span className='bg-gradient-to-r from-[#6afc76] to-[#00d8e7] bg-clip-text text-transparent'>
                                             {'Disperse SOL'}
                                         </span>
 
@@ -174,7 +174,7 @@ const Swap = () => {
                                     <button
                                         className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex  justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
                                     >
-                                        <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent whitespace-nowrap'>
+                                        <span className='bg-gradient-to-r from-[#6afc76] to-[#00d8e7] bg-clip-text text-transparent whitespace-nowrap'>
                                             {'Disperse tokens'}
                                         </span>
 

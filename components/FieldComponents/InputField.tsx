@@ -33,7 +33,9 @@ export const InputField: React.FC<Props> = ({ id, label, value, onChange, placeh
     );
 };
 
-export const BlockEngineLocation = ['amsterdam.mainnet.block-engine.jito.wtf',
+export const BlockEngineLocation = [
+    'amsterdam.mainnet.block-engine.jito.wtf',
     'frankfurt.mainnet.block-engine.jito.wtf',
     'ny.mainnet.block-engine.jito.wtf',
-    'tokyo.mainnet.block-engine.jito.wtf'];
+    'tokyo.mainnet.block-engine.jito.wtf'
+];
