@@ -103,7 +103,7 @@ const Allprofiles: React.FC = () => {
                     {DeployerWallets?.map((item: Profile, index: number) => (
                         <div
                             key={index}
-                            className={`flex justify-start items-center gap-2  ${activeWallet.id == item.id ? "bg-gray-700" : "bg-[#262626]"} hover:bg-gray-700 ease-in-out cursor-pointer duration-300 px-3 py-2 rounded-lg`}
+                            className={`flex justify-start items-center gap-2  ${activeWallet?.id == item?.id ? "bg-gray-700" : "bg-[#262626]"} hover:bg-gray-700 ease-in-out cursor-pointer duration-300 px-3 py-2 rounded-lg`}
                             onClick={() => { setIsEditable(index); setActiveWallet(item) }}
                         >
                             <div className="circle">

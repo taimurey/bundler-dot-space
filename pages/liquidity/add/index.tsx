@@ -175,13 +175,11 @@ const LiquidityHandlerRaydium = () => {
     ];
 
     const handlesubmission = async (e: any) => {
-        setDeployerWallets([])
-        try { localStorage.removeItem("deploterwallets") }
-        catch (error) {
-            console.log('Error:', error);
-        }
         e.preventDefault();
-        console.log('Form data:', formData);
+        setDeployerWallets([])
+        localStorage.removeItem("deploterwallets")
+
+        console.log(formData);
 
         try {
             toast.info('Please wait, bundle acceptance may take a few seconds');
