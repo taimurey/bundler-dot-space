@@ -54,7 +54,7 @@ const HeaderLink = ({
         }}
       >
         {icon && <span className="flex items-center w-5">{icon}</span>} {/* Conditional rendering for icon */}
-        <span className={`ml-2 whitespace-nowrap ${isActive && !icon ? 'border-b-2 border-[#ffac40]' : ''}`}>{title}</span>
+        <span className={`ml-2 whitespace-nowrap  ${isActive && !icon ? 'border-b-2 border-[#ffac40]' : ''}`}>{title}</span>
       </a>
     </Link>
   );

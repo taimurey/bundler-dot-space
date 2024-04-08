@@ -5,6 +5,10 @@ import TokenIcon from "../components/icons/TokenIcon";
 import Clock from "../components/icons/Clock";
 import TickIcon from "../components/icons/TickIcon";
 import PencilScale from "../components/icons/PencilScale";
+import Link from "next/link";
+import MevLabLogo from "../components/icons/JupiterLogo";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
 
 function animateValue(id: string, start: number, end: number, duration: number) {
   if (start === end) return;
@@ -93,6 +97,25 @@ const roadmapData: RoadmapData[] = [
   }
 ];
 
+const pages = [
+  {
+    name: "About",
+    url: "/about",
+  },
+  {
+    name: "Support",
+    url: "/support",
+  },
+  {
+    name: "Terms & Privacy Policy",
+    url: "/privacypolicy",
+  },
+  {
+    name: "Contact us",
+    url: "/contactus",
+  },
+];
+
 
 const FeatureComponent: React.FC<Feature> = ({ title, description }) => (
   <div className="py-4 px-6 border border-[#232221] rounded-xl bg-[#0f1117] shadow-md shadow-[#101010]" >
@@ -103,6 +126,7 @@ const FeatureComponent: React.FC<Feature> = ({ title, description }) => (
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [activepage, setActivePage] = useState("About");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,7 +140,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex flex-col max-w-[90vw] mx-auto">
+    <div className="flex flex-col   relative">
       <div className="flex flex-col gap-12 justify-start  lg:justify-center lg:items-center  w-full h-full lg:flex-row my-12 max-h-[1000px]">
         <div className="max-w-[350px] lg:max-w-[700px] flex flex-col gap-6 h-full">
           <p className={`text-[42px] lg:text-[126px]  leading-[126px] text-center font-[HeliukBrave]  uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -131,7 +155,7 @@ const Home = () => {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
+      <div className="grid grid-cols-1 max-w-[90vw] mx-auto sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
         {/* Counting Statistics */}
         <div className="flex justify-center items-center flex-col">
           <p id="stat1" className="font-semibold text-[25px]">0</p>
@@ -147,7 +171,6 @@ const Home = () => {
           </p>
         </div>
       </div>
-
       <div className="p-20">
         <p className={`text-[42px] lg:text-[72px] leading-[126px] text-start px-* 
          font-[HeliukBrave] `}>
@@ -191,7 +214,93 @@ const Home = () => {
 
         </div>
       </div>
-    </div>
+      <div className="z-40  w-full bg-[#02040a] p-2 border-b border-[#a19f9f] ">
+        <div
+          className="flex flex-col lg:flex-row gap-4 relative w-full justify-between
+items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  "
+        >
+          <Link href="/" className="w-full">
+            <h1 className="flex items-center justify-canter text-lg font-semibold text-white cursor-pointer">
+              <MevLabLogo />
+
+              <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
+            </h1>
+          </Link>
+
+          <ul className="flex justify-center items-center   w-full  -mb-[12px] lg:gap-4  z-40     ">
+            {pages?.map((item, index) => {
+              return (
+                <>
+                  <Link href={item?.url} passHref>
+                    <a target="_blank" rel="noreferrer">
+                      <li
+                        key={index}
+                        className={` p-2 relative    group text-[12px] lg:text-[14px]   cursor-pointer  hover:text-[#f5ac40] transition-all duration-500 ease-in-out 
+                        `}
+                      >
+                        <div className="relative group z-40 ">
+                          <div className="flex justify-center items-center   ">
+                            <p
+                              className=" tracking-wide whitespace-nowrap text-[#d0d1d3] "
+                              onClick={() => setActivePage(item.name)}                          >
+                              {item.name}
+                            </p>
+
+                          </div>
+
+                        </div>
+                      </li>
+                    </a>
+                  </Link >
+                </>
+              );
+            })}
+          </ul>
+          <div className="z-50 ">
+            <ul className="wrapper flex  ">
+
+              <a
+                href="https://www.telegram.com"
+                target="_blank"
+              >
+                <li className="icon telegram">
+                  <span className="tooltip">Telegram</span>
+                  <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white  text-black text-[12px] rounded-full p-[3px]" />
+                </li>
+              </a>
+              <a
+                href="https://www.twiiter.com
+"
+                target="_blank"
+              >
+                <li className="icon twitter ">
+                  <span className="tooltip ">
+                    Twitter
+                  </span>
+                  <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                </li>
+              </a>
+              <a
+                href="https://www.discord.com"
+                target="_blank"
+              >
+                <li className="icon discord">
+                  <span className="tooltip">Discord</span>
+                  <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+
+                </li>
+              </a>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+      <div className="bg-[#02040a] px-4 py-8">
+        <p className="text-[#d0d1d3] text-[14px] text-center ">
+          © 2023-224 MEVARIK. All Rights Reserved.
+        </p>
+      </div>
+    </div >
   );
 };
 

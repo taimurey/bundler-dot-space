@@ -2,11 +2,42 @@ import {
   FC,
   ReactNode,
 } from "react";
-import { HeaderLayout } from "./HeaderLayout";
+import Head from "next/head";
+import Header from "../common/Header";
+import React from 'react';
+import Sidebar from "../common/Sidebar";
+import { useRouter } from "next/router";
 
 type SearchLayoutProps = {
   title?: string;
   children: ReactNode;
+};
+
+type HeaderLayoutProps = {
+  title?: string;
+  children: ReactNode;
+};
+
+export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
+  const router = useRouter();
+
+  return (
+    <>
+      <Head>
+        <title>{title ? `${title} - Mevarik` : `Mevarik`}</title>
+      </Head>
+      <div className="w-full h-screen overflow-y-auto flex flex-col space-t-4 justify-between  overflow-x-hidden ">
+        <div className="w-full mx-auto">
+          <Header />
+          <div className="flex  justify-start items-start  w-full">
+            <div className=" pt-10 mx-auto space-t-6 w-full ">
+              {children}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 };
 
 export const SearchLayout: FC<SearchLayoutProps> = ({
