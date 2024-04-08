@@ -36,7 +36,7 @@ const RaydiumLiquidityRemover = () => {
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isMintLoading, setIsMintLoading] = useState(true);
-    const [isToggle, setIsToggle] = useState(false);
+    const [isToggle, setIsToggle] = useState(true);
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMicroLamportsInput(event.target.value);
@@ -54,6 +54,7 @@ const RaydiumLiquidityRemover = () => {
         event.preventDefault();
 
     };
+
 
     useEffect(() => {
         const fetchPoolInfo = async () => {
@@ -228,7 +229,7 @@ const RaydiumLiquidityRemover = () => {
     };
     const { isProfilesActive } = useMyContext();
     const [formData, setFormData] = useState({
-        BlockEngineSelection: "",
+        BlockEngineSelection: BlockEngineLocation[2],
         BundleTip: "0.01",
         TransactionTip: "0.00001",
     });

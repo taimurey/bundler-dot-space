@@ -75,17 +75,19 @@ const features: Feature[] = [
 
 const roadmapData: RoadmapData[] = [
   {
-    heading: "Now",
-    titles: ["WEB DAPP BETA", "COPYTRADE", "PNL CARDS", "SOLANA CARDS"],
+    heading: "Launching",
+    titles: ["TELEGRAM BOT", "LAUNCHPAD", "CLI BOT",
+      "SANDWICH BOT(SOLANA)"
+    ],
     icon: <TickIcon />
   },
   {
     heading: "Next",
-    titles: ["BANANA ECOSYSTEM", "BANANA ACADEMY", "TRADE OVERVIEW", "WEB DAPP PUBLIC"],
+    titles: ["ARBITRAGE BOT", "ETH SANDWICH", "TRADE OVERVIEW", "DAPP LAUNCHER"],
     icon: <PencilScale />
   },
   {
-    heading: "Letter",
+    heading: "Future",
     titles: ["MULTI PLATFORM", "WALLET TRACKER", "MULTICHAIN", "TRADE HISTORY"],
     icon: <Clock />
   }
@@ -121,12 +123,11 @@ const Home = () => {
             Mevarik Sniper for
             <span className="text-[#f5ac41] mx-4 relative">Apes & Degens</span>
           </p>
-          <p className={`text-[42px] lg:text-[25px] leading-[126px] text-center font-mono font-bold transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-            Mevarik
+          <p className={`text-[42px] lg:text-[25px] leading-[126px] text-center font-bold transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <br />
-            <span className="font-normal text-[18px]">
-              Snipe upcoming launches or safely trade tokens that are already live
-            </span>
+            <h1 className="font-normal font-heliukBrave text-[50px] tracking-wide uppercase bg-gradient-to-br from-[#6df374] to-[#505050] bg-clip-text text-transparent animate-typing">
+              for traders, by THE traders
+            </h1>
           </p>
         </div>
       </div>
@@ -142,13 +143,13 @@ const Home = () => {
         </div>
         <div className="flex justify-center items-center flex-col">
           <p id="stat3" className="font-semibold text-[25px]">0</p>
-          <p className="text-[#7f8083] font-light text-[14px]">Liquidity Launched
+          <p className="text-[#7f8083] font-light text-[14px]">Pools Launched
           </p>
         </div>
       </div>
 
-      <div className="py-20">
-        <p className={`text-[42px] lg:text-[72px] leading-[126px] text-start px-2
+      <div className="p-20">
+        <p className={`text-[42px] lg:text-[72px] leading-[126px] text-start px-* 
          font-[HeliukBrave] `}>
           FEATURES
         </p>
@@ -161,12 +162,12 @@ const Home = () => {
 
         </div>
       </div>
-      <div className="py-20">
+      <div className="p-20">
         <p className={`text-[42px] lg:text-[72px] leading-[50px] text-start px-2
          font-[HeliukBrave] `}>
           ROADMAP
         </p>
-        <p className="  max-w-[600px] py-12 px-2 text-[18px] font-thin leading-[27px] text-white">
+        <p className="max-w-[600px] py-12 px-4 text-[18px] font-thin leading-[27px] text-white">
           We're continually working on innovations to enhance the trading experience and empower users with a competitive edge. Instead of a traditional roadmap with deadlines, we present our plans through a 'now/next/later' approach.
         </p>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">

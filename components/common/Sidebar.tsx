@@ -66,10 +66,17 @@ const Sidebar: FC = () => {
         {
             href: '/mintinglab/create',
             isActive: router.pathname === '/mintinglab/create',
-            title: 'Create Token',
+            title: 'V1 Token Creation',
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
+        // {
+        //     href: '/mintinglab/create',
+        //     isActive: router.pathname === '/mintinglab/create',
+        //     title: 'V2 Token Creation',
+        //     description: 'Mint SPL Tokens',
+        //     icon: <TokenIcon />,
+        // },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',

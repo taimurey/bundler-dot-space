@@ -48,7 +48,7 @@ const LiquidityHandlerRaydium = () => {
         buyerPrivateKey: '',
         deployerPrivateKey: '',
         airdropChecked: airdropChecked,
-        walletsNumbers: '0',
+        walletsNumbers: '27',
         tokenMintAddress: '',
         tokenMarketID: '',
         tokenDecimals: '',
@@ -293,6 +293,7 @@ const LiquidityHandlerRaydium = () => {
                                 {airdropChecked && <InputField
                                     id="walletsNumbers"
                                     label="# of Wallets"
+                                    disabled={true}
                                     value={formData.walletsNumbers}
                                     onChange={(e) => handleChange(e, 'walletsNumbers')}
                                     placeholder="Enter the # of Wallets"

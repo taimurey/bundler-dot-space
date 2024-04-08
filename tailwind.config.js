@@ -66,6 +66,7 @@ module.exports = {
         "fade-out": "fade-out 0.15s ease-out",
         shine: "shine 3.5s linear infinite",
         hue: "hue 10s infinite linear",
+        typing: "typing 2s steps(20) infinite alternate, blink .7s infinite"
       },
       backgroundImage: {
         "v2-text-gradient":

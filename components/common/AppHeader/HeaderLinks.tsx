@@ -41,7 +41,7 @@ const HeaderLink = ({
   }
 
   const linkStyle = icon ?
-    `ml-5 flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-4 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
+    `flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-4 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
     `flex items-center justify-center font-[Roboto] text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4`;
 
   return (
@@ -118,7 +118,7 @@ const HeaderLinks = () => {
   ];
 
   return (
-    <div className="flex-1 justify-center hidden md:!flex text-sm h-full">
+    <div className="ml-5 flex-1 justify-center hidden md:!flex text-sm h-full">
       {headerLinks.map((link, index) => (
         <HeaderLink
           key={index}

@@ -8,9 +8,10 @@ interface Props {
     placeholder: string;
     type: string;
     required: boolean;
+    disabled?: boolean;
 }
 
-export const InputField: React.FC<Props> = ({ id, label, value, onChange, placeholder, type, required }) => {
+export const InputField: React.FC<Props> = ({ id, label, value, onChange, placeholder, type, required, disabled = false }) => {
     return (
         <div className='w-full'>
             {label &&
@@ -22,10 +23,11 @@ export const InputField: React.FC<Props> = ({ id, label, value, onChange, placeh
                 <input
                     id={id}
                     type={type}
+                    disabled={disabled}
                     value={value}
                     onChange={(e) => onChange(e)}
                     required={required}
-                    className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                    className={`block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder={placeholder}
                 />
             </div>
