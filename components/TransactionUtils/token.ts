@@ -104,11 +104,11 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     createNewTokenTransaction.feePayer = myPublicKey;
 
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 10000000
+        units: 1000000
     });
 
     const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 10000
+        microLamports: 100000
     });
 
     const taxInstruction = SystemProgram.transfer({

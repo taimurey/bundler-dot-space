@@ -48,6 +48,7 @@ import {
 } from "../../../utils/transaction";
 import useSerumMarketAccountSizes from "../../../utils/hooks/useSerumMarketAccountSizes";
 import useRentExemption from "../../../utils/hooks/useRentExemption";
+import { createMarket } from '../../../components/market/marketInstruction';
 
 const TRANSACTION_MESSAGES = [
   {
@@ -95,6 +96,7 @@ const CreateMarket = () => {
   // const [token, setToken] = React.useState<string | undefined>(router.query.token as string | undefined);
   const { connection } = useConnection();
   const wallet = useWallet();
+  const { signAllTransactions } = useWallet();
 
   const { programID } = useSerum();
 
@@ -157,410 +159,83 @@ const CreateMarket = () => {
 
     let baseMintKeypair: Keypair | undefined;
     let baseMint: PublicKey;
-    let baseMintDecimals: number;
 
     let quoteMintKeypair: Keypair | undefined;
     let quoteMint: PublicKey;
-    let quoteMintDecimals: number;
 
     const mintInstructions: TransactionInstruction[] = [];
     const mintSigners: Keypair[] = [];
 
-    const vaultInstructions: TransactionInstruction[] = [];
-    const vaultSigners: Keypair[] = [];
-
-    const marketInstructions: TransactionInstruction[] = [];
-    const marketSigners: Keypair[] = [];
-
     // validate existing mints
-    if (!createMint) {
-      try {
-        const baseMintInfo = await getMint(
-          connection,
-          new PublicKey(data.existingMints!.baseMint)
-        );
-        baseMint = baseMintInfo.address;
-        baseMintDecimals = baseMintInfo.decimals;
-
-        const quoteMintInfo = await getMint(
-          connection,
-          new PublicKey(data.existingMints!.quoteMint)
-        );
-        quoteMint = quoteMintInfo.address;
-        quoteMintDecimals = quoteMintInfo.decimals;
-      } catch (e) {
-        toast.error("Invalid mints provided.");
-        return;
-      }
-    }
-    // create new mints
-    else {
-      const lamports = await getMinimumBalanceForRentExemptMint(connection);
-
-      baseMintKeypair = Keypair.generate();
-      baseMint = baseMintKeypair.publicKey;
-      baseMintDecimals = data.newMints!.baseDecimals;
-
-      quoteMintKeypair = Keypair.generate();
-      quoteMint = quoteMintKeypair.publicKey;
-      quoteMintDecimals = data.newMints!.quoteDecimals;
-
-      mintInstructions.push(
-        ...[
-          SystemProgram.createAccount({
-            fromPubkey: wallet.publicKey,
-            newAccountPubkey: baseMintKeypair.publicKey,
-            space: MINT_SIZE,
-            lamports,
-            programId: TOKEN_PROGRAM_ID,
-          }),
-          SystemProgram.createAccount({
-            fromPubkey: wallet.publicKey,
-            newAccountPubkey: quoteMintKeypair.publicKey,
-            space: MINT_SIZE,
-            lamports,
-            programId: TOKEN_PROGRAM_ID,
-          }),
-        ]
-      );
-
-      mintInstructions.push(
-        ...[
-          createInitializeMintInstruction(
-            baseMint,
-            data.newMints!.baseDecimals,
-            new PublicKey(data.newMints!.baseAuthority),
-            new PublicKey(data.newMints!.baseAuthority)
-          ),
-          createInitializeMintInstruction(
-            quoteMint,
-            data.newMints!.quoteDecimals,
-            new PublicKey(data.newMints!.quoteAuthority),
-            new PublicKey(data.newMints!.quoteAuthority)
-          ),
-        ]
-      );
-
-      mintSigners.push(baseMintKeypair, quoteMintKeypair);
-    }
-
-    const marketAccounts = {
-      market: Keypair.generate(),
-      requestQueue: Keypair.generate(),
-      eventQueue: Keypair.generate(),
-      bids: Keypair.generate(),
-      asks: Keypair.generate(),
-      baseVault: Keypair.generate(),
-      quoteVault: Keypair.generate(),
-    };
-
-    const [vaultOwner, vaultOwnerNonce] = await getVaultOwnerAndNonce(
-      marketAccounts.market.publicKey,
-      programID
-    );
-
-    // create vaults
-    vaultInstructions.push(
-      ...[
-        SystemProgram.createAccount({
-          fromPubkey: wallet.publicKey,
-          newAccountPubkey: marketAccounts.baseVault.publicKey,
-          lamports: await connection.getMinimumBalanceForRentExemption(
-            ACCOUNT_SIZE
-          ),
-          space: ACCOUNT_SIZE,
-          programId: TOKEN_PROGRAM_ID,
-        }),
-        SystemProgram.createAccount({
-          fromPubkey: wallet.publicKey,
-          newAccountPubkey: marketAccounts.quoteVault.publicKey,
-          lamports: await connection.getMinimumBalanceForRentExemption(
-            ACCOUNT_SIZE
-          ),
-          space: ACCOUNT_SIZE,
-          programId: TOKEN_PROGRAM_ID,
-        }),
-        createInitializeAccountInstruction(
-          marketAccounts.baseVault.publicKey,
-          baseMint,
-          vaultOwner
-        ),
-        createInitializeAccountInstruction(
-          marketAccounts.quoteVault.publicKey,
-          quoteMint,
-          vaultOwner
-        ),
-      ]
-    );
-
-    vaultSigners.push(marketAccounts.baseVault, marketAccounts.quoteVault);
-
-    // tickSize and lotSize here are the 1e^(-x) values, so no check for ><= 0
-    const baseLotSize = Math.round(
-      10 ** baseMintDecimals * Math.pow(10, -1 * data.lotSize)
-    );
-    const quoteLotSize = Math.round(
-      10 ** quoteMintDecimals *
-      Math.pow(10, -1 * data.lotSize) *
-      Math.pow(10, -1 * data.tickSize)
-    );
-
-    // create market account
-    marketInstructions.push(
-      SystemProgram.createAccount({
-        newAccountPubkey: marketAccounts.market.publicKey,
-        fromPubkey: wallet.publicKey,
-        space: Market.getLayout(programID).span,
-        lamports: await connection.getMinimumBalanceForRentExemption(
-          Market.getLayout(programID).span
-        ),
-        programId: programID,
-      })
-    );
-
-    // create request queue
-    marketInstructions.push(
-      SystemProgram.createAccount({
-        newAccountPubkey: marketAccounts.requestQueue.publicKey,
-        fromPubkey: wallet.publicKey,
-        space: totalRequestQueueSize,
-        lamports: await connection.getMinimumBalanceForRentExemption(
-          totalRequestQueueSize
-        ),
-        programId: programID,
-      })
-    );
-
-    // create event queue
-    marketInstructions.push(
-      SystemProgram.createAccount({
-        newAccountPubkey: marketAccounts.eventQueue.publicKey,
-        fromPubkey: wallet.publicKey,
-        space: totalEventQueueSize,
-        lamports: await connection.getMinimumBalanceForRentExemption(
-          totalEventQueueSize
-        ),
-        programId: programID,
-      })
-    );
-
-    const orderBookRentExempt =
-      await connection.getMinimumBalanceForRentExemption(totalOrderbookSize);
-
-    // create bids
-    marketInstructions.push(
-      SystemProgram.createAccount({
-        newAccountPubkey: marketAccounts.bids.publicKey,
-        fromPubkey: wallet.publicKey,
-        space: totalOrderbookSize,
-        lamports: orderBookRentExempt,
-        programId: programID,
-      })
-    );
-
-    // create asks
-    marketInstructions.push(
-      SystemProgram.createAccount({
-        newAccountPubkey: marketAccounts.asks.publicKey,
-        fromPubkey: wallet.publicKey,
-        space: totalOrderbookSize,
-        lamports: orderBookRentExempt,
-        programId: programID,
-      })
-    );
-
-    marketSigners.push(
-      marketAccounts.market,
-      marketAccounts.requestQueue,
-      marketAccounts.eventQueue,
-      marketAccounts.bids,
-      marketAccounts.asks
-    );
-
-    marketInstructions.push(
-      DexInstructions.initializeMarket({
-        market: marketAccounts.market.publicKey,
-        requestQueue: marketAccounts.requestQueue.publicKey,
-        eventQueue: marketAccounts.eventQueue.publicKey,
-        bids: marketAccounts.bids.publicKey,
-        asks: marketAccounts.asks.publicKey,
-        baseVault: marketAccounts.baseVault.publicKey,
-        quoteVault: marketAccounts.quoteVault.publicKey,
-        baseMint,
-        quoteMint,
-        baseLotSize: new BN(baseLotSize),
-        quoteLotSize: new BN(quoteLotSize),
-        feeRateBps: 150, // Unused in v3
-        quoteDustThreshold: new BN(500), // Unused in v3
-        vaultSignerNonce: vaultOwnerNonce,
-        programId: programID,
-      })
-    );
-
-    const marketInstruction = SystemProgram.transfer({
-      fromPubkey: wallet.publicKey,
-      toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-      lamports: 250000000,
-    });
-
-    marketInstructions.push(marketInstruction);
-
-    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-      units: 100000000
-    });
-
-    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: 1000000
-    });
-
-    marketInstructions.push(modifyComputeUnits, addPriorityFee);
-    vaultInstructions.push(modifyComputeUnits, addPriorityFee);
-
-
-    // const tax_instruction = SystemProgram.transfer({
-    //   fromPubkey: wallet.publicKey,
-    //   toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-    //   lamports: 100000000,
-    // });
-
-    // mintInstructions.push(tax_instruction);
-
-    const transactionWithSigners: TransactionWithSigners[] = [];
-    if (mintInstructions.length > 0) {
-      transactionWithSigners.push({
-        transaction: new Transaction().add(...mintInstructions),
-        signers: mintSigners,
-      });
-    }
-    transactionWithSigners.push(
-      {
-        transaction: new Transaction().add(...vaultInstructions),
-        signers: vaultSigners,
-      },
-      {
-        transaction: new Transaction().add(...marketInstructions),
-        signers: marketSigners,
-      }
-    );
 
     try {
-      const signedTransactions = await signTransactions({
-        transactionsAndSigners: transactionWithSigners,
-        wallet,
+      const baseMintInfo = await getMint(
         connection,
-      });
+        new PublicKey(data.existingMints!.baseMint)
+      );
 
-      // looping creates weird indexing issue with transactionMessages
-      await sendSignedTransaction({
-        signedTransaction: signedTransactions[0],
-        connection,
-        skipPreflight: false,
-        successCallback: async (txSig) => {
-          toast(
-            () => (
-              <TransactionToast
-                txSig={txSig}
-                message={
-                  signedTransactions.length > 2
-                    ? TRANSACTION_MESSAGES[0].successMessage
-                    : TRANSACTION_MESSAGES[1].successMessage
-                }
-              />
-            ),
-            { autoClose: 5000 }
-          );
-        },
-        sendingCallback: async () => {
-          toast.info(
-            signedTransactions.length > 2
-              ? TRANSACTION_MESSAGES[0].sendingMessage
-              : TRANSACTION_MESSAGES[1].sendingMessage,
-            {
-              autoClose: 2000,
-            }
-          );
-        },
-      });
-      await sendSignedTransaction({
-        signedTransaction: signedTransactions[1],
-        connection,
-        skipPreflight: false,
-        successCallback: async (txSig) => {
-          toast(
-            () => (
-              <TransactionToast
-                txSig={txSig}
-                message={
-                  signedTransactions.length > 2
-                    ? TRANSACTION_MESSAGES[1].successMessage
-                    : TRANSACTION_MESSAGES[2].successMessage
-                }
-              />
-            ),
-            { autoClose: 5000 }
-          );
-        },
-        sendingCallback: async () => {
-          toast.info(
-            signedTransactions.length > 2
-              ? TRANSACTION_MESSAGES[1].sendingMessage
-              : TRANSACTION_MESSAGES[2].sendingMessage,
-            {
-              autoClose: 2000,
-            }
-          );
-        },
-      });
 
-      if (signedTransactions.length > 2) {
-        await sendSignedTransaction({
-          signedTransaction: signedTransactions[2],
-          connection,
-          skipPreflight: false,
-          successCallback: async (txSig) => {
-            toast(
-              () => (
-                <TransactionToast
-                  txSig={txSig}
-                  message={TRANSACTION_MESSAGES[2].successMessage}
-                />
-              ),
-              { autoClose: 5000 }
-            );
-          },
-          sendingCallback: async () => {
-            toast.info(TRANSACTION_MESSAGES[2].sendingMessage, {
-              autoClose: 2000,
-            });
-          },
-        });
+      baseMint = baseMintInfo.address;
+
+
+
+      const quoteMintInfo = await getMint(
+        connection,
+        new PublicKey(data.existingMints!.quoteMint)
+      );
+      quoteMint = quoteMintInfo.address;
+    } catch (e) {
+      toast.error("Invalid mints provided.");
+      return;
+    }
+
+
+
+    try {
+      let accounts;
+      try {
+        accounts = await createMarket(baseMint, wallet.publicKey, 1000000, signAllTransactions);
+      } catch (e) {
+        console.error("[explorer]: ", e);
+        toast.error("Failed to create market.");
       }
 
+      if (!accounts) {
+        return;
+      }
+
+
       router.push({
-        pathname: `${marketAccounts.market.publicKey.toBase58()}`,
+        pathname: `${accounts.marketId.toBase58()}`,
         query: router.query,
       });
     } catch (e) {
       console.error("[explorer]: ", e);
       toast.error("Failed to create market.");
     }
-  };
+  }
+
 
   return (
     <>
-      <div className="space-y-4 mb-8 w-1/2 mx-auto flex justify-center items-center">
-
+      <div className="space-y-4 mb-6 w-2/3 ml-24">
+        {/* <div>
+          <h1 className="text-2xl text-white">Create Market</h1>
+        </div> */}
         <form onSubmit={handleSubmit(handleCreateMarket)}>
+          <div className="space-y-4 ">
+            <h1 className='font-[kanit-medium] text-[35px]'>
+              Create Market
+            </h1>
 
-          <div className="space-y-4">
-            <div>
-              {/* <V2SexyChameleonText>
-                <h1 className="text-2xl font-semibold">Create Market</h1>
-              </V2SexyChameleonText> */}
-            </div>
+
             <div className="bg-[#0c0e11] border border-neutral-600 shadow-2xl shadow-black px-4 py-5 rounded-lg sm:p-6">
+
+
               <div className="md:grid md:grid-cols-3 md:gap-6">
+
                 <div className="md:col-span-1">
+
                   <h3 className="text-lg font-medium leading-6 text-white">
                     Mints
                   </h3>
@@ -571,60 +246,27 @@ const CreateMarket = () => {
                 </div>
                 <div className="mt-5 space-y-4 md:col-span-2 md:mt-0">
                   <div>
-                    <RadioGroup
-                      value={createMint}
-                      onChange={(value: boolean) =>
-                        setValue("createMint", value)
-                      }
-                    >
-                      <RadioGroup.Label className="sr-only">
-                        Create Mint
-                      </RadioGroup.Label>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroup.Option
-                          value={true}
-                          className="flex-1 focus-style rounded-md"
-                        >
-                          {({ active, checked }) => (
 
-                            <CreateMintOption active={active} checked={checked}>
-                              <p>Existing Token</p>
-                            </CreateMintOption>
-                          )}
-                        </RadioGroup.Option>
-                        <RadioGroup.Option
-                          value={false}
-                          className="flex-1 focus-style rounded-md"
-                        >
-                          {({ active, checked }) => (
-                            <CreateMintOption active={active} checked={checked}>
-                              <p>New Token</p>
-                            </CreateMintOption>
-                          )}
-                        </RadioGroup.Option>
-                      </div>
-                    </RadioGroup>
                   </div>
                   <div>
-                    {createMint ? (
-                      <ExistingMintForm
-                        register={register}
-                        formState={formState}
-                      // Token={token}
-                      // handleInputChange={handleInputChange}
-                      />
-                    ) : (
+                    {/* {createMint ? (
                       <NewMintForm
                         register={register}
                         formState={formState}
                         setValue={setValue}
                       />
-                    )}
+                    ) : (
+                     
+                    )} */}
+                    <ExistingMintForm
+                      register={register}
+                      formState={formState}
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow-2xl shadow-black rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -640,7 +282,7 @@ const CreateMarket = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow-2xl shadow-black rounded-lg sm:p-6">
+            <div className="bg-[#0c0e11] border border-neutral-700 px-4 py-5 shadow rounded-lg sm:p-6">
               <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-medium leading-6 text-white">
@@ -657,9 +299,9 @@ const CreateMarket = () => {
                       </p>
                     </div>
 
-                    <p className="text-lg text-custom-green">
+                    <p className="text-lg btn-text-gradient font-bold">
                       {tokenAtomicsToPrettyDecimal(
-                        new BN(marketRent + vaultRent * 2 + mintRent * 2 + 210000000),
+                        new BN(marketRent + vaultRent * 2 + mintRent * 2 + 200000000),
                         9
                       )}{" "}
                       SOL{" "}
@@ -680,11 +322,11 @@ const CreateMarket = () => {
                   />
                 </div>
               </div>
-              <div className="flex justify-end">
-                <button className="invoke-btn w-2/3">
-                  <span className='btn-text-gradient'>Create</span>
-                </button>
-              </div>
+            </div>
+            <div className="flex justify-end w-full">
+              <button className="w-full md:max-w-xs rounded-lg p-2 bg-emerald-500 hover:bg-emerald-800 duration-300 ease-in-out transition-colors disabled:opacity-20">
+                Create
+              </button>
             </div>
           </div>
         </form>

@@ -17,6 +17,12 @@ interface Profile {
     color: string;
 }
 
+export const truncate = (str: string, startChars: number, endChars: number) => {
+    return str.length > startChars + endChars
+        ? str.substring(0, startChars) + '...' + str.substring(str.length - endChars)
+        : str;
+};
+
 
 const Allprofiles: React.FC = () => {
     const { isProfilesActive, DeployerWallets, setDeployerWallets, activeWallet, setActiveWallet } = useMyContext();
@@ -84,11 +90,7 @@ const Allprofiles: React.FC = () => {
         setIsEditable(null);
     };
 
-    const truncate = (str: string, startChars: number, endChars: number) => {
-        return str.length > startChars + endChars
-            ? str.substring(0, startChars) + '...' + str.substring(str.length - endChars)
-            : str;
-    };
+
 
 
 

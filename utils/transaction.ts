@@ -235,7 +235,7 @@ export async function sendSignedTransaction({
       connection.sendRawTransaction(rawTransaction, {
         skipPreflight: true,
       });
-      await sleep(300);
+      await sleep(1000);
     }
   })();
   try {

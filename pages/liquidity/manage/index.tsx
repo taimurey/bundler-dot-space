@@ -1,5 +1,4 @@
 'use client';
-import { Router } from 'next/router';
 import { ChangeEvent, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useEffect } from 'react';
@@ -21,40 +20,30 @@ import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiq
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import { Metaplex } from '@metaplex-foundation/js';
-// import { Button } from '@solana/wallet-adapter-react-ui/lib/types/Button';
-import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
+import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
+import axios from 'axios';
+import { useMyContext } from '../../../contexts/Maincontext';
 
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
     const [poolID, setPoolID] = useState("");
-    const [MintID, setMintID] = useState("");
     const [microLamportsInput, setMicroLamportsInput] = useState("");
-    const [decimals, setDecimals] = useState(0);
     const { publicKey, sendTransaction, wallet, connected } = useWallet();
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isMintLoading, setIsMintLoading] = useState(true);
     const [isToggle, setIsToggle] = useState(true);
+
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMicroLamportsInput(event.target.value);
     };
 
-    const handleMintIDChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMintID(event.target.value);
-    };
 
     const handlePoolIDChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPoolID(event.target.value);
     };
-
-    const handleBurnLiquidity = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-
-    };
-
+    const { DeployerWallets } = useMyContext();
 
     useEffect(() => {
         const fetchPoolInfo = async () => {
@@ -64,175 +53,233 @@ const RaydiumLiquidityRemover = () => {
                 return;
             }
             const info = await formatAmmKeysById(poolID);
+
+            // Get deployerPrivateKey from local storage
+            const deployerPrivateKey = localStorage.getItem('deployerwallets');
+
+            // Parse deployerPrivateKey
+            const parsedDeployerPrivateKey = deployerPrivateKey ? JSON.parse(deployerPrivateKey) : null;
+
+            // Find the deployer wallet
+            // Find the deployer wallet
+            const deployerWallet = parsedDeployerPrivateKey ? parsedDeployerPrivateKey.find((wallet: { name: string, wallet: string }) => wallet.name === 'Deployer') : null;
+
+            setFormData(prevState => ({
+                ...prevState,
+                PoolID: poolID,
+                PoolKeys: JSON.stringify(info),
+                DeployerPrivateKey: deployerWallet ? deployerWallet.wallet : '', // Set DeployerPrivateKey to the wallet of the deployer wallet
+            }));
             if (info !== undefined) {
                 setTargetPoolInfo(info);
             } else {
-                setTargetPoolInfo(null); // or handle this case differently
+                setTargetPoolInfo(null);
             }
-            setIsLoading(false); // Set loading to false when done fetching
+            setIsLoading(false);
         };
 
         fetchPoolInfo();
+
     }, [poolID]);
 
-    useEffect(() => {
-        const fetchMintInfo = async () => {
-            setIsMintLoading(true); // Set loading to true when starting to fetch
-            if (!MintID) {
-                setIsMintLoading(false); // Set loading to false if poolID is not set
-                return;
-            }
-            try {
-                const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(MintID)) });
+    const [formData, setFormData] = useState({
+        BlockEngineSelection: BlockEngineLocation[2],
+        BundleTip: "0.01",
+        TransactionTip: "0.00001",
+        DeployerPrivateKey: "",
+        PoolID: "",
+        PoolKeys: "",
+    });
 
-                const decimals = MintMetadata.mint.decimals;
-                const supply = MintMetadata.mint.supply.basisPoints;
-                console.log(MintMetadata, "mint metadata")
-                console.log(decimals, "decimals")
-                console.log(supply, "supply")
-            } catch (error) {
-                toast.error('Failed to fetch mint info');
-            }
-            setIsMintLoading(false);
-        }
-        fetchMintInfo();
-    }
-        , [MintID]);
+
 
 
 
 
 
     const handleRemoveLiquidity = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        if (!connected || !publicKey || !wallet) {
-            toast.error('Wallet not connected');
-            return;
-        }
-        // const targetPool = (poolID)
-        const microLamports = LAMPORTS_PER_SOL * (parseFloat(microLamportsInput));
+        if (isToggle) {
+            try {
+                event.preventDefault();
+                toast.info('Please wait, bundle acceptance may take a few seconds');
 
-        toast.info('Removing liquidity...');
+                const response = await axios.post(
+                    // 'https://mevarik-deployer.xyz:2891/removeliq',
+                    'http://localhost:2891/removeliq',
+                    formData,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
 
-        // -------- pre-action: fetch basic info --------
-        // const targetPoolInfo = await formatAmmKeysById(targetPool);
-        // if (!targetPoolInfo) {
-        //     toast.error('Failed to fetch pool info');
-        //     return;
-        // }
-        const poolKeys = jsonInfo2PoolKeys(targetPoolInfo) as LiquidityPoolKeys
+                if (response.status === 200) {
+                    const bundleId = response.data.bundleId;
+                    const ammId = response.data.Id;
+                    // adding dummy data for now and will replace with actual after when we get response
 
-        /*------------------------------------Function-------------------------------------------*/
-        const lpToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(poolKeys.lpMint), poolKeys.lpDecimals, 'LP', 'LP')
-        const walletTokenAccounts = await getWalletTokenAccount(connection, publicKey)
+                    toast(
+                        () => (
+                            <BundleToast
+                                txSig={bundleId}
+                                message={'Bundle ID:'}
+                            />
+                        ),
+                        { autoClose: 5000 }
+                    );
 
+                    toast(
+                        () => (
+                            <TransactionToast
+                                txSig={ammId}
+                                message={'AMM ID:'}
+                            />
+                        ),
+                        { autoClose: 5000 }
+                    );
+                }
 
-        let tokenAccounts: RpcResponseAndContext<GetProgramAccountsResponse>;
-        try {
-            tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
-                programId: TOKEN_PROGRAM_ID,
-                mint: new PublicKey(poolKeys.lpMint),
-            });
-        } catch (error) {
-            if (error instanceof Error) {
-                toast.error(`Failed to get token accounts by owner: ${error.message}`);
-            } else {
-                toast.error(`Failed to get token accounts by owner: ${error}`);
+            } catch (error) {
+                console.log('Error:', error);
+                if (axios.isAxiosError(error)) {
+                    if (error.response && error.response.status === 500) {
+                        toast.error(`${error.response.data}`);
+                    } else {
+                        toast.error('Error occurred: Please Fill in all the fields');
+                    }
+                } else {
+                    toast.error('An unknown error occurred');
+                }
             }
-            return;
-        }
+        } else {
+            event.preventDefault();
+            if (!connected || !publicKey || !wallet) {
+                toast.error('Wallet not connected');
+                return;
+            }
+            // const targetPool = (poolID)
+            const microLamports = LAMPORTS_PER_SOL * (parseFloat(microLamportsInput));
+
+            toast.info('Removing liquidity...');
+
+            // -------- pre-action: fetch basic info --------
+            // const targetPoolInfo = await formatAmmKeysById(targetPool);
+            // if (!targetPoolInfo) {
+            //     toast.error('Failed to fetch pool info');
+            //     return;
+            // }
+            const poolKeys = jsonInfo2PoolKeys(targetPoolInfo) as LiquidityPoolKeys
+
+            /*------------------------------------Function-------------------------------------------*/
+            const lpToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(poolKeys.lpMint), poolKeys.lpDecimals, 'LP', 'LP')
+            const walletTokenAccounts = await getWalletTokenAccount(connection, publicKey)
+
+
+            let tokenAccounts: RpcResponseAndContext<GetProgramAccountsResponse>;
+            try {
+                tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
+                    programId: TOKEN_PROGRAM_ID,
+                    mint: new PublicKey(poolKeys.lpMint),
+                });
+            } catch (error) {
+                if (error instanceof Error) {
+                    toast.error(`Failed to get token accounts by owner: ${error.message}`);
+                } else {
+                    toast.error(`Failed to get token accounts by owner: ${error}`);
+                }
+                return;
+            }
 
 
 
-        let balance: number | string = 0;
-        for (const account of tokenAccounts.value) {
-            const pubkey = account.pubkey;
+            let balance: number | string = 0;
+            for (const account of tokenAccounts.value) {
+                const pubkey = account.pubkey;
 
-            balance = await connection.getTokenAccountBalance(pubkey).then((res) => {
-                console.log(res.value);
-                return res.value.amount;
+                balance = await connection.getTokenAccountBalance(pubkey).then((res) => {
+                    console.log(res.value);
+                    return res.value.amount;
+                });
+
+            }
+
+            toast.info(`LP Token Balance: ${balance}`)
+
+            const removeLpTokenAmount = new TokenAmount(lpToken, balance)
+
+            let removeLiquidityInstructionResponse = null;
+            try {
+                removeLiquidityInstructionResponse = await Liquidity.makeRemoveLiquidityInstructionSimple({
+                    connection: connection,
+                    poolKeys,
+                    userKeys: {
+                        owner: publicKey,
+                        payer: publicKey,
+                        tokenAccounts: walletTokenAccounts,
+                    },
+                    amountIn: removeLpTokenAmount,
+                    makeTxVersion,
+                    computeBudgetConfig: {
+                        units: 10000000,
+                        microLamports,
+                    },
+                });
+            } catch (error) {
+                if (error instanceof Error) {
+                    toast.info(`Failed to remove liquidity: ${error.message}`);
+                    return;
+                } else {
+                    toast.info(`Failed to remove liquidity: ${error}`);
+                    return;
+                }
+            }
+
+            const instructions = removeLiquidityInstructionResponse.innerTransactions;
+            const minLamports = 250000000;
+            // const maxLamports = 500000000;
+            // const randomLamports = Math.floor(Math.random() * (maxLamports - minLamports + 1)) + minLamports;
+
+            const taxInstruction = SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+                lamports: minLamports,
             });
 
-        }
+            instructions[0].instructions.push(taxInstruction);
 
-        toast.info(`LP Token Balance: ${balance}`)
+            const {
+                context: { slot: minContextSlot },
+                value: { blockhash, lastValidBlockHeight },
+            } = await connection.getLatestBlockhashAndContext();
 
-        const removeLpTokenAmount = new TokenAmount(lpToken, balance)
-
-        let removeLiquidityInstructionResponse = null;
-        try {
-            removeLiquidityInstructionResponse = await Liquidity.makeRemoveLiquidityInstructionSimple({
+            const willSendTx = await buildSimpleTransaction({
                 connection: connection,
-                poolKeys,
-                userKeys: {
-                    owner: publicKey,
-                    payer: publicKey,
-                    tokenAccounts: walletTokenAccounts,
-                },
-                amountIn: removeLpTokenAmount,
                 makeTxVersion,
-                computeBudgetConfig: {
-                    units: 10000000,
-                    microLamports,
-                },
-            });
-        } catch (error) {
-            if (error instanceof Error) {
-                toast.info(`Failed to remove liquidity: ${error.message}`);
-                return;
-            } else {
-                toast.info(`Failed to remove liquidity: ${error}`);
-                return;
+                payer: publicKey,
+                innerTransactions: removeLiquidityInstructionResponse.innerTransactions,
+                addLookupTableInfo: addLookupTableInfo,
+            })
+
+            for (const iTx of willSendTx) {
+                if (iTx instanceof VersionedTransaction) {
+                    // iTx.sign([wallet.]);
+                    const signature = await sendTransaction(iTx, connection, { minContextSlot });
+                    toast.info(`Transaction sent: ${signature}`);
+                    await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+                    toast.success(`Transaction successful! ${signature}`);
+                } else {
+                    const signature = await sendTransaction(iTx, connection, { minContextSlot });
+                    toast.info(`Transaction sent: ${signature}`);
+                    await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+                    toast.success(`Transaction successful! ${signature}`);
+                }
             }
-        }
+        };
+    }
 
-        const instructions = removeLiquidityInstructionResponse.innerTransactions;
-        const minLamports = 250000000;
-        // const maxLamports = 500000000;
-        // const randomLamports = Math.floor(Math.random() * (maxLamports - minLamports + 1)) + minLamports;
 
-        const taxInstruction = SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-            lamports: minLamports,
-        });
 
-        instructions[0].instructions.push(taxInstruction);
-
-        const {
-            context: { slot: minContextSlot },
-            value: { blockhash, lastValidBlockHeight },
-        } = await connection.getLatestBlockhashAndContext();
-
-        const willSendTx = await buildSimpleTransaction({
-            connection: connection,
-            makeTxVersion,
-            payer: publicKey,
-            innerTransactions: removeLiquidityInstructionResponse.innerTransactions,
-            addLookupTableInfo: addLookupTableInfo,
-        })
-
-        for (const iTx of willSendTx) {
-            if (iTx instanceof VersionedTransaction) {
-                // iTx.sign([wallet.]);
-                const signature = await sendTransaction(iTx, connection, { minContextSlot });
-                toast.info(`Transaction sent: ${signature}`);
-                await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-                toast.success(`Transaction successful! ${signature}`);
-            } else {
-                const signature = await sendTransaction(iTx, connection, { minContextSlot });
-                toast.info(`Transaction sent: ${signature}`);
-                await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-                toast.success(`Transaction successful! ${signature}`);
-            }
-        }
-    };
-    const { isProfilesActive } = useMyContext();
-    const [formData, setFormData] = useState({
-        BlockEngineSelection: BlockEngineLocation[2],
-        BundleTip: "0.01",
-        TransactionTip: "0.00001",
-    });
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
@@ -248,18 +295,7 @@ const RaydiumLiquidityRemover = () => {
             [field]: value,
         }));
     }
-    let data = [
-        {
-            "id": 1,
-            "name": "John Doe",
-            "price": "Pkr424234"
-        },
-        {
-            "id": 2,
-            "name": "Jane Doe",
-            "price": "Pkr234214214"
-        }
-    ]
+
     return (
         <div className="space-y-4 mb-8 mt-10 relative  mx-auto h-full">
             <form>
@@ -271,40 +307,6 @@ const RaydiumLiquidityRemover = () => {
                                     Liquidity Manager
                                 </h1>
                             </div>
-                            {/* <div className='border bg-[#0c0e11] border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
-                                <div className='flex items-center justify-center gap-2 '>
-                                    <InputField
-                                        label='Mint Address'
-                                        id="poolID"
-                                        type="text"
-                                        value={MintID}
-                                        onChange={handleMintIDChange}
-                                        placeholder="Enter Mint..."
-                                        required={true}
-                                    />
-                                    <div className='w-1/3'>
-                                        <InputField
-                                            label="Burn Amount"
-                                            id="tokenDecimals"
-                                            value={decimals.toString()}
-                                            onChange={(e) => setDecimals(Number(e.target.value))}
-                                            placeholder="Enter decimals"
-                                            type="number"
-                                            required={true}
-                                        />
-                                    </div></div>
-                                <div className="flex justify-between">
-                                    <button
-                                        onClick={handleBurnLiquidity}
-                                        disabled={isMintLoading}
-                                        className="font-bold rounded-xl h-[40px] hover:border-[#ff0000] px-5 flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out w-full py-2 mr-2"
-                                    >
-                                        <span className='bg-gradient-to-br from-[#f35c5c] to-[#ffa825] bg-clip-text text-transparent'>
-                                            {isMintLoading ? 'Loading Mint...' : 'Burn Liquidity'}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div> */}
 
                             <div className='border bg-[#0c0e11]  border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
                                 <div className="flex gap-2">

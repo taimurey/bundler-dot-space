@@ -293,3 +293,26 @@ body {
   background: #5764f2;
   color: #ffffff;
 }
+
+
+/* ------------------------Grid---------------------------------*/
+
+.grid-background {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-auto-rows: 100px;
+  background: linear-gradient(45deg, #f3986d, #b3c420);
+  width: 100%;
+  height: 100vh;
+}
+
+.grid-background::before {
+  content: "";
+  grid-column: span 100;
+  grid-row: span 100;
+  background:
+    linear-gradient(white 1px, transparent 0),
+    linear-gradient(90deg, white 1px, transparent 0),
+    linear-gradient(45deg, #f3986d, #b3c420);
+  background-size: 100px 100px;
+}

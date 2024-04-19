@@ -1,31 +1,19 @@
 'use client';
 
 import React, { ChangeEvent, useState } from 'react';
-// import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
-import { Metaplex } from "@metaplex-foundation/js";
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
-import { PublicKey, Keypair } from '@solana/web3.js';
-import { Connection } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
-import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import { OutputField } from '../../../components/FieldComponents/OutputField';
-import { useSolana } from '../../../components/context';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
+import { InputField } from '../../../components/FieldComponents/InputField';
 import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
 
-// import * as fs from 'fs';
-// import encryptWithPublicKey from '../../../components/Encryptor/encryption';
-// const agent = new https.Agent({
-//     rejectUnauthorized: false
-// });
+
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
@@ -43,6 +31,8 @@ const Swap = () => {
         Wallet1: "",
         Wallet2: "",
     });
+
+    console.log(wallets);
 
     const [formData, setFormData] = useState({
         buyerPrivateKey: '',

@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getSearchLayout } from "../components/layouts/SearchLayout";
 import { ReactNode } from "react";
-import TokenIcon from "../components/icons/TokenIcon";
 import Clock from "../components/icons/Clock";
 import TickIcon from "../components/icons/TickIcon";
 import PencilScale from "../components/icons/PencilScale";
 import Link from "next/link";
 import MevLabLogo from "../components/icons/JupiterLogo";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
+import { faTwitter, faTelegram, faDiscord, } from '@fortawesome/free-brands-svg-icons';
 
 function animateValue(id: string, start: number, end: number, duration: number) {
   if (start === end) return;
@@ -80,8 +79,8 @@ const features: Feature[] = [
 const roadmapData: RoadmapData[] = [
   {
     heading: "Launching",
-    titles: ["TELEGRAM BOT", "LAUNCHPAD", "CLI BOT",
-      "SANDWICH BOT(SOLANA)"
+    titles: ["TELEGRAM BOT", "WEB DAPP", "SNIPER BOT",
+      "TOKEN MINER"
     ],
     icon: <TickIcon />
   },
@@ -127,6 +126,8 @@ const FeatureComponent: React.FC<Feature> = ({ title, description }) => (
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activepage, setActivePage] = useState("About");
+
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -187,11 +188,11 @@ const Home = () => {
       </div>
       <div className="p-20">
         <p className={`text-[42px] lg:text-[72px] leading-[50px] text-start px-2
-         font-[HeliukBrave] `}>
+     font-[HeliukBrave] `}>
           ROADMAP
         </p>
         <p className="max-w-[600px] py-12 px-4 text-[18px] font-thin leading-[27px] text-white">
-          We're continually working on innovations to enhance the trading experience and empower users with a competitive edge. Instead of a traditional roadmap with deadlines, we present our plans through a 'now/next/later' approach.
+          We&apos;re continually working on innovations to enhance the trading experience and empower users with a competitive edge. Instead of a traditional roadmap with deadlines, we present our plans through a &apos;now/next/later&apos; approach.
         </p>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {roadmapData.map(({ heading, titles, icon }, index) => (
@@ -211,16 +212,21 @@ const Home = () => {
           ))}
         </div>
         <div>
-
+          <div className=" flex justify-center items-center h-screen">
+            <div className="font-normal font-heliukBrave text-[90px] tracking-wide uppercase bg-gradient-to-br from-[#f3986d] to-[#b3c420] bg-clip-text text-transparent animate-typing">
+              <h1>WHAT ARE YOU WAITING FOR?</h1>
+              <h1 className="flex justify-center items-center text-[#ffffff]">Get STARTED</h1>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="z-40  w-full bg-[#02040a] p-2 border-b border-[#a19f9f] ">
+      <div className="z-40  w-full  bg-gradient-to-t from-[#02040a] to-[#11171f] p-2 border-b border-[#a19f9f] ">
         <div
           className="flex flex-col lg:flex-row gap-4 relative w-full justify-between
 items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  "
         >
           <Link href="/" className="w-full">
-            <h1 className="flex items-center justify-canter text-lg font-semibold text-white cursor-pointer">
+            <h1 className="flex items-center justify-center text-lg font-semibold text-white cursor-pointer">
               <MevLabLogo />
 
               <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
@@ -262,6 +268,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
               <a
                 href="https://www.telegram.com"
                 target="_blank"
+                rel="noreferrer"
               >
                 <li className="icon telegram">
                   <span className="tooltip">Telegram</span>
@@ -270,7 +277,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
               </a>
               <a
                 href="https://www.twiiter.com
-"
+"rel="noreferrer"
                 target="_blank"
               >
                 <li className="icon twitter ">
@@ -283,6 +290,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
               <a
                 href="https://www.discord.com"
                 target="_blank"
+                rel="noreferrer"
               >
                 <li className="icon discord">
                   <span className="tooltip">Discord</span>

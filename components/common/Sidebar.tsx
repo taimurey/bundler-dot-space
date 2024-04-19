@@ -10,6 +10,7 @@ import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
 import SwapIcon from "../icons/SwapIcon";
 import VirusIcon from "../icons/VirusIcon";
+import SenderIcon from "../icons/SenderIcon";
 
 const HeaderLink = ({
     href,
@@ -40,7 +41,7 @@ const HeaderLink = ({
                             {icon}
                         </div>
                         <div className={`flex flex-col transition-opacity ease-in-out`}>
-                            <span className="text-sm font-bold whitespace-nowrap">{title}</span>
+                            <span className="text-sm font-normal whitespace-nowrap">{title}</span>
                             {/* <span className="text-xs font-light">{description}</span> */}
                         </div>
                     </div>
@@ -55,14 +56,6 @@ const Sidebar: FC = () => {
     type FilterLink = (link: LinkProps) => boolean;
 
     const links = [
-        // {
-        //     href: '/dashboard',
-        //     isActive: router.pathname === '/dashboard',
-        //     title: 'Dashboard',
-        //     description: 'View the stats',
-        //     icon: <MarketIcon />,
-
-        // },
         {
             href: '/mintinglab/create',
             isActive: router.pathname === '/mintinglab/create',
@@ -71,16 +64,16 @@ const Sidebar: FC = () => {
             icon: <TokenIcon />,
         },
         // {
-        //     href: '/mintinglab/create',
-        //     isActive: router.pathname === '/mintinglab/create',
-        //     title: 'V2 Token Creation',
-        //     description: 'Mint SPL Tokens',
-        //     icon: <TokenIcon />,
+        //     href: '/mintinglab/disperse',
+        //     isActive: router.pathname === '/mintinglab/disperse',
+        //     title: 'Disperse Tokens',
+        //     description: 'Distribution of SPL Tokens',
+        //     icon: <SenderIcon />,
         // },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',
-            title: 'Create Market',
+            title: 'Market Creation',
             description: 'Openbook Market Creation',
             icon: <MarketIcon />,
         },
@@ -91,13 +84,13 @@ const Sidebar: FC = () => {
             description: 'Add liquidity to a market',
             icon: <FlaskIcon />,
         },
-        {
-            href: '/liquidity/swap',
-            isActive: router.pathname === '/liquidity/swap',
-            title: 'Token Manager',
-            description: 'Swap tokens',
-            icon: <TokenIcon />,
-        },
+        // {
+        //     href: '/liquidity/swap',
+        //     isActive: router.pathname === '/liquidity/swap',
+        //     title: 'Token Manager',
+        //     description: 'Swap tokens',
+        //     icon: <TokenIcon />,
+        // },
         {
             href: '/liquidity/manage',
             isActive: router.pathname === '/liquidity/manage',
@@ -109,11 +102,10 @@ const Sidebar: FC = () => {
 
     // Filter links based on the current route
     const filterLinks: FilterLink = (link) => {
-        if (router.pathname === '/mintinglab/create' || router.pathname === '/market/create' || router.pathname === '/dashboard') {
-            return link.href === '/mintinglab/create' || link.href === '/market/create' || link.href === '/dashboard';
+        if (router.pathname === '/mintinglab/create' || router.pathname === '/mintinglab/disperse' || router.pathname === '/market/create') {
+            return link.href === '/mintinglab/create' || link.href === '/mintinglab/disperse' || link.href === '/market/create';
         } else if (router.pathname === '/liquidity/add' || router.pathname === '/liquidity/manage' || router.pathname === '/liquidity/swap') {
             return link.href === '/liquidity/add' || link.href === '/liquidity/manage' || link.href === '/liquidity/swap';
-
         }
         return false;
     };
@@ -135,7 +127,7 @@ const Sidebar: FC = () => {
                                 <p className="font-bold text-white/80 ">Wallets</p>
                             </div>
                             <div className="font-bold">
-                                {'>'}
+                                {'➤'}
                             </div>
                         </div>
                     )}
@@ -153,18 +145,7 @@ const Sidebar: FC = () => {
                             />
                         ))}
                     </div>
-                    {/* {router.pathname.includes('/liquidity/') &&
-                        <>
-                            <hr className=" bg-white  w-full my-4" />
-                            <Link href="/liquidity/swap">
-                                <div className="mx-6 mb-2 p-2 w-full max-w-[200px] rounded-xl flex justify-center items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3 " onClick={() => setisProfilesActive(true)}>
-                                    <div className="flex flex-col justify-center items-center">
-                                        <p className="font-bold text-white/80 text-center text-xl ">Swap</p>
-                                    </div>
-                                </div>
-                            </Link>
-                        </>
-                    } */}
+
                 </div>
             </div>
             {/* } */}

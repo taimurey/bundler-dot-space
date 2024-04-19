@@ -22,6 +22,7 @@ import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
 // import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
+import { set } from 'lodash';
 // const agent = new https.Agent({
 //     rejectUnauthorized: false
 // });
@@ -33,12 +34,10 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
     const connection = new Connection(cluster.endpoint);
-    const [buyerKeypair, setBuyerKeypair] = useState("");
+    // const [buyerKeypair, setBuyerKeypair] = useState("");
     const [airdropChecked, setAirdropChecked] = useState(false);
-    // const [encryptedBuyerKeypair, setEncryptedBuyerKeypair] = useState("");
-    // const [encrypteddeployerKeypair, encryptedsetDeployerKeypair] = useState("");
-    // const [predictedMarketCap, setPredictedMarketcap] = useState("$NaN")
-    // const [predictedSupplyAmount, setPredictedSupplyAmount] = useState("NaN%")
+
+
     const [wallets, setWallets] = useState({
         Wallet1: "",
         Wallet2: "",
@@ -76,6 +75,8 @@ const LiquidityHandlerRaydium = () => {
         }));
     }
 
+    const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
+
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
         setFormData(prevState => ({
@@ -95,10 +96,14 @@ const LiquidityHandlerRaydium = () => {
                 Wallet2: wallet.publicKey.toString(),
             }));
 
-            // if (!process.env.NEXT_PUBLIC_KEY_RSA) {
-            //     throw new Error('No public key found');
-            // }
-            //  const encrypted = encryptWithPublicKey(process.env.NEXT_PUBLIC_KEY_RSA, PrivateKey);
+            // Add new wallet to setsideWallets
+            setdeployerwallets(prevProfiles => [...prevProfiles, {
+                id: prevProfiles.length,
+                name: 'Deployer',
+                wallet: base58.encode(wallet.secretKey), // Use JSON.stringify instead of toString
+                color: randomColor(),
+            }]);
+
             setFormData(prevState => ({
                 ...prevState,
                 deployerPrivateKey: value,
@@ -111,25 +116,33 @@ const LiquidityHandlerRaydium = () => {
                 ...prevState,
                 Wallet1: wallet.publicKey.toString(),
             }));
+
+            // Add new wallet to setsideWallets
+            setdeployerwallets(prevProfiles => [...prevProfiles, {
+                id: prevProfiles.length,
+                name: 'Buyer',
+                wallet: wallet.toString(),
+                color: randomColor(),
+            }]);
         }
     };
 
 
 
-    const generateKeypair = (e: any) => {
-        e.preventDefault();
-        const keypair = Keypair.generate();
-        const PrivateKey = base58.encode(keypair.secretKey).toString();
-        setBuyerKeypair(PrivateKey);
-        setFormData(prevState => ({
-            ...prevState,
-            buyerPrivateKey: PrivateKey,
-        }));
-        setWallets({
-            Wallet1: `${keypair.publicKey.toString()}`,
-            Wallet2: wallets.Wallet2,
-        });
-    }
+    // const generateKeypair = (e: any) => {
+    //     e.preventDefault();
+    //     const keypair = Keypair.generate();
+    //     const PrivateKey = base58.encode(keypair.secretKey).toString();
+    //     setBuyerKeypair(PrivateKey);
+    //     setFormData(prevState => ({
+    //         ...prevState,
+    //         buyerPrivateKey: PrivateKey,
+    //     }));
+    //     setWallets({
+    //         Wallet1: `${keypair.publicKey.toString()}`,
+    //         Wallet2: wallets.Wallet2,
+    //     });
+    // }
 
 
     const handleloadMintmetadata = async (e: any) => {
@@ -153,38 +166,31 @@ const LiquidityHandlerRaydium = () => {
         }));
     }
 
-    const copytoClipboard = () => {
-        if (!buyerKeypair) {
-            toast.error('No keypair to copy');
-            return;
-        }
-        const keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
-        navigator.clipboard.writeText(base58.encode(keypair.secretKey));
-    }
+    // const copytoClipboard = () => {
+    //     if (!buyerKeypair) {
+    //         toast.error('No keypair to copy');
+    //         return;
+    //     }
+    //     const keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
+    //     navigator.clipboard.writeText(base58.encode(keypair.secretKey));
+    // }
 
     const randomColor = () => {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
     }
-    const dummyProfiles = [
-        { id: 0, name: "John", wallet: "12345", color: randomColor() },
-        { id: 1, name: "Alice", wallet: "67890", color: randomColor() },
-        { id: 2, name: "Bob", wallet: "ABCDE", color: randomColor() },
-        { id: 3, name: "John", wallet: "12345", color: randomColor() },
-        { id: 4, name: "Alice", wallet: "67890", color: randomColor() },
-        { id: 5, name: "Bob", wallet: "ABCDE", color: randomColor() }
-    ];
+
 
     const handlesubmission = async (e: any) => {
         e.preventDefault();
         setDeployerWallets([])
-        localStorage.removeItem("deploterwallets")
+        localStorage.removeItem("deployerwallets")
 
         console.log(formData);
 
         try {
             toast.info('Please wait, bundle acceptance may take a few seconds');
-            setDeployerWallets(dummyProfiles)
-            localStorage.setItem("deployerwallets", JSON.stringify(dummyProfiles))
+            setDeployerWallets(setsideWallets)
+            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
 
             const response = await axios.post(
                 'https://mevarik-deployer.xyz:2891/jitoadd',
