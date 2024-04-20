@@ -11,18 +11,18 @@ export async function TokenDisperser(wallets: string[], signAllTransactions: any
     );
     const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(baseAddr)) });
     const decimals = MintMetadata.mint.decimals;
-    let tokenAmount = await connection.getTokenAccountBalance(fundingata);
+    const tokenAmount = await connection.getTokenAccountBalance(fundingata);
     // Split walletAddresses of string to convert them to PublicKey
     const walletAddressesArray = wallets.map(wallet => new PublicKey(wallet));
 
     // Get total token amount as a number
-    let totalTokenAmount = parseFloat(tokenAmount.value.amount);
+    const totalTokenAmount = parseFloat(tokenAmount.value.amount);
 
     // Generate a random number for each wallet
-    let randomNumbers = wallets.map(() => Math.random());
+    const randomNumbers = wallets.map(() => Math.random());
 
     // Calculate the sum of all random numbers
-    let sumOfRandomNumbers = randomNumbers.reduce((a, b) => a + b, 0);
+    const sumOfRandomNumbers = randomNumbers.reduce((a, b) => a + b, 0);
 
     // Normalize the random numbers so that they sum up to the total token amount
     let amounts = randomNumbers.map(num => (num / sumOfRandomNumbers) * totalTokenAmount);
