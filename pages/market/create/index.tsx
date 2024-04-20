@@ -194,7 +194,7 @@ const CreateMarket = () => {
     try {
       let accounts;
       try {
-        accounts = await createMarket(baseMint, wallet.publicKey, 1000000, signAllTransactions);
+        accounts = await createMarket(baseMint, wallet.publicKey, 1000000, signAllTransactions, data);
       } catch (e) {
         console.error("[explorer]: ", e);
         toast.error("Failed to create market.");
@@ -301,7 +301,7 @@ const CreateMarket = () => {
 
                     <p className="text-lg btn-text-gradient font-bold">
                       {tokenAtomicsToPrettyDecimal(
-                        new BN(marketRent + vaultRent * 2 + mintRent * 2 + 200000000),
+                        new BN(marketRent + vaultRent * 2 + mintRent * 2 /*+ 200000000*/),
                         9
                       )}{" "}
                       SOL{" "}

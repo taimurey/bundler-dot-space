@@ -248,8 +248,8 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
                           <div className="flex justify-center items-center   ">
                             <p
                               className=" tracking-wide whitespace-nowrap text-[#d0d1d3] "
-                              // onClick={() => setActivePage(item.name)}
-                                                          >
+                            // onClick={() => setActivePage(item.name)}
+                            >
                               {item.name}
                             </p>
 

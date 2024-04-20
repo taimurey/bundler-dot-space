@@ -5,35 +5,52 @@ import { connection } from "../../../components/removeLiquidity/config";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { toast } from "react-toastify";
 import { truncate } from '../../../components/common/Allprofiles';
+import { TokenDisperser } from "../../../components/DistributeTokens/distributor";
 
 export const Create = () => {
     const [selectedTokenAddr, setSelectedTokenAddr] = useState<string>(''); // State for selected token address
     const [walletAddresses, setWalletAddresses] = useState<string>(''); // State for wallet addresses
     const [tokenAccounts, setTokenAccounts] = useState<string[]>([]); // Array of token accounts
     const wallet = useWallet();
-    // const { signAllTransactions } = useWallet();
+    const { signAllTransactions } = useWallet();
     const [selectedButton, setSelectedButton] = useState<string>('');
+    const [Smint, setMint] = useState<string[]>([]);
 
     const publicKey = wallet.publicKey;
     useEffect(() => {
         if (!publicKey) {
-            toast.error('Please connect your wallet');
             return
         }
-
         const fetchTokenAccounts = async () => {
-            const tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
+            const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
             const tokenAccountsArray = tokenAccounts.value.map(account => account.pubkey.toBase58());
+            const decimalsArray = tokenAccounts.value.map(account => account.account.data.parsed.info.decimals);
+            const mint = tokenAccounts.value.map(account => account.account.data.parsed.info.mint);
+            console.log(`${tokenAccountsArray}\n${decimalsArray}\n${mint}`);
+
+            setMint(mint);
             setTokenAccounts(tokenAccountsArray);
         }
 
         fetchTokenAccounts();
+
     }, [publicKey]);
 
     const handleSend = () => {
+        if (!publicKey) {
+            toast.error('Please connect your wallet');
+            return
+        }
         // Split walletAddresses by line space to get an array of wallet addresses
         const walletAddressesArray = walletAddresses.split('\n');
-        console.log('send', walletAddressesArray);
+
+        // Find the index of the selected token account
+        const index = tokenAccounts.findIndex(account => account === selectedTokenAddr);
+
+        // Get the decimals of the selected token account
+        const mint = Smint[index];
+
+        TokenDisperser(walletAddressesArray, signAllTransactions, publicKey, mint);
     };
 
     return (

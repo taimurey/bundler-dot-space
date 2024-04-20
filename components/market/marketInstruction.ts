@@ -10,6 +10,8 @@ import { connection, PROGRAMIDS } from "../removeLiquidity/config"
 // import { Transaction } from "jito-ts/dist/gen/geyser/confirmed_block"
 import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base"
 import axios from "axios"
+import base58 from "bs58"
+import { CreateMarketFormValues } from "../../pages/market/create"
 
 async function makeCreateMarketInstructionSimple<T extends TxVersion>({
     connection,
@@ -368,7 +370,7 @@ async function initializeMarketInstruction({
     })
 }
 
-export async function createMarket(basemint: PublicKey, wallet: PublicKey, jitoTip: number, signAllTransactions: any) {
+export async function createMarket(basemint: PublicKey, wallet: PublicKey, jitoTip: number, signAllTransactions: any, data: CreateMarketFormValues) {
     const tokenInfo = await getMint(connection, basemint, 'finalized', TOKEN_PROGRAM_ID)
     const baseToken = new Token(TOKEN_PROGRAM_ID, basemint, tokenInfo.decimals);
     const quoteToken = new Token(TOKEN_PROGRAM_ID, new PublicKey('So11111111111111111111111111111111111111112'), 9, 'WSOL', 'WSOL');
@@ -378,8 +380,8 @@ export async function createMarket(basemint: PublicKey, wallet: PublicKey, jitoT
         wallet: wallet,
         baseInfo: baseToken,
         quoteInfo: quoteToken,
-        lotSize: 1, // default 1
-        tickSize: 0.00001, // default 0.01
+        lotSize: data.lotSize, // default 1
+        tickSize: data.tickSize, // default 0.01
         dexProgramId: PROGRAMIDS.OPENBOOK_MARKET,
         makeTxVersion,
     })
@@ -457,19 +459,23 @@ export async function sendTx(
     bundledTxns.push(versionedTx);
     console.log("Sending transaction...");
     await signAllTransactions(bundledTxns);
-    // try {
-    // } catch (e) {
-    //     throw e;
-    // }
+
+
+    // Assume that `transactions` is an array of your transactions
+    const EncodedbundledTxns = bundledTxns.map(txn => base58.encode(txn.serialize()));
 
     const formData = {
-        bundle: bundledTxns,
-    }
+        jsonrpc: "2.0",
+        id: 1,
+        method: "sendBundle",
+        params: [EncodedbundledTxns]
+    };
 
-    // try {
+    console.log('formData:', formData);
 
+    try {
         const response = await axios.post(
-            'https://mevarik-deployer.xyz:2891/jitoadd',
+            'https://mainnet.block-engine.jito.wtf/api/v1/bundles',
             formData,
             {
                 headers: {
@@ -479,12 +485,9 @@ export async function sendTx(
         );
 
         if (response.status === 200) {
-
             console.log('response:', response.data);
         }
-
-    // } catch (error) {
-    //     throw error;
-
-    // }
+    } catch (error) {
+        console.error(error);
+    }
 }

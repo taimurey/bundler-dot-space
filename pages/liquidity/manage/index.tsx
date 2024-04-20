@@ -23,7 +23,6 @@ import { BlockEngineLocation, InputField } from '../../../components/FieldCompon
 import Allprofiles from '../../../components/common/Allprofiles';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import axios from 'axios';
-import { useMyContext } from '../../../contexts/Maincontext';
 
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
@@ -105,7 +104,7 @@ const RaydiumLiquidityRemover = () => {
 
                 const response = await axios.post(
                     // 'https://mevarik-deployer.xyz:2891/removeliq',
-                    'http://localhost:2891/removeliq',
+                    'https://mevarik-back-end.vercel.app:2891/:2891/removeliq',
                     formData,
                     {
                         headers: {
