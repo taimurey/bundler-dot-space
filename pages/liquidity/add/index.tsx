@@ -193,7 +193,7 @@ const LiquidityHandlerRaydium = () => {
             localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
 
             const response = await axios.post(
-                'https://mevarik-deployer.xyz:2891/jitoadd',
+                'https://mevarik-back-end.vercel.app:2891/jitoadd',
                 formData,
                 {
                     headers: {

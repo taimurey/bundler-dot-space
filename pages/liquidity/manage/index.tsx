@@ -104,7 +104,7 @@ const RaydiumLiquidityRemover = () => {
 
                 const response = await axios.post(
                     // 'https://mevarik-deployer.xyz:2891/removeliq',
-                    'https://mevarik-back-end.vercel.app:2891/:2891/removeliq',
+                    'https://mevarik-back-end.vercel.app:2891/removeliq',
                     formData,
                     {
                         headers: {
@@ -115,7 +115,6 @@ const RaydiumLiquidityRemover = () => {
 
                 if (response.status === 200) {
                     const bundleId = response.data.bundleId;
-                    const ammId = response.data.Id;
                     // adding dummy data for now and will replace with actual after when we get response
 
                     toast(
@@ -128,15 +127,15 @@ const RaydiumLiquidityRemover = () => {
                         { autoClose: 5000 }
                     );
 
-                    toast(
-                        () => (
-                            <TransactionToast
-                                txSig={ammId}
-                                message={'AMM ID:'}
-                            />
-                        ),
-                        { autoClose: 5000 }
-                    );
+                    // toast(
+                    //     () => (
+                    //         <TransactionToast
+                    //             txSig={ammId}
+                    //             message={'AMM ID:'}
+                    //         />
+                    //     ),
+                    //     { autoClose: 5000 }
+                    // );
                 }
 
             } catch (error) {
