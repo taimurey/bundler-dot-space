@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import {  useState } from 'react';
 import { useMyContext } from '../../contexts/Maincontext';
 import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import VirusIcon from '../icons/VirusIcon';
 import { toast } from 'react-toastify';
-import { set } from 'lodash';
+// import { set } from 'lodash';
 
-const randomColor = () => {
-    return '#' + Math.floor(Math.random() * 16777215).toString(16);
-}
+// const randomColor = () => {
+//     return '#' + Math.floor(Math.random() * 16777215).toString(16);
+// }
 
 interface Profile {
     id: number;
@@ -54,26 +54,26 @@ const Allprofiles: React.FC = () => {
         setDeployerWallets([]);
     };
 
-    const handleChange = (index: number, field: keyof Profile, event: React.ChangeEvent<HTMLInputElement>) => {
-        const newData = [...DeployerWallets];
-        if (field === 'wallet') {
-            try {
-                const keypair = Keypair.fromSecretKey(base58.decode(event.target.value));
-                newData[index].name = truncate(keypair.publicKey.toString(), 7, 8);
-            } catch (error) {
-                toast.error('Invalid Private Key');
-            }
-        }
-        newData[index][field as 'name' | 'wallet'] = truncate(event.target.value, 5, 5);
-        setDeployerWallets(newData);
-    };
+    // const handleChange = (index: number, field: keyof Profile, event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const newData = [...DeployerWallets];
+    //     if (field === 'wallet') {
+    //         try {
+    //             const keypair = Keypair.fromSecretKey(base58.decode(event.target.value));
+    //             newData[index].name = truncate(keypair.publicKey.toString(), 7, 8);
+    //         } catch (error) {
+    //             toast.error('Invalid Private Key');
+    //         }
+    //     }
+    //     newData[index][field as 'name' | 'wallet'] = truncate(event.target.value, 5, 5);
+    //     setDeployerWallets(newData);
+    // };
 
-    const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            setIsEditable(null);
-        }
-    };
+    // const handleKeyPress = (event: React.KeyboardEvent) => {
+    //     if (event.key === 'Enter') {
+    //         event.preventDefault();
+    //         setIsEditable(null);
+    //     }
+    // };
 
     const handleBlur = (index: number, field: keyof Profile, event: React.FocusEvent<HTMLParagraphElement>) => {
         const newData = [...DeployerWallets];

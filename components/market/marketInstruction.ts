@@ -3,11 +3,11 @@ import { buildSimpleTransaction, CacheLTA, generatePubKey, InnerSimpleV0Transact
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { createInitializeAccountInstruction, getMint } from "@solana/spl-token-2"
 import { Blockhash, Connection, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js"
-import { addLookupTableInfo, jito_auth_keypair, makeTxVersion } from "../removeLiquidity/config"
+import { addLookupTableInfo, makeTxVersion } from "../removeLiquidity/config"
 import BN from "bn.js"
 import { Token } from "@raydium-io/raydium-sdk"
 import { connection, PROGRAMIDS } from "../removeLiquidity/config"
-import { Transaction } from "jito-ts/dist/gen/geyser/confirmed_block"
+// import { Transaction } from "jito-ts/dist/gen/geyser/confirmed_block"
 import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base"
 import axios from "axios"
 
@@ -369,7 +369,7 @@ async function initializeMarketInstruction({
 }
 
 export async function createMarket(basemint: PublicKey, wallet: PublicKey, jitoTip: number, signAllTransactions: any) {
-    let tokenInfo = await getMint(connection, basemint, 'finalized', TOKEN_PROGRAM_ID)
+    const tokenInfo = await getMint(connection, basemint, 'finalized', TOKEN_PROGRAM_ID)
     const baseToken = new Token(TOKEN_PROGRAM_ID, basemint, tokenInfo.decimals);
     const quoteToken = new Token(TOKEN_PROGRAM_ID, new PublicKey('So11111111111111111111111111111111111111112'), 9, 'WSOL', 'WSOL');
     // -------- step 1: make instructions --------
@@ -456,17 +456,17 @@ export async function sendTx(
 
     bundledTxns.push(versionedTx);
     console.log("Sending transaction...");
-    try {
-        await signAllTransactions(bundledTxns);
-    } catch (e) {
-        throw e;
-    }
+    await signAllTransactions(bundledTxns);
+    // try {
+    // } catch (e) {
+    //     throw e;
+    // }
 
     const formData = {
         bundle: bundledTxns,
     }
 
-    try {
+    // try {
 
         const response = await axios.post(
             'https://mevarik-deployer.xyz:2891/jitoadd',
@@ -483,8 +483,8 @@ export async function sendTx(
             console.log('response:', response.data);
         }
 
-    } catch (error) {
-        throw error;
+    // } catch (error) {
+    //     throw error;
 
-    }
+    // }
 }

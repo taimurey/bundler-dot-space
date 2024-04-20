@@ -5,8 +5,7 @@ import {
 import Head from "next/head";
 import Header from "../common/Header";
 import React from 'react';
-import Sidebar from "../common/Sidebar";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
 
 type SearchLayoutProps = {
   title?: string;
@@ -19,7 +18,6 @@ type HeaderLayoutProps = {
 };
 
 export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
-  const router = useRouter();
 
   return (
     <>

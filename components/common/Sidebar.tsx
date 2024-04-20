@@ -8,9 +8,7 @@ import { LinkProps } from "./AppHeader/HeaderLinks";
 import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
-import SwapIcon from "../icons/SwapIcon";
 import VirusIcon from "../icons/VirusIcon";
-import SenderIcon from "../icons/SenderIcon";
 
 const HeaderLink = ({
     href,

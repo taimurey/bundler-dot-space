@@ -22,7 +22,7 @@ import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
 // import * as fs from 'fs';
 // import encryptWithPublicKey from '../../../components/Encryptor/encryption';
-import { set } from 'lodash';
+// import { set } from 'lodash';
 // const agent = new https.Agent({
 //     rejectUnauthorized: false
 // });
@@ -241,7 +241,7 @@ const LiquidityHandlerRaydium = () => {
             }
         }
     };
-    const { isProfilesActive, DeployerWallets, setDeployerWallets } = useMyContext();
+    const { setDeployerWallets } = useMyContext();
 
     return (
         <div className=" mb-8 mx-auto flex mt-8 justify-center items-center relative">

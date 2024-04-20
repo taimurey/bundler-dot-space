@@ -1,24 +1,24 @@
 import React from 'react';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { RadioGroup } from "@headlessui/react";
-import { DexInstructions, Market } from "@project-serum/serum";
+// import { RadioGroup } from "@headlessui/react";
+// import { DexInstructions, Market } from "@project-serum/serum";
 import {
   ACCOUNT_SIZE,
-  createInitializeAccountInstruction,
-  createInitializeMintInstruction,
-  getMinimumBalanceForRentExemptMint,
+  // createInitializeAccountInstruction,
+  // createInitializeMintInstruction,
+  // getMinimumBalanceForRentExemptMint,
   getMint,
   MINT_SIZE,
-  TOKEN_PROGRAM_ID,
+  // TOKEN_PROGRAM_ID,
 } from "@solana/spl-token-2";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
-  ComputeBudgetProgram,
-  Keypair,
+  // ComputeBudgetProgram,
+  // Keypair,
   PublicKey,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
+  // SystemProgram,
+  // Transaction,
+  // TransactionInstruction,
 } from "@solana/web3.js";
 import BN from "bn.js";
 import ReactTooltip from "react-tooltip";
@@ -26,44 +26,44 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
+// import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
 import AdvancedOptionsForm from "../../../components/createMarket/AdvancedOptionsForm";
-import CreateMintOption from "../../../components/createMarket/CreateMintOption";
+// import CreateMintOption from "../../../components/createMarket/CreateMintOption";
 import ExistingMintForm from "../../../components/createMarket/ExistingMintForm";
-import NewMintForm from "../../../components/createMarket/NewMintForm";
+// import NewMintForm from "../../../components/createMarket/NewMintForm";
 import TickerForm from "../../../components/createMarket/TickerForm";
 import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
-import { useSerum } from "../../../components/context";
+// import { useSerum } from "../../../components/context";
 import { tokenAtomicsToPrettyDecimal } from "../../../utils/numerical";
 import {
   EVENT_QUEUE_LENGTH,
-  getVaultOwnerAndNonce,
+  // getVaultOwnerAndNonce,
   ORDERBOOK_LENGTH,
   REQUEST_QUEUE_LENGTH,
 } from "../../../utils/serum";
-import {
-  sendSignedTransaction,
-  signTransactions,
-  TransactionWithSigners,
-} from "../../../utils/transaction";
+// import {
+//   sendSignedTransaction,
+//   signTransactions,
+//   TransactionWithSigners,
+// } from "../../../utils/transaction";
 import useSerumMarketAccountSizes from "../../../utils/hooks/useSerumMarketAccountSizes";
 import useRentExemption from "../../../utils/hooks/useRentExemption";
 import { createMarket } from '../../../components/market/marketInstruction';
 
-const TRANSACTION_MESSAGES = [
-  {
-    sendingMessage: "Creating mints.",
-    successMessage: "Created mints successfully.",
-  },
-  {
-    sendingMessage: "Creating vaults.",
-    successMessage: "Created vaults successfully.",
-  },
-  {
-    sendingMessage: "Creating market.",
-    successMessage: "Created market successfully.",
-  },
-];
+// const TRANSACTION_MESSAGES = [
+//   {
+//     sendingMessage: "Creating mints.",
+//     successMessage: "Created mints successfully.",
+//   },
+//   {
+//     sendingMessage: "Creating vaults.",
+//     successMessage: "Created vaults successfully.",
+//   },
+//   {
+//     sendingMessage: "Creating market.",
+//     successMessage: "Created market successfully.",
+//   },
+// ];
 
 type NewMintFormValues = {
   baseDecimals: number;
@@ -98,7 +98,7 @@ const CreateMarket = () => {
   const wallet = useWallet();
   const { signAllTransactions } = useWallet();
 
-  const { programID } = useSerum();
+  // const { programID } = useSerum();
 
   const { register, handleSubmit, watch, setValue, formState, clearErrors } =
     useForm<CreateMarketFormValues>({
@@ -157,14 +157,14 @@ const CreateMarket = () => {
       return;
     }
 
-    let baseMintKeypair: Keypair | undefined;
+    // let baseMintKeypair: Keypair | undefined;
     let baseMint: PublicKey;
 
-    let quoteMintKeypair: Keypair | undefined;
-    let quoteMint: PublicKey;
+    // let quoteMintKeypair: Keypair | undefined;
+    // let quoteMint: PublicKey;
 
-    const mintInstructions: TransactionInstruction[] = [];
-    const mintSigners: Keypair[] = [];
+    // const mintInstructions: TransactionInstruction[] = [];
+    // const mintSigners: Keypair[] = [];
 
     // validate existing mints
 
@@ -179,11 +179,11 @@ const CreateMarket = () => {
 
 
 
-      const quoteMintInfo = await getMint(
-        connection,
-        new PublicKey(data.existingMints!.quoteMint)
-      );
-      quoteMint = quoteMintInfo.address;
+      // const quoteMintInfo = await getMint(
+      //   connection,
+      //   new PublicKey(data.existingMints!.quoteMint)
+      // );
+      // quoteMint = quoteMintInfo.address;
     } catch (e) {
       toast.error("Invalid mints provided.");
       return;

@@ -11,7 +11,7 @@ export const Create = () => {
     const [walletAddresses, setWalletAddresses] = useState<string>(''); // State for wallet addresses
     const [tokenAccounts, setTokenAccounts] = useState<string[]>([]); // Array of token accounts
     const wallet = useWallet();
-    const { signAllTransactions } = useWallet();
+    // const { signAllTransactions } = useWallet();
     const [selectedButton, setSelectedButton] = useState<string>('');
 
     const publicKey = wallet.publicKey;
@@ -19,7 +19,7 @@ export const Create = () => {
         if (!publicKey) {
             toast.error('Please connect your wallet');
             return
-        };
+        }
 
         const fetchTokenAccounts = async () => {
             const tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });

@@ -43,7 +43,7 @@ const RaydiumLiquidityRemover = () => {
     const handlePoolIDChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPoolID(event.target.value);
     };
-    const { DeployerWallets } = useMyContext();
+    // const { DeployerWallets } = useMyContext();
 
     useEffect(() => {
         const fetchPoolInfo = async () => {
@@ -275,7 +275,7 @@ const RaydiumLiquidityRemover = () => {
                     toast.success(`Transaction successful! ${signature}`);
                 }
             }
-        };
+        }
     }
 
 
