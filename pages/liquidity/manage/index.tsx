@@ -21,7 +21,7 @@ import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
 import Allprofiles from '../../../components/common/Allprofiles';
-import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
+import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import axios from 'axios';
 
 const RaydiumLiquidityRemover = () => {
