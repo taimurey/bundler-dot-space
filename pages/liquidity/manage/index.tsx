@@ -13,7 +13,7 @@ import {
     TOKEN_PROGRAM_ID,
     TokenAmount
 } from '@raydium-io/raydium-sdk';
-import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram, Keypair, TransactionMessage } from '@solana/web3.js';
 import { formatAmmKeysById } from '../../../components/removeLiquidity/formatAmmKeysById';
 import { getWalletTokenAccount } from '../../../components/removeLiquidity/util';
 import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiquidity/config';
@@ -23,6 +23,10 @@ import { BlockEngineLocation, InputField } from '../../../components/FieldCompon
 import Allprofiles from '../../../components/common/Allprofiles';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import axios from 'axios';
+import base58 from 'bs58';
+
+
+
 
 const RaydiumLiquidityRemover = () => {
     const { connection } = useConnection();
@@ -91,174 +95,117 @@ const RaydiumLiquidityRemover = () => {
     });
 
 
-
-
-
-
-
     const handleRemoveLiquidity = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        if (isToggle) {
-            try {
-                event.preventDefault();
-                toast.info('Please wait, bundle acceptance may take a few seconds');
+        event.preventDefault();
+        if (!connected || !publicKey || !wallet) {
+            toast.error('Wallet not connected');
+            return;
+        }
+        // const targetPool = (poolID)
+        const microLamports = LAMPORTS_PER_SOL * (parseFloat(microLamportsInput));
 
-                const response = await axios.post(
-                    // 'https://mevarik-deployer.xyz:2891/removeliq',
-                    'https://mevarik-back-end.vercel.app:2891/removeliq',
-                    formData,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                );
+        toast.info('Removing liquidity...');
 
-                if (response.status === 200) {
-                    const bundleId = response.data.bundleId;
-                    // adding dummy data for now and will replace with actual after when we get response
+        // -------- pre-action: fetch basic info --------
+        // const targetPoolInfo = await formatAmmKeysById(targetPool);
+        // if (!targetPoolInfo) {
+        //     toast.error('Failed to fetch pool info');
+        //     return;
+        // }
+        const poolKeys = jsonInfo2PoolKeys(targetPoolInfo) as LiquidityPoolKeys
 
-                    toast(
-                        () => (
-                            <BundleToast
-                                txSig={bundleId}
-                                message={'Bundle ID:'}
-                            />
-                        ),
-                        { autoClose: 5000 }
-                    );
+        /*------------------------------------Function-------------------------------------------*/
+        const lpToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(poolKeys.lpMint), poolKeys.lpDecimals, 'LP', 'LP')
+        const walletTokenAccounts = await getWalletTokenAccount(connection, publicKey)
 
-                    // toast(
-                    //     () => (
-                    //         <TransactionToast
-                    //             txSig={ammId}
-                    //             message={'AMM ID:'}
-                    //         />
-                    //     ),
-                    //     { autoClose: 5000 }
-                    // );
-                }
 
-            } catch (error) {
-                console.log('Error:', error);
-                if (axios.isAxiosError(error)) {
-                    if (error.response && error.response.status === 500) {
-                        toast.error(`${error.response.data}`);
-                    } else {
-                        toast.error('Error occurred: Please Fill in all the fields');
-                    }
-                } else {
-                    toast.error('An unknown error occurred');
-                }
+        let tokenAccounts: RpcResponseAndContext<GetProgramAccountsResponse>;
+        try {
+            tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
+                programId: TOKEN_PROGRAM_ID,
+                mint: new PublicKey(poolKeys.lpMint),
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                toast.error(`Failed to get token accounts by owner: ${error.message}`);
+            } else {
+                toast.error(`Failed to get token accounts by owner: ${error}`);
             }
-        } else {
-            event.preventDefault();
-            if (!connected || !publicKey || !wallet) {
-                toast.error('Wallet not connected');
-                return;
-            }
-            // const targetPool = (poolID)
-            const microLamports = LAMPORTS_PER_SOL * (parseFloat(microLamportsInput));
-
-            toast.info('Removing liquidity...');
-
-            // -------- pre-action: fetch basic info --------
-            // const targetPoolInfo = await formatAmmKeysById(targetPool);
-            // if (!targetPoolInfo) {
-            //     toast.error('Failed to fetch pool info');
-            //     return;
-            // }
-            const poolKeys = jsonInfo2PoolKeys(targetPoolInfo) as LiquidityPoolKeys
-
-            /*------------------------------------Function-------------------------------------------*/
-            const lpToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(poolKeys.lpMint), poolKeys.lpDecimals, 'LP', 'LP')
-            const walletTokenAccounts = await getWalletTokenAccount(connection, publicKey)
-
-
-            let tokenAccounts: RpcResponseAndContext<GetProgramAccountsResponse>;
-            try {
-                tokenAccounts = await connection.getTokenAccountsByOwner(publicKey, {
-                    programId: TOKEN_PROGRAM_ID,
-                    mint: new PublicKey(poolKeys.lpMint),
-                });
-            } catch (error) {
-                if (error instanceof Error) {
-                    toast.error(`Failed to get token accounts by owner: ${error.message}`);
-                } else {
-                    toast.error(`Failed to get token accounts by owner: ${error}`);
-                }
-                return;
-            }
+            return;
+        }
 
 
 
-            let balance: number | string = 0;
-            for (const account of tokenAccounts.value) {
-                const pubkey = account.pubkey;
+        let balance: number | string = 0;
+        for (const account of tokenAccounts.value) {
+            const pubkey = account.pubkey;
 
-                balance = await connection.getTokenAccountBalance(pubkey).then((res) => {
-                    console.log(res.value);
-                    return res.value.amount;
-                });
-
-            }
-
-            toast.info(`LP Token Balance: ${balance}`)
-
-            const removeLpTokenAmount = new TokenAmount(lpToken, balance)
-
-            let removeLiquidityInstructionResponse = null;
-            try {
-                removeLiquidityInstructionResponse = await Liquidity.makeRemoveLiquidityInstructionSimple({
-                    connection: connection,
-                    poolKeys,
-                    userKeys: {
-                        owner: publicKey,
-                        payer: publicKey,
-                        tokenAccounts: walletTokenAccounts,
-                    },
-                    amountIn: removeLpTokenAmount,
-                    makeTxVersion,
-                    computeBudgetConfig: {
-                        units: 10000000,
-                        microLamports,
-                    },
-                });
-            } catch (error) {
-                if (error instanceof Error) {
-                    toast.info(`Failed to remove liquidity: ${error.message}`);
-                    return;
-                } else {
-                    toast.info(`Failed to remove liquidity: ${error}`);
-                    return;
-                }
-            }
-
-            const instructions = removeLiquidityInstructionResponse.innerTransactions;
-            const minLamports = 250000000;
-            // const maxLamports = 500000000;
-            // const randomLamports = Math.floor(Math.random() * (maxLamports - minLamports + 1)) + minLamports;
-
-            const taxInstruction = SystemProgram.transfer({
-                fromPubkey: publicKey,
-                toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-                lamports: minLamports,
+            balance = await connection.getTokenAccountBalance(pubkey).then((res) => {
+                console.log(res.value);
+                return res.value.amount;
             });
 
-            instructions[0].instructions.push(taxInstruction);
+        }
 
-            const {
-                context: { slot: minContextSlot },
-                value: { blockhash, lastValidBlockHeight },
-            } = await connection.getLatestBlockhashAndContext();
+        toast.info(`LP Token Balance: ${balance}`)
 
-            const willSendTx = await buildSimpleTransaction({
+        const removeLpTokenAmount = new TokenAmount(lpToken, balance)
+
+        let removeLiquidityInstructionResponse = null;
+        try {
+            removeLiquidityInstructionResponse = await Liquidity.makeRemoveLiquidityInstructionSimple({
                 connection: connection,
+                poolKeys,
+                userKeys: {
+                    owner: publicKey,
+                    payer: publicKey,
+                    tokenAccounts: walletTokenAccounts,
+                },
+                amountIn: removeLpTokenAmount,
                 makeTxVersion,
-                payer: publicKey,
-                innerTransactions: removeLiquidityInstructionResponse.innerTransactions,
-                addLookupTableInfo: addLookupTableInfo,
-            })
+                computeBudgetConfig: {
+                    units: 10000000,
+                    microLamports,
+                },
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                toast.info(`Failed to remove liquidity: ${error.message}`);
+                return;
+            } else {
+                toast.info(`Failed to remove liquidity: ${error}`);
+                return;
+            }
+        }
 
+        const instructions = removeLiquidityInstructionResponse.innerTransactions;
+        const minLamports = 250000000;
+        // const maxLamports = 500000000;
+        // const randomLamports = Math.floor(Math.random() * (maxLamports - minLamports + 1)) + minLamports;
+
+        const taxInstruction = SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+            lamports: minLamports,
+        });
+
+        instructions[0].instructions.push(taxInstruction);
+
+        const {
+            context: { slot: minContextSlot },
+            value: { blockhash, lastValidBlockHeight },
+        } = await connection.getLatestBlockhashAndContext();
+
+        const willSendTx = await buildSimpleTransaction({
+            connection: connection,
+            makeTxVersion,
+            payer: publicKey,
+            innerTransactions: removeLiquidityInstructionResponse.innerTransactions,
+            addLookupTableInfo: addLookupTableInfo,
+        })
+
+
+        if (!isToggle) {
             for (const iTx of willSendTx) {
                 if (iTx instanceof VersionedTransaction) {
                     // iTx.sign([wallet.]);
@@ -273,6 +220,94 @@ const RaydiumLiquidityRemover = () => {
                     toast.success(`Transaction successful! ${signature}`);
                 }
             }
+        } else {
+            const signer = Keypair.fromSecretKey(base58.decode(formData.DeployerPrivateKey));
+
+            const tipIxn = SystemProgram.transfer({
+                fromPubkey: signer.publicKey,
+                toPubkey: new PublicKey("DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh"),
+                lamports: BigInt(Number(formData.BundleTip) * LAMPORTS_PER_SOL),
+            });
+
+            const message = new TransactionMessage({
+                payerKey: publicKey,
+                instructions: [tipIxn],
+                recentBlockhash: blockhash,
+            }).compileToV0Message();
+
+            const tiptxn = new VersionedTransaction(message);
+            willSendTx.push(tiptxn);
+
+            const bundle: VersionedTransaction[] = [];
+
+            if (willSendTx instanceof VersionedTransaction) {
+                bundle.push(willSendTx);
+            }
+
+            bundle.map(txn => txn.sign([signer]));
+
+            toast.info('Please wait, bundle acceptance may take a few seconds');
+            // Assume that `transactions` is an array of your transactions
+            const EncodedbundledTxns = bundle.map(txn => base58.encode(txn.serialize()));
+            const bundledata = {
+                jsonrpc: "2.0",
+                id: 1,
+                method: "sendBundle",
+                params: [EncodedbundledTxns]
+            };
+
+            console.log('formData:', bundledata);
+            const blockengine = formData.BlockEngineSelection;
+            try {
+                const response = await axios.post(
+                    `https://${blockengine}/api/v1/bundles`,
+                    bundledata,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                if (response.status === 200) {
+                    console.log('response:', response.data);
+                    const bundleId = response.data.result;
+
+                    toast(
+                        () => (
+                            <BundleToast
+                                txSig={bundleId}
+                                message={'Bundle ID:'}
+                            />
+                        ),
+                        { autoClose: 5000 }
+                    );
+
+                    // Send another request to get the bundle status
+                    const statusData = {
+                        jsonrpc: "2.0",
+                        id: 1,
+                        method: "getBundleStatuses",
+                        params: [[bundleId]]
+                    };
+
+                    const statusResponse = await axios.post(
+                        `https://${blockengine}/api/v1/bundles`,
+                        statusData,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+
+                    if (statusResponse.status === 200) {
+                        console.log('status response:', statusResponse.data);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
         }
     }
 
@@ -286,6 +321,7 @@ const RaydiumLiquidityRemover = () => {
             [field]: value,
         }));
     }
+
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
         const { value } = e.target;
         setFormData(prevState => ({
