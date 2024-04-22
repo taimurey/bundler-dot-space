@@ -24,12 +24,13 @@ export const Create = () => {
         const fetchTokenAccounts = async () => {
             const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
             const tokenAccountsArray = tokenAccounts.value.map(account => account.pubkey.toBase58());
+            const tokenmint = tokenAccounts.value.map(account => account.account.data.parsed.info.mint);
             const decimalsArray = tokenAccounts.value.map(account => account.account.data.parsed.info.decimals);
             const mint = tokenAccounts.value.map(account => account.account.data.parsed.info.mint);
             console.log(`${tokenAccountsArray}\n${decimalsArray}\n${mint}`);
 
             setMint(mint);
-            setTokenAccounts(tokenAccountsArray);
+            setTokenAccounts(tokenmint);
         }
 
         fetchTokenAccounts();
@@ -41,23 +42,30 @@ export const Create = () => {
             toast.error('Please connect your wallet');
             return
         }
+
+        if (!walletAddresses) {
+            toast.error('Please enter wallet addresses to distribute tokens');
+            return
+        }
         // Split walletAddresses by line space to get an array of wallet addresses
         const walletAddressesArray = walletAddresses.split('\n');
 
-        // Find the index of the selected token account
-        const index = tokenAccounts.findIndex(account => account === selectedTokenAddr);
 
         // Get the decimals of the selected token account
-        const mint = Smint[index];
+        const mint = selectedTokenAddr;
+
 
         TokenDisperser(walletAddressesArray, signAllTransactions, publicKey, mint);
     };
 
     return (
         <div className="w-2/3 flex flex-col items-center ml-5">
-            <h1 className="font-bold text-zinc-500 text-[35px] ">
-                Select Token Address
+            <h1 className="font-bold text-zinc-200 text-[35px]">
+                Token Distributor
             </h1>
+            <h3 className=" text-zinc-400 text-[20px] font-medium">
+                Distribute tokens to multiple wallets in single click
+            </h3>
 
 
             <div className="relative rounded-md shadow-sm w-2/3 flex justify-end mt-10">
@@ -73,25 +81,25 @@ export const Create = () => {
                     </option>
                     {tokenAccounts.map((account, index) => (
                         <option key={index} value={account}>
-                            {truncate(account, 8, 11)}
+                            {account}
                         </option>
                     ))}
                 </select>
             </div>
             <div className="flex justify-between w-2/3 mt-5 gap-4">
                 <button
-                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out
+                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
                      w-full ${selectedButton === 'random' ? 'border-[#00e1ffbd] border-2' : ''}`}
                     onClick={() => setSelectedButton('random')}
                 >
-                    <span className='btn-text-gradient'>Random Amount</span>
+                    <span className=''>Random Amount</span>
                 </button>
                 <button
-                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out
+                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
                      w-full ${selectedButton === 'equal' ? 'border-[#00e1ffbd] border-2' : ''}`}
                     onClick={() => setSelectedButton('equal')}
                 >
-                    <span className='btn-text-gradient'>Equal Amount</span>
+                    <span className=''>Equal Amount</span>
                 </button>
             </div>
             <textarea

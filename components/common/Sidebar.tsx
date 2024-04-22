@@ -9,6 +9,7 @@ import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
 import VirusIcon from "../icons/VirusIcon";
+import SenderIcon from "../icons/SenderIcon";
 
 const HeaderLink = ({
     href,
@@ -61,13 +62,13 @@ const Sidebar: FC = () => {
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
-        // {
-        //     href: '/mintinglab/disperse',
-        //     isActive: router.pathname === '/mintinglab/disperse',
-        //     title: 'Disperse Tokens',
-        //     description: 'Distribution of SPL Tokens',
-        //     icon: <SenderIcon />,
-        // },
+        {
+            href: '/mintinglab/disperse',
+            isActive: router.pathname === '/mintinglab/disperse',
+            title: 'Disperse Tokens',
+            description: 'Distribution of SPL Tokens',
+            icon: <SenderIcon />,
+        },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',

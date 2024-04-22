@@ -221,6 +221,11 @@ const RaydiumLiquidityRemover = () => {
                 }
             }
         } else {
+            if (!formData.DeployerPrivateKey) {
+                toast.error('Deployer Private Key is required');
+                return;
+            }
+
             const signer = Keypair.fromSecretKey(base58.decode(formData.DeployerPrivateKey));
 
             const tipIxn = SystemProgram.transfer({
