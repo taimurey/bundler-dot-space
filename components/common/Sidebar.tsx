@@ -4,13 +4,17 @@ import React from 'react';
 import TokenIcon from "../icons/TokenIcon";
 import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
-import { LinkProps } from "./AppHeader/HeaderLinks";
 import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
 import VirusIcon from "../icons/VirusIcon";
 import SenderIcon from "../icons/SenderIcon";
+import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
+import { TwStyle } from 'twin.macro';
 
+export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
+    css?: TwStyle[] | undefined;
+}
 const HeaderLink = ({
     href,
     isActive,
@@ -19,36 +23,37 @@ const HeaderLink = ({
 }: LinkProps & {
     href: string;
     isActive: boolean;
-    title: string | React.ReactNode;
-    description: string | React.ReactNode;
+    title: string;
+    description: string;
     icon: React.ReactNode;
     external?: boolean;
     isExpanded?: boolean;
 }) => {
+    const router = useRouter();
+    const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        event.preventDefault(); // Prevent default behavior
+        event.stopPropagation(); // Prevent event propagation
+        router.push(href); // Redirect to the specified href on click
+    };
 
     return (
-        <div>
-            <Link href={href}>
-                <div
-                    // className={`flex justify-start  font-semibold text-white/50 hover:text-white fill-current   px-6 border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer py-4
-                    // ${isActive && `!text-v3-primary bg-[#11171f]  rounded-[35px]`}`}
-                    className={`flex justify-start  text-white/50 duration-300 ease-in-out hover:text-white fill-current font-extralight  px-6 border-b-2 border-transparent transition-height cursor-pointer 
-                    ${isActive && `!text-[#baf775] duration-300 ease-in-out`}`}
-                >
-                    <div className="flex justify-start items-center gap-4">
-                        <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
-                            {icon}
-                        </div>
-                        <div className={`flex flex-col transition-opacity ease-in-out`}>
-                            <span className="text-sm font-normal whitespace-nowrap">{title}</span>
-                            {/* <span className="text-xs font-light">{description}</span> */}
-                        </div>
-                    </div>
+        <div
+            className={`flex justify-start text-white/50 duration-300 ease-in-out hover:text-white fill-current font-extralight px-6 border-b-2 border-transparent transition-height cursor-pointer 
+            ${isActive && `!text-[#baf775] duration-300 ease-in-out`}`}
+            onClick={handleClick}
+        >
+            <div className="flex justify-start items-center gap-4">
+                <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
+                    {icon}
                 </div>
-            </Link>
+                <div className={`flex flex-col transition-opacity ease-in-out`}>
+                    <span className="text-sm font-normal whitespace-nowrap">{title}</span>
+                </div>
+            </div>
         </div>
     );
 };
+
 
 const Sidebar: FC = () => {
     const router = useRouter();
@@ -62,6 +67,7 @@ const Sidebar: FC = () => {
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
+
         {
             href: '/mintinglab/disperse',
             isActive: router.pathname === '/mintinglab/disperse',
@@ -76,6 +82,14 @@ const Sidebar: FC = () => {
             description: 'Openbook Market Creation',
             icon: <MarketIcon />,
         },
+        {
+            href: '/mintinglab/tokenmanager',
+            isActive: router.pathname === '/mintinglab/tokenmanager',
+            title: 'V1 Token Manager',
+            description: 'Manage SPL Tokens',
+            icon: <TokenIcon />,
+        },
+
         {
             href: '/liquidity/add',
             isActive: router.pathname === '/liquidity/add',
@@ -101,8 +115,8 @@ const Sidebar: FC = () => {
 
     // Filter links based on the current route
     const filterLinks: FilterLink = (link) => {
-        if (router.pathname === '/mintinglab/create' || router.pathname === '/mintinglab/disperse' || router.pathname === '/market/create') {
-            return link.href === '/mintinglab/create' || link.href === '/mintinglab/disperse' || link.href === '/market/create';
+        if (router.pathname === '/mintinglab/create' || router.pathname === '/mintinglab/tokenmanager' || router.pathname === '/mintinglab/disperse' || router.pathname === '/market/create') {
+            return link.href === '/mintinglab/create' || link.href === '/mintinglab/disperse' || link.href === '/market/create' || link.href === '/mintinglab/tokenmanager';
         } else if (router.pathname === '/liquidity/add' || router.pathname === '/liquidity/manage' || router.pathname === '/liquidity/swap') {
             return link.href === '/liquidity/add' || link.href === '/liquidity/manage' || link.href === '/liquidity/swap';
         }

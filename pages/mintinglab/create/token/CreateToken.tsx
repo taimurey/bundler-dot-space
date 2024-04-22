@@ -430,18 +430,18 @@ const CreateToken: FC = () => {
                             </div>
                             <div className="bg-[#262626] border px-4 py-2 my-2 rounded-md border-[#404040]">
 
-                                <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row ">
+                                <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row  ">
 
-                                    <div className="flex gap-4 justify-center items-center  ">
+                                    <div className="flex gap-2 justify-center items-center  ">
                                         {uploadedImage || image ?
                                             <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                            <div className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center">S</div>}
+                                            <div className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
                                         <div className="">
-                                            <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                            <p className="font-light lg:w-[80px] xl:w-[150px] 2xl:w-[250px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                                            <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                            <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                                         </div>
                                     </div>
-                                    <div className="flex justify-center items-center gap-2 w-1/3">
+                                    <div className="flex justify-center items-center gap-2  ">
                                         <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
 
                                             <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />

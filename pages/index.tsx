@@ -9,6 +9,7 @@ import MevLabLogo from "../components/icons/JupiterLogo";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, } from '@fortawesome/free-brands-svg-icons';
 
+
 function animateValue(id: string, start: number, end: number, duration: number) {
   if (start === end) return;
   const range = end - start;
