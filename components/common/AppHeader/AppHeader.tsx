@@ -15,7 +15,7 @@ import SettingsPanel from '../SettingsPanel';
 import { useSerum } from '../../context';
 import { DEX_PROGRAMS } from '../../../utils/constants';
 import { prettifyPubkey } from '../../../utils/pubkey';
-
+import { useRouter } from 'next/router';
 const AppHeader: React.FC = () => {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const handleToggleMenu = () => setOpenMobileMenu(!openMobileMenu);
@@ -30,6 +30,7 @@ const AppHeader: React.FC = () => {
       }
     }
   }, [openMobileMenu]);
+  const router = useRouter();
 
   return (
     <>
@@ -49,7 +50,7 @@ const AppHeader: React.FC = () => {
               </h1>
             </Link>
           </div>
-          <HeaderLinks />
+          {router.pathname === '/' && <HeaderLinks />} {/* Conditionally render HeaderLinks */}
         </div>
 
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">

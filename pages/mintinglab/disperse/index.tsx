@@ -59,7 +59,7 @@ export const Create = () => {
     };
 
     return (
-        <div className="w-2/3 flex flex-col items-center ml-5">
+        <div className="w-2/3  flex flex-col  items-center ml-5">
             <h1 className="font-bold text-zinc-200 text-[35px]">
                 Token Distributor
             </h1>

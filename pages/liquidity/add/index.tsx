@@ -244,7 +244,7 @@ const LiquidityHandlerRaydium = () => {
     const { setDeployerWallets } = useMyContext();
 
     return (
-        <div className=" mb-8 mx-auto flex mt-8 justify-center items-center relative">
+        <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative">
             <form>
                 <div className="">
                     <div className="">

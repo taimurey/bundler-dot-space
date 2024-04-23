@@ -25,7 +25,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
           <div className="flex  justify-start items-start h-full w-full">
             {router.pathname != "/" &&
 
-              <div className=" hidden md:flex min-w-[250px] h-full  bg-[#0d1117] border-gray-700">
+              <div className=" hidden md:flex min-w-[300px] h-full  bg-[#0d1117] border-gray-700">
                 <Sidebar />
               </div>
             }

@@ -97,7 +97,7 @@ const Allprofiles: React.FC = () => {
 
 
     return (
-        <div className={`shadow-black shadow-xl bg-[#1a1a1a] w-[300px] min-h-screen hover:w-[400px] px-4 py-8 transition-all ease-in-out duration-300 flex flex-col justify-between ${!isProfilesActive ? "translate-x-[320px] " : "translate-x-[10px]"}`}>
+        <div className={`shadow-black shadow-xl bg-[#1a1a1a] w-[300px] min-h-screen hover:w-[400px] px-4 py-8 transition-all ease-in-out duration-300 flex flex-col justify-between ${!isProfilesActive ? "translate-x-[360px] " : "translate-x-[50px]"}`}>
             <div>
                 <p className='px-1 font-bold'>Deployer Wallets</p>
                 <p className='p-2 font-light text-sm  border-[#f5ac41] border-b'>Wallets will be automatically loaded after successful deployment</p>

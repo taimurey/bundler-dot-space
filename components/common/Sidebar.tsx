@@ -12,11 +12,15 @@ import SenderIcon from "../icons/SenderIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
 import ManagerIcon from "../icons/ManagerIcon";
-
+import { useState, useEffect } from 'react';
+import SwapIcon from "../icons/SwapIcon";
+// import RepoLogo from '../../icons/RepoLogo';
+import HomeIcon from '../icons/HomeIcon';
+import LiquidityIcon from '../icons/LiquidityIcon';
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     css?: TwStyle[] | undefined;
 }
-const HeaderLink = ({
+const SidebarSublinks = ({
     href,
     isActive,
     title,
@@ -55,12 +59,95 @@ const HeaderLink = ({
     );
 };
 
+const HeaderLink = ({
+    href,
+    icon,
+    index,
+    external,
+    active,
+    setActive,
+}: LinkProps & {
+    href: string;
+    icon?: React.ReactNode; // icon is now optional
+    external?: boolean;
+    index: number;
+    active: number;
+    setActive: (index: number) => void;
+}) => {
+
+    const isActive = active === index;
+
+    const linkProps: { target?: string; rel?: string } = {};
+
+    if (external) {
+        linkProps.target = '_blank';
+        linkProps.rel = 'noopener noreferrer';
+    }
+
+    const linkStyle = icon ?
+        `flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-3 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
+        `flex items-center justify-center font-[Roboto] text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4`;
+
+    return (
+        <Link href={href} passHref>
+            <a
+                className={linkStyle}
+                {...linkProps}
+                onClick={() => {
+                    setActive(index);
+                }}
+            >
+                {icon && <span className="flex items-center w-5">{icon}</span>}
+            </a>
+        </Link>
+    );
+};
+
+
+
+
+
+
 
 const Sidebar: FC = () => {
     const router = useRouter();
     type FilterLink = (link: LinkProps) => boolean;
 
-    const links = [
+    const [active, setActive] = useState<number>(getActiveLink(router.pathname));
+
+    useEffect(() => {
+        // setActive(router.pathname.startsWith('/liquidity') ? 2 : 1);
+        setActive(getActiveLink(router.pathname));
+
+    }, [router.pathname]);
+    function getActiveLink(pathname: string): number {
+        if (pathname === '/') return 0; // Home link
+        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1; // Minting Lab link
+        if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
+        return -1; // None of the above
+    }
+
+    const headerLinks = [
+        {
+            id: 0,
+            href: '/',
+            icon: <HomeIcon />,
+        },
+        {
+            id: 1,
+            href: '/mintinglab/create',
+            icon: <SwapIcon width="20" height="20" />,
+        },
+
+        {
+            id: 2,
+            href: '/liquidity/add',
+            icon: <LiquidityIcon width="20" height="20" />,
+        }
+    ];
+
+
+    const sublinks = [
         {
             href: '/mintinglab/create',
             isActive: router.pathname === '/mintinglab/create',
@@ -124,14 +211,27 @@ const Sidebar: FC = () => {
         return false;
     };
 
-    const filteredLinks = links.filter(filterLinks);
+    const filteredLinks = sublinks.filter(filterLinks);
     const showAllPortfolios = router.pathname.includes('/liquidity/');
     const { isProfilesActive, setisProfilesActive } = useMyContext();
 
 
     return (
         <>
-            <div className="h-screen">
+            <div className=" min-h-screen h-full flex bg-[#0c1118]">
+                <div className="bg-black h-full py-4 px-2" >
+                    {headerLinks.map((link, index) => (
+                        <HeaderLink
+                            key={index}
+                            href={link.href}
+                            // external={link.external}
+                            icon={link.icon}
+                            index={index}
+                            active={active}
+                            setActive={setActive}
+                        />
+                    ))}
+                </div>
                 <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
                     {showAllPortfolios && (
                         <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3" onClick={() => setisProfilesActive(!isProfilesActive)}>
@@ -149,7 +249,7 @@ const Sidebar: FC = () => {
 
                     <div className="flex  flex-col gap-2 h-full p-2">
                         {filteredLinks.map((link, index) => (
-                            <HeaderLink
+                            <SidebarSublinks
                                 key={index}
                                 href={link.href}
                                 isActive={link.isActive}
