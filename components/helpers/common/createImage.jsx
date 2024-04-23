@@ -24,7 +24,7 @@ export const getRandomColor = () => {
 export const createImageFromInitials = (name) => {
   if (name == null) return;
   name = getInitials(name);
-  let size = 50;
+  let size = 35;
   let color = getRandomColor();
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -33,13 +33,13 @@ export const createImageFromInitials = (name) => {
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, size, size);
 
-  context.fillStyle = `${color}50`;
+  context.fillStyle = `${color}35`;
   context.fillRect(0, 0, size, size);
 
   context.fillStyle = color;
   context.textBaseline = "middle";
   context.textAlign = "center";
-  context.font = `${size / 3}px monospace`;
+  context.font = `${size / 4}px monospace`;
   context.fillText(name, size / 2, size / 2);
 
   return canvas.toDataURL();
