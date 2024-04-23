@@ -11,6 +11,7 @@ import VirusIcon from "../icons/VirusIcon";
 import SenderIcon from "../icons/SenderIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
+import ManagerIcon from "../icons/ManagerIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     css?: TwStyle[] | undefined;
@@ -85,9 +86,9 @@ const Sidebar: FC = () => {
         {
             href: '/mintinglab/tokenmanager',
             isActive: router.pathname === '/mintinglab/tokenmanager',
-            title: 'V1 Token Manager',
+            title: 'Authority Manager',
             description: 'Manage SPL Tokens',
-            icon: <TokenIcon />,
+            icon: <ManagerIcon />,
         },
 
         {

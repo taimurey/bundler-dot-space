@@ -96,7 +96,7 @@ const RevokeAuthorities: FC = () => {
       <div className="flex flex-col md:hero-content">
 
         <div>
-          <h1 className="bg-gradient-to-r mt-10 from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent">
+          <h1 className="bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent">
             Revoke Token Authorities
           </h1>
           <div className="relative rounded-md shadow-sm flex gap-2 justify-center">

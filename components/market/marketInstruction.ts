@@ -1,4 +1,4 @@
-import { PublicKey } from "@metaplex-foundation/js"
+import { PublicKey, Signer } from "@metaplex-foundation/js"
 import { buildSimpleTransaction, CacheLTA, generatePubKey, InnerSimpleV0Transaction, InstructionType, MARKET_STATE_LAYOUT_V2, splitTxAndSigners, struct, TxVersion, u16, u32, u64, u8, ZERO } from "@raydium-io/raydium-sdk"
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { createInitializeAccountInstruction, getMint } from "@solana/spl-token-2"
@@ -12,6 +12,8 @@ import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base"
 import axios from "axios"
 import base58 from "bs58"
 import { CreateMarketFormValues } from "../../pages/market/create"
+import { ApibundleSend } from "../DistributeTokens/bundler"
+import { Transaction } from "jito-ts/dist/gen/geyser/confirmed_block"
 
 async function makeCreateMarketInstructionSimple<T extends TxVersion>({
     connection,
@@ -385,15 +387,16 @@ export async function createMarket(basemint: PublicKey, wallet: PublicKey, jitoT
         dexProgramId: PROGRAMIDS.OPENBOOK_MARKET,
         makeTxVersion,
     })
+
     console.log('creatingmint')
-    await buildAndSendTx(createMarketInstruments.innerTransactions, jitoTip, wallet, signAllTransactions)
+    await buildAndSendTx(createMarketInstruments.innerTransactions, jitoTip, wallet, signAllTransactions, createMarketInstruments.address)
 
     return createMarketInstruments.address
 }
 
 
 export async function buildAndSendTx(innerSimpleV0Transaction: InnerSimpleV0Transaction[], jitoTip: number,
-    wallet: PublicKey, signAllTransactions: SignerWalletAdapterProps['signAllTransactions'],) {
+    wallet: PublicKey, signAllTransactions: SignerWalletAdapterProps['signAllTransactions'], marketSigners: any) {
     const { blockhash } = await connection.getLatestBlockhash('finalized');
 
     const willSendTx = await buildSimpleTransaction({
@@ -404,7 +407,9 @@ export async function buildAndSendTx(innerSimpleV0Transaction: InnerSimpleV0Tran
         recentBlockhash: blockhash,
         addLookupTableInfo: addLookupTableInfo,
     })
-
+    if (willSendTx instanceof VersionedTransaction) {
+        willSendTx.sign(marketSigners);
+    }
     await sendTx(willSendTx, blockhash, jitoTip, signAllTransactions, wallet)
 }
 
@@ -458,6 +463,7 @@ export async function sendTx(
 
     bundledTxns.push(versionedTx);
     console.log("Sending transaction...");
+
     await signAllTransactions(bundledTxns);
 
 
@@ -474,21 +480,18 @@ export async function sendTx(
     console.log('formData:', formData);
 
     try {
-        const response = await axios.post(
-            'https://mainnet.block-engine.jito.wtf/api/v1/bundles',
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-
-        if (response.status === 200) {
-            console.log('response:', response.data);
+        for (const tx of bundledTxns) {
+            console.log('tx:', tx);
+            await connection.sendTransaction(tx);
         }
+        // const bundleid = await ApibundleSend(formData, 'ny.mainnet.block-engine.jito.wtf');
+        // console.log('bundleid:', bundleid);
     } catch (error) {
         console.error(error);
         throw new Error('Error sending transaction');
     }
+
+    return;
 }
+
+

@@ -13,21 +13,6 @@ export const Create = () => {
             <div className="space-y-4 mt-10 mb-8 w-2/3">
                 <form>
                     <div className="bg-[#0c0e11] border border-neutral-600 px-4 py-5 shadow-2xl shadow-black rounded-lg sm:p-6 ">
-                        <RadioGroup value={selectedOption} onChange={setSelectedOption} className="flex space-x-4">
-
-                            <RadioGroup.Option
-                                value={true}
-                                className="flex-1 focus-style rounded-md cursor-pointer hover:bg-blue-500"
-                            >
-                                {({ active, checked }) => (
-                                    <CreateMintOption active={active} checked={checked}>
-                                        <RadioGroup.Label>
-                                            Token Manager
-                                        </RadioGroup.Label>
-                                    </CreateMintOption>
-                                )}
-                            </RadioGroup.Option>
-                        </RadioGroup>
                         <div className="md:grid md:gap-6">
                             <div className="">
                                 <RevokeAuthorities />

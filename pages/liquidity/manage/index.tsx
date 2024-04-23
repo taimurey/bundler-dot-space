@@ -24,6 +24,7 @@ import Allprofiles from '../../../components/common/Allprofiles';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import axios from 'axios';
 import base58 from 'bs58';
+import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
 
 
 
@@ -264,52 +265,16 @@ const RaydiumLiquidityRemover = () => {
             console.log('formData:', bundledata);
             const blockengine = formData.BlockEngineSelection;
             try {
-                const response = await axios.post(
-                    `https://${blockengine}/api/v1/bundles`,
-                    bundledata,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
+                const bundleId = await ApibundleSend(bundledata, blockengine);
+                toast(
+                    () => (
+                        <BundleToast
+                            txSig={bundleId}
+                            message={'Bundle ID:'}
+                        />
+                    ),
+                    { autoClose: 5000 }
                 );
-
-                if (response.status === 200) {
-                    console.log('response:', response.data);
-                    const bundleId = response.data.result;
-
-                    toast(
-                        () => (
-                            <BundleToast
-                                txSig={bundleId}
-                                message={'Bundle ID:'}
-                            />
-                        ),
-                        { autoClose: 5000 }
-                    );
-
-                    // Send another request to get the bundle status
-                    const statusData = {
-                        jsonrpc: "2.0",
-                        id: 1,
-                        method: "getBundleStatuses",
-                        params: [[bundleId]]
-                    };
-
-                    const statusResponse = await axios.post(
-                        `https://${blockengine}/api/v1/bundles`,
-                        statusData,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                        }
-                    );
-
-                    if (statusResponse.status === 200) {
-                        console.log('status response:', statusResponse.data);
-                    }
-                }
             } catch (error) {
                 console.error(error);
             }
