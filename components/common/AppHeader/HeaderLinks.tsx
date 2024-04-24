@@ -53,9 +53,14 @@ const HeaderLink = ({
           setActive(index);
         }}
       >
-        {icon && <span className="flex items-center w-5">{icon}</span>} {/* Conditional rendering for icon */}
-        <span className={`ml-2 whitespace-nowrap  ${isActive && !icon ? 'border-b-2 border-[#ffac40]' : ''}`}>{title}</span>
+        {icon && <span className="flex items-center w-5">{icon}</span>}
+        <span className={` whitespace-nowrap relative ${isActive && !icon ? 'border-[#ffac40]' : ''}`}>
+          {title}
+          {isActive && !icon && <span className="absolute -bottom-5 left-0 w-full h-[3px]  bg-[#ffac40]"></span>}
+        </span>
+
       </a>
+
     </Link>
   );
 };
@@ -71,36 +76,37 @@ const HeaderLinks = () => {
 
   }, [router.pathname]);
   function getActiveLink(pathname: string): number {
-    if (pathname === '/') return 0; // Home link
-    if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1; // Minting Lab link
+    if (pathname === '/swap') return 1; // Home link
+    if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 0; // Minting Lab link
     if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
     return -1; // None of the above
   }
 
   const headerLinks = [
+    // {
+    //   id: 0,
+    //   href: '/',
+    //   title: 'Home',
+    //   icon: <HomeIcon />,
+    // },
     {
       id: 0,
-      href: '/',
-      title: 'Home',
-      icon: <HomeIcon />,
-    },
-    {
-      id: 1,
       href: '/mintinglab/create',
       title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
     },
+    {
+      id: 1,
+      href: '/swap',
+      title: 'Swap',
+      icon: <SwapIcon width="20" height="20" />
+    }
     // {
     //   id: 2,
     //   href: '/liquidity/add',
-    //   title: 'Swap',
-    // },
-    {
-      id: 2,
-      href: '/liquidity/add',
-      title: 'Liquidity',
-      icon: <LiquidityIcon width="20" height="20" />,
-    }
+    //   title: 'Liquidity',
+    //   icon: <LiquidityIcon width="20" height="20" />,
+    // }
     ,
     // {
     //   id: 3,
@@ -125,7 +131,7 @@ const HeaderLinks = () => {
           href={link.href}
           // external={link.external}
           title={link.title}
-          icon={link.icon}
+          // icon={link.icon}
           index={index}
           active={active}
           setActive={setActive}

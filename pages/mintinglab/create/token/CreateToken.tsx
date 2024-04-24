@@ -240,6 +240,11 @@ const CreateToken: FC = () => {
                 {!tokenMintAddress ? (
                     <>
                         <form action="" className="py-4 flex flex-col gap-6">
+                            <div className="lg:w-1/2  ">
+                                <p className="text-[20px] uppercase  block  text-base text-white font-bold">SPL Token Creation</p>
+                                <p className="text-[13px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
+                            </div>
+                            <hr className=" border-[#e8e2e2b8] " />
                             <div className="flex gap-4 ">
                                 <UpdatedInputField id="tokenName *"
                                     label="Token Name "
@@ -276,7 +281,7 @@ const CreateToken: FC = () => {
                             </div>
                             <div className="">
                                 <label className="font-normal mt-5 text-white "> Description</label>
-                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={3} className="  mt-1 px-4  py-1  bg-[#202020]/20   sm:text-md block w-full p-4 rounded-sm  border  border-[#404040]  text-white  focus:outline-none   text-[13px] placeholder-[#dbd7d7d4]"
+                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={3} className="  mt-1 px-4  py-1  bg-[#202020]/20   sm:text-md block w-full p-4 rounded-md  border  border-[#404040]  text-white  focus:outline-none   text-[13px] placeholder-[#dbd7d7d4]"
                                     onChange={(e) => handleChange(e, 'tokenDescription')}
                                     placeholder="Enter description..."></textarea>
                             </div>
@@ -377,7 +382,7 @@ const CreateToken: FC = () => {
                                     <h1 className=" text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]  ">
                                         Revoke Authorities
                                     </h1>
-                                    <div className="border  border-[#404040] mt-1 shadow-black  rounded-sm p-4 flex flex-col gap-2">
+                                    <div className="border  border-[#404040] mt-1 shadow-black  rounded-md p-4 flex flex-col gap-2">
                                         <div className="flex gap-4 items-center  ">
                                             <input
                                                 type="checkbox"
@@ -401,7 +406,7 @@ const CreateToken: FC = () => {
 
 
 
-                                <div className="w-1/2 p-4 border  border-[#404040] mt-7 rounded-sm flex justify-between items-center flex-col gap-4 sm:flex-row  ">
+                                <div className="w-1/2 p-4 border  border-[#404040] mt-7 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row  ">
 
                                     <div className="flex gap-2 justify-center items-center  ">
                                         {uploadedImage || image ?
@@ -437,7 +442,7 @@ const CreateToken: FC = () => {
                             <div className="flex justify-center items-center ">
 
                                 <button
-                                    className="text-center w-full p-2 border border-[#404040] hover:border-[#74b554] rounded-sm  "
+                                    className="text-center  hover:shadow-xl hover:shadow-black/50 w-2/3 p-2 border border-[#476e34] rounded-md  "
                                     disabled={uploading || creatingToken}
                                     type="submit"
                                     id="formbutton"
@@ -456,8 +461,8 @@ const CreateToken: FC = () => {
                                 <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
                                 <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                                 <div className="sm:gap-4  mt-4"> */}
-                                    {/* <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} /> */}
-                                    {/* <InputField
+                        {/* <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} /> */}
+                        {/* <InputField
                                         id="tokenName*"
                                         label="Token Name (ex. Mevarik)"
                                         value={formData.tokenName}
@@ -486,7 +491,7 @@ const CreateToken: FC = () => {
                                         required={true}
 
                                     /> */}
-                                    {/* <InputField
+                        {/* <InputField
                                         id="supply"
                                         label="Supply*"
                                         value={formData.supply}
@@ -502,7 +507,7 @@ const CreateToken: FC = () => {
                                             onChange={(e) => handleChange(e, 'tokenDescription')}
                                             placeholder="Enter description..."></textarea>
                                     </div> */}
-                                    {/* <div className="border border-[#444444] shadow-black shadow-lg rounded-lg mt-5">
+                        {/* <div className="border border-[#444444] shadow-black shadow-lg rounded-lg mt-5">
                                         <h1 className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83] p-2 rounded-md">
                                             Revoke Authorities
                                         </h1>
@@ -527,7 +532,7 @@ const CreateToken: FC = () => {
                                             </div>
                                         </div>
                                     </div> */}
-                                    {/* <div className="  block mt-5 text-base text-white font-semibold"> Extensions (Optional)</div>
+                        {/* <div className="  block mt-5 text-base text-white font-semibold"> Extensions (Optional)</div>
                                     <InputField
                                         id="websiteUrl"
                                         label=""
@@ -567,7 +572,7 @@ const CreateToken: FC = () => {
 
                                     /> */}
 
-                                    {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
+                        {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
                             </div>
                             <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} /> */}
 
@@ -575,18 +580,18 @@ const CreateToken: FC = () => {
 
 
 
-                                    {/* <div className="pt-2 space-y-2">
+                        {/* <div className="pt-2 space-y-2">
 
 
                             </div> */}
 
-                                {/* </div> */}
-                            {/* </div> */}
-                            {/* <div className="lg:w-1/2 flex justify-start flex-col ">
+                        {/* </div> */}
+                        {/* </div> */}
+                        {/* <div className="lg:w-1/2 flex justify-start flex-col ">
                                 <div className=" text-[14px] font-normal">
                                     <label className=" block text-base text-white font-semibold ">
                                     </label> */}
-                                    {/* <InputField
+                        {/* <InputField
                                     id="iconUrl"
                                     label=""
                                     value={formData.iconUrl}
@@ -596,10 +601,10 @@ const CreateToken: FC = () => {
                                 required = {false}
 
                                 /> */}
-                                {/* </div> */}
+                        {/* </div> */}
 
-                                {/* image upload  */}
-                                {/* <div className=" flex items-center justify-center my-6 p-2 h-1/3 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
+                        {/* image upload  */}
+                        {/* <div className=" flex items-center justify-center my-6 p-2 h-1/3 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
                                     {!uploadedImage && (
                                         <div>
                                             <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
@@ -677,7 +682,7 @@ const CreateToken: FC = () => {
 
                                 </div> */}
 
-                                {/* <div className="flex gap-4 items-center mt-2 ">
+                        {/* <div className="flex gap-4 items-center mt-2 ">
                             <input
                                 type="checkbox"
                                 name="revokeMetadataUpdateAuthority"
@@ -686,10 +691,10 @@ const CreateToken: FC = () => {
                             />
                             <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
                         </div> */}
-                                {/* <div> */}
-                                    {/* <p className="text-[12px] mt-10">  CREATE TOKEN<br />
+                        {/* <div> */}
+                        {/* <p className="text-[12px] mt-10">  CREATE TOKEN<br />
                                 Generate a token. In this process, you can get a token mint address.</p> */}
-                                    {/* <button
+                        {/* <button
                                         className="invoke-btn w-full custom-button"
                                         disabled={uploading || creatingToken}
                                         type="submit"

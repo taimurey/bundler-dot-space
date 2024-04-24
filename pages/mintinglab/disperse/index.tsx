@@ -59,7 +59,7 @@ export const Create = () => {
     };
 
     return (
-        <div className="w-2/3  flex flex-col  items-center ml-5">
+        <div className="w-2/3 mx-auto  flex flex-col justify-center items-center ">
             <h1 className="font-bold text-zinc-200 text-[35px]">
                 Token Distributor
             </h1>
@@ -88,14 +88,14 @@ export const Create = () => {
             </div>
             <div className="flex justify-between w-2/3 mt-5 gap-4">
                 <button
-                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
+                    className={`font-bold rounded-xl py-2 hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
                      w-full ${selectedButton === 'random' ? 'border-[#00e1ffbd] border-2' : ''}`}
                     onClick={() => setSelectedButton('random')}
                 >
                     <span className=''>Random Amount</span>
                 </button>
                 <button
-                    className={`font-bold rounded-xl h-[40px] hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
+                    className={`font-bold rounded-xl  py-2 hover:border-[#00ffdd] px-5 flex justify-center items-center border text-[16px] duration-200 ease-in-out
                      w-full ${selectedButton === 'equal' ? 'border-[#00e1ffbd] border-2' : ''}`}
                     onClick={() => setSelectedButton('equal')}
                 >
@@ -112,7 +112,7 @@ export const Create = () => {
                 className="invoke-btn flex justify-center items-center w-1/3"
                 onClick={handleSend}
             >
-                <span className='btn-text-gradient'>Send Tokens</span>
+                <span className='btn-text-gradient '>Send Tokens</span>
             </button>
         </div>
     );

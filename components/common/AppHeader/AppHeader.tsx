@@ -50,7 +50,7 @@ const AppHeader: React.FC = () => {
               </h1>
             </Link>
           </div>
-          {router.pathname === '/' && <HeaderLinks />} {/* Conditionally render HeaderLinks */}
+          <HeaderLinks />
         </div>
 
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">

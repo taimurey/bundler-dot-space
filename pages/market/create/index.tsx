@@ -218,7 +218,7 @@ const CreateMarket = () => {
 
   return (
     <>
-      <div className="space-y-4 mb-6 w-2/3 ml-24">
+      <div className="space-y-4 mb-6 w-2/3 mx-auto">
         {/* <div>
           <h1 className="text-2xl text-white">Create Market</h1>
         </div> */}
