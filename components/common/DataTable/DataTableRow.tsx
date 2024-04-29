@@ -13,7 +13,7 @@ export const DataTableRow = ({
       <td className="text-sm p-4 md:px-8 whitespace-nowrap text-white">
         {label}
       </td>
-      <td className="text-sm font-light p-4 md:px-8 whitespace-nowrap flex justify-end items-center space-x-2 text-neutral-800">
+      <td className="text-sm font-light p-4 md:px-8 whitespace-nowrap flex justify-end items-center space-x-2 text-neutral-100">
         <p>{value}</p>
         {link ? (
           <a href={link} target="_blank" rel="noopener noreferrer">

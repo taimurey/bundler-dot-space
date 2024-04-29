@@ -80,7 +80,7 @@ body {
 
 
 .invoke-btn {
-  @apply font-bold rounded-xl py-2  hover:border-[#00ffdd] px-4 flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
+  @apply font-bold rounded-xl py-2 hover:border-[#00ffdd] px-4 flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
 }
 
 .btn-text-gradient {

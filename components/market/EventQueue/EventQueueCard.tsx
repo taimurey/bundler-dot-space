@@ -1,3 +1,4 @@
+import React from "react";
 import { Tab } from "@headlessui/react";
 import { Event } from "@project-serum/serum/lib/queue";
 import { Fragment, useEffect, useState } from "react";
@@ -34,8 +35,8 @@ export const EventQueueCard = () => {
           <button
             type="button"
             className={classNames(
-              "rounded-full flex items-center justify-center py-3 px-4 flex-1 focus:outline-none border-slate-600 border-2 text-slate-200 focus-style",
-              selected ? "bg-slate-700 font-medium" : "bg-transparent"
+              "rounded-full flex items-center justify-center py-3 px-4 flex-1 focus:outline-none border-gray-600 border-2 text-slate-200 focus-style",
+              selected ? "bg-[#ffffff] font-medium" : "bg-transparent"
             )}
           >
             {title}
@@ -72,7 +73,7 @@ export const EventQueueCard = () => {
               </>
             ) : (
               <div className="px-4 flex justify-between items-center w-full ">
-                <p className="text-sm font-light text-slate-400">
+                <p className="text-sm font-light text-slate-100">
                   No events to crank.
                 </p>
                 <ArrowPathIcon

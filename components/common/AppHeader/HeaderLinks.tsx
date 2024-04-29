@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import SwapIcon from '../../icons/SwapIcon';
-// import RepoLogo from '../../icons/RepoLogo';
-import HomeIcon from '../../icons/HomeIcon';
-
-import LiquidityIcon from '../../icons/LiquidityIcon';
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
 import Link from 'next/link';
@@ -89,18 +85,19 @@ const HeaderLinks = () => {
     //   title: 'Home',
     //   icon: <HomeIcon />,
     // },
+
     {
       id: 0,
       href: '/mintinglab/create',
       title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
-    },
-    {
-      id: 1,
-      href: '/swap',
-      title: 'Swap',
-      icon: <SwapIcon width="20" height="20" />
     }
+    // {
+    //   id: 1,
+    //   href: '/',
+    //   title: 'Home',
+    //   icon: <HomeIcon width="20" height="20" />
+    // },
     // {
     //   id: 2,
     //   href: '/liquidity/add',
@@ -126,12 +123,10 @@ const HeaderLinks = () => {
   return (
     <div className="ml-5 flex-1 justify-center hidden md:!flex text-sm h-full">
       {headerLinks.map((link, index) => (
-        <HeaderLink
+        link && <HeaderLink
           key={index}
           href={link.href}
-          // external={link.external}
           title={link.title}
-          // icon={link.icon}
           index={index}
           active={active}
           setActive={setActive}

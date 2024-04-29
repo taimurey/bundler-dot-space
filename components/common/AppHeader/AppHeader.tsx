@@ -15,7 +15,7 @@ import SettingsPanel from '../SettingsPanel';
 import { useSerum } from '../../context';
 import { DEX_PROGRAMS } from '../../../utils/constants';
 import { prettifyPubkey } from '../../../utils/pubkey';
-import { useRouter } from 'next/router';
+
 const AppHeader: React.FC = () => {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const handleToggleMenu = () => setOpenMobileMenu(!openMobileMenu);
@@ -30,7 +30,6 @@ const AppHeader: React.FC = () => {
       }
     }
   }, [openMobileMenu]);
-  const router = useRouter();
 
   return (
     <>
@@ -44,7 +43,7 @@ const AppHeader: React.FC = () => {
             <Link href="/">
               <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
                 <MevLabLogo />
-                <span className="text-[29px] font-normal text-center font-[kanit-medium] ml-1 uppercase mt-1">Mevie
+                <span className="text-[29px] font-normal text-center font-[kanit-medium] ml-1 uppercase mt-1">Mevarik
                   <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
                 </span>
               </h1>

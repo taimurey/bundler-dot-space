@@ -4,7 +4,6 @@ import { ReactNode, useEffect, useState } from "react";
 import { connection } from "../../../components/removeLiquidity/config";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { toast } from "react-toastify";
-import { truncate } from '../../../components/common/Allprofiles';
 import { TokenDisperser } from "../../../components/DistributeTokens/distributor";
 
 export const Create = () => {
@@ -14,7 +13,6 @@ export const Create = () => {
     const wallet = useWallet();
     const { signAllTransactions } = useWallet();
     const [selectedButton, setSelectedButton] = useState<string>('');
-    const [Smint, setMint] = useState<string[]>([]);
 
     const publicKey = wallet.publicKey;
     useEffect(() => {
@@ -29,7 +27,6 @@ export const Create = () => {
             const mint = tokenAccounts.value.map(account => account.account.data.parsed.info.mint);
             console.log(`${tokenAccountsArray}\n${decimalsArray}\n${mint}`);
 
-            setMint(mint);
             setTokenAccounts(tokenmint);
         }
 

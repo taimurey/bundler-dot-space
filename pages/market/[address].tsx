@@ -28,7 +28,7 @@ const MarketPage = () => {
 
   return (
     <MarketProvider serumMarket={serumMarket} walletAddress={wallet.publicKey}>
-      <div className="flex flex-col items-stretch space-y-4">
+      <div className="flex flex-col items-stretch space-y-4 w-2/3 mx-auto">
         <TokenDisplay />
         <OverviewTable />
         <VaultDisplay />

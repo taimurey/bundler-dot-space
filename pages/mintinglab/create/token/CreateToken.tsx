@@ -8,7 +8,6 @@ import { useNetworkConfiguration } from "../../../../components/context/NetworkC
 import { toast } from "react-toastify";
 import { NFTStorage } from 'nft.storage';
 import { packToBlob } from 'ipfs-car/pack/blob';
-import { InputField } from '../../../../components/FieldComponents/InputField';
 import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
 import { createToken } from "../../../../components/TransactionUtils/token";
 import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";

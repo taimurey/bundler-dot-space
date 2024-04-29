@@ -20,12 +20,8 @@ import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
-// import * as fs from 'fs';
-// import encryptWithPublicKey from '../../../components/Encryptor/encryption';
-// import { set } from 'lodash';
-// const agent = new https.Agent({
-//     rejectUnauthorized: false
-// });
+
+
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
@@ -127,24 +123,6 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
-
-
-    // const generateKeypair = (e: any) => {
-    //     e.preventDefault();
-    //     const keypair = Keypair.generate();
-    //     const PrivateKey = base58.encode(keypair.secretKey).toString();
-    //     setBuyerKeypair(PrivateKey);
-    //     setFormData(prevState => ({
-    //         ...prevState,
-    //         buyerPrivateKey: PrivateKey,
-    //     }));
-    //     setWallets({
-    //         Wallet1: `${keypair.publicKey.toString()}`,
-    //         Wallet2: wallets.Wallet2,
-    //     });
-    // }
-
-
     const handleloadMintmetadata = async (e: any) => {
         e.preventDefault();
         if (!formData.tokenMintAddress) {
@@ -193,7 +171,8 @@ const LiquidityHandlerRaydium = () => {
             localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
 
             const response = await axios.post(
-                'https://mevarik-deployer.xyz:2891/jitoadd',
+                // 'https://mevarik-deployer.xyz:2891/jitoadd',
+                'https://127.0.0.1:8080/addliquidity',
                 formData,
                 {
                     headers: {
