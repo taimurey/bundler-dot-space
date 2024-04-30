@@ -32,7 +32,7 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     // const [buyerKeypair, setBuyerKeypair] = useState("");
     const [airdropChecked, setAirdropChecked] = useState(false);
-
+    const [Mode, setMode] = useState(1);
 
     const [wallets, setWallets] = useState({
         Wallet1: "",
@@ -172,7 +172,7 @@ const LiquidityHandlerRaydium = () => {
 
             const response = await axios.post(
                 // 'https://mevarik-deployer.xyz:2891/jitoadd',
-                'https://127.0.0.1:8080/addliquidity',
+                `https://berserknode.buzz:8080/addliquidity_${Mode}`,
                 formData,
                 {
                     headers: {
@@ -234,6 +234,27 @@ const LiquidityHandlerRaydium = () => {
                                     <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
                                 </div>
                                 <div className='w-full'>
+                                    <label className="block mt-5 text-base text-white font-semibold" >
+                                        Bundler Mode:
+                                    </label>
+                                    <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                        <select
+                                            id="BlockEngineSelection"
+                                            value={Mode}
+                                            onChange={(e) => setMode(Number(e.target.value))}
+                                            required={true}
+                                            className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                        >
+                                            <option value="" disabled>
+                                                Bundler Mode
+                                            </option>
+                                            {modeOptions.map((option, index) => (
+                                                <option key={index} value={option.value}>
+                                                    {option.value} {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <label className="block mt-5 text-base text-white font-semibold" htmlFor="buyerPrivateKey">
                                         Buyer Private key
                                     </label>
@@ -271,11 +292,11 @@ const LiquidityHandlerRaydium = () => {
                                     type="password"
                                     required={true}
                                 />
-                                <div>
+                                {/* <div>
                                     <input type="checkbox" id="airdropCheck" checked={airdropChecked} onChange={() => setAirdropChecked(!airdropChecked)} />
                                     <label htmlFor="airdropCheck"> Generate and airdrop wallets</label>
-                                </div>
-                                {airdropChecked && <InputField
+                                </div> */}
+                                {/* {airdropChecked && <InputField
                                     id="walletsNumbers"
                                     label="# of Wallets"
                                     disabled={true}
@@ -285,7 +306,8 @@ const LiquidityHandlerRaydium = () => {
                                     type="number"
                                     required={true}
                                 />
-                                }
+                                } */}
+
                                 <div className='flex flex-col gap-2' id="tokeninfo">
                                     <div className='flex justify-center items-center gap-2'>
                                         <InputField
@@ -512,6 +534,11 @@ const LiquidityHandlerRaydium = () => {
         </div>
     );
 }
+
+const modeOptions = [
+    { value: 1, label: "Wallet Mode" },
+    { value: 27, label: "Wallet Mode" },
+];
 
 
 
