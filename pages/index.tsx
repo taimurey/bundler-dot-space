@@ -46,9 +46,9 @@ interface RoadmapData {
 
 const features: Feature[] = [
   {
-    title: "AUTO SNIPING",
+    title: "POOL SNIPING",
     description:
-      "Sniping made easy. Provide a contract address and Investment details, we will handle the rest. Our automated system handles Tax calculations, maxTx, methodID, first safe block detection. You don't have to have extensive solidity knowledge to successfully snipe."
+      "Sniping made easy. Provide a mint address and Investment details, bot will handle the rest. You don't have to have extensive any knowledge to successfully snipe."
   },
   {
     title: "LIMIT ORDERS",
@@ -56,22 +56,17 @@ const features: Feature[] = [
       "Automate your trading with ease. Set up multiple take profit levels, stop loss or trailing stop loss levels seamlessly. Automate dip buying at the market cap / price you would like, with state of the art precision."
   },
   {
-    title: "COPYTRADE",
+    title: "PROFIT MONITOR",
     description:
-      "Let others do the heavy lifting. Copytrade a profitable trader, or multiple traders simultaneously, while enjoying the same safety features as you would whe trading with Banana Gun."
+      "Track your investments with ease. Monitor your portfolio, track your trades, and get insights on your trading performance. Our platform provides you with all the tools you need to make informed decisions."
   },
   {
     title: "FAST & SECURE SWAPS",
     description:
-      "All our swaps are MEV-resistant, safeguarding against potential sandwich attacks or frontruns. Paired with blazing-fast execution, our safe swaps ensure a better buy-in price for you."
+      "Our swaps are designed to be resistant to MEV, providing protection against sandwich attacks or frontruns. With lightning-fast execution, our secure swaps guarantee a more favorable buy-in price for you."
   },
   {
-    title: "ANTI RUG & REORG PROTECTION",
-    description:
-      "Our top-performing anti-rug system ensures safer trading with an 85% success rate, providing maximum security. Reorg protection is in place in case of a block fork."
-  },
-  {
-    title: "SCAM & HONEYPOT PROTECTION",
+    title: "PUMP.FUN SNIPER",
     description:
       "Our market-leading built-in simulations ensure protection against tokens that are scams from the start. If Banana Simulator cannot simulate a successful sell, your transaction will not go through. All handled seamlessly by the bot."
   }
@@ -142,7 +137,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex flex-col   relative">
+    <div className="flex flex-col   relative ">
       <div className="flex flex-col gap-12 justify-start  lg:justify-center lg:items-center  w-full h-full lg:flex-row my-12 max-h-[1000px]">
         <div className="max-w-[350px] lg:max-w-[700px] flex flex-col gap-6 h-full">
           <p className={`text-[42px] lg:text-[126px]  leading-[126px] text-center font-[HeliukBrave]  uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -187,8 +182,9 @@ const Home = () => {
 
         </div>
       </div>
+
       <div className="p-20">
-        <p className={`text-[42px] lg:text-[72px] leading-[50px] text-start px-2
+        {/* <p className={`text-[42px] lg:text-[72px] leading-[50px] text-start px-2
      font-[HeliukBrave] `}>
           ROADMAP
         </p>
@@ -211,7 +207,8 @@ const Home = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
+
         <div>
           <div className=" flex justify-center items-center h-screen">
             <div className="font-normal font-heliukBrave text-[90px] tracking-wide uppercase bg-gradient-to-br from-[#f3986d] to-[#b3c420] bg-clip-text text-transparent animate-typing">
@@ -221,6 +218,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+
       <div className="z-40  w-full  bg-gradient-to-t from-[#02040a] to-[#11171f] p-2 border-b border-[#a19f9f] ">
         <div
           className="flex flex-col lg:flex-row gap-4 relative w-full justify-between

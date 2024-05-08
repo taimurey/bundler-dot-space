@@ -156,13 +156,13 @@ const Sidebar: FC = () => {
             icon: <TokenIcon />,
         },
 
-        {
-            href: '/mintinglab/disperse',
-            isActive: router.pathname === '/mintinglab/disperse',
-            title: 'Disperse Tokens',
-            description: 'Distribution of SPL Tokens',
-            icon: <SenderIcon />,
-        },
+        // {
+        //     href: '/mintinglab/disperse',
+        //     isActive: router.pathname === '/mintinglab/disperse',
+        //     title: 'Disperse Tokens',
+        //     description: 'Distribution of SPL Tokens',
+        //     icon: <SenderIcon />,
+        // },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',

@@ -35,7 +35,7 @@ const RaydiumLiquidityRemover = () => {
     const { publicKey, sendTransaction, wallet, connected } = useWallet();
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isToggle, setIsToggle] = useState(true);
+    const [isToggle, setIsToggle] = useState(false);
 
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,7 +312,7 @@ const RaydiumLiquidityRemover = () => {
                             </div>
 
                             <div className='border bg-[#0c0e11]  border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
-                                <div className="flex gap-2">
+                                {/* <div className="flex gap-2">
                                     <input
                                         type="checkbox"
                                         id="toggle"
@@ -324,7 +324,7 @@ const RaydiumLiquidityRemover = () => {
                                     <label className="text-white font-normal" htmlFor="toggle">
                                         Use Jito Bundles
                                     </label>
-                                </div>
+                                </div> */}
 
                                 {isToggle && (
                                     <div className="w-full">

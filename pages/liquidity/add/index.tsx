@@ -165,14 +165,69 @@ const LiquidityHandlerRaydium = () => {
 
         console.log(formData);
 
+        //     try {
+        //         toast.info('Please wait, bundle acceptance may take a few seconds');
+        //         setDeployerWallets(setsideWallets)
+        //         localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
+
+        //         const response = await axios.post(
+        //             // 'https://mevarik-deployer.xyz:2891/jitoadd',
+        //             `http://localhost:8080/addliquidity_${Mode}`,
+        //             formData,
+        //             {
+        //                 headers: {
+        //                     'Content-Type': 'application/json',
+        //                 },
+        //             }
+        //         );
+
+        //         if (response.status === 200) {
+        //             const wallets: string[] = response.data.wallets;
+        //             const ammId = response.data.Id;
+        //             // adding dummy data for now and will replace with actual after when we get response
+
+        //             wallets.forEach((wallet, index) => {
+        //                 localStorage.setItem(`wallet ${index + 1}`, wallet);
+        //             });
+
+        //             // toast(
+        //             //     () => (
+        //             //         <BundleToast
+        //             //             txSig={bundleId}
+        //             //             message={'Bundle ID:'}
+        //             //         />
+        //             //     ),
+        //             //     { autoClose: 5000 }
+        //             // );
+
+        //             toast(
+        //                 () => (
+        //                     <TransactionToast
+        //                         txSig={ammId}
+        //                         message={'AMM ID:'}
+        //                     />
+        //                 ),
+        //                 { autoClose: 5000 }
+        //             );
+        //         }
+
+        //     } catch (error) {
+        //         console.log('Error:', error);
+        //         if (axios.isAxiosError(error)) {
+        //             if (error.response && error.response.status === 500) {
+        //                 toast.error(`${error.response.data}`);
+        //             } else {
+        //                 toast.error('Error occurred: Please Fill in all the fields');
+        //             }
+        //         } else {
+        //             toast.error('An unknown error occurred');
+        //         }
+        //     }
+        // };
         try {
             toast.info('Please wait, bundle acceptance may take a few seconds');
-            setDeployerWallets(setsideWallets)
-            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
-
             const response = await axios.post(
-                // 'https://mevarik-deployer.xyz:2891/jitoadd',
-                `https://berserknode.buzz:8080/addliquidity_${Mode}`,
+                'https://mevarik-deployer.xyz:2891/jitoadd',
                 formData,
                 {
                     headers: {
@@ -180,11 +235,9 @@ const LiquidityHandlerRaydium = () => {
                     },
                 }
             );
-
             if (response.status === 200) {
                 const bundleId = response.data.bundleId;
                 const ammId = response.data.Id;
-                // adding dummy data for now and will replace with actual after when we get response
 
                 toast(
                     () => (
@@ -206,7 +259,6 @@ const LiquidityHandlerRaydium = () => {
                     { autoClose: 5000 }
                 );
             }
-
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
@@ -220,6 +272,7 @@ const LiquidityHandlerRaydium = () => {
             }
         }
     };
+
     const { setDeployerWallets } = useMyContext();
 
     return (
@@ -537,7 +590,7 @@ const LiquidityHandlerRaydium = () => {
 
 const modeOptions = [
     { value: 1, label: "Wallet Mode" },
-    { value: 27, label: "Wallet Mode" },
+    // { value: 27, label: "Wallet Mode" },
 ];
 
 
