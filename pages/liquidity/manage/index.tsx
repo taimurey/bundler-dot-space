@@ -35,7 +35,7 @@ const RaydiumLiquidityRemover = () => {
     const { publicKey, sendTransaction, wallet, connected } = useWallet();
     const [targetPoolInfo, setTargetPoolInfo] = useState<ApiPoolInfoV4 | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isToggle, setIsToggle] = useState(false);
+    const [isToggle] = useState(false);
 
 
     const handleMicroLamportsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -8,7 +8,7 @@ import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
 import VirusIcon from "../icons/VirusIcon";
-import SenderIcon from "../icons/SenderIcon";
+// import SenderIcon from "../icons/SenderIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
 import ManagerIcon from "../icons/ManagerIcon";

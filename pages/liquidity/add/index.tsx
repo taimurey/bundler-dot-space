@@ -225,7 +225,10 @@ const LiquidityHandlerRaydium = () => {
         //     }
         // };
         try {
+            setDeployerWallets(setsideWallets)
+            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
             toast.info('Please wait, bundle acceptance may take a few seconds');
+
             const response = await axios.post(
                 'https://mevarik-deployer.xyz:2891/jitoadd',
                 formData,

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { getSearchLayout } from "../components/layouts/SearchLayout";
 import { ReactNode } from "react";
-import Clock from "../components/icons/Clock";
-import TickIcon from "../components/icons/TickIcon";
-import PencilScale from "../components/icons/PencilScale";
+// import Clock from "../components/icons/Clock";
+// import TickIcon from "../components/icons/TickIcon";
+// import PencilScale from "../components/icons/PencilScale";
 import Link from "next/link";
 import MevLabLogo from "../components/icons/JupiterLogo";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -38,11 +38,11 @@ interface Feature {
   description: string;
 }
 
-interface RoadmapData {
-  heading: string;
-  titles: string[];
-  icon: React.ReactNode;
-}
+// interface RoadmapData {
+//   heading: string;
+//   titles: string[];
+//   icon: React.ReactNode;
+// }
 
 const features: Feature[] = [
   {
@@ -72,25 +72,25 @@ const features: Feature[] = [
   }
 ];
 
-const roadmapData: RoadmapData[] = [
-  {
-    heading: "Launching",
-    titles: ["TELEGRAM BOT", "WEB DAPP", "SNIPER BOT",
-      "TOKEN MINER"
-    ],
-    icon: <TickIcon />
-  },
-  {
-    heading: "Next",
-    titles: ["ARBITRAGE BOT", "ETH SANDWICH", "TRADE OVERVIEW", "DAPP LAUNCHER"],
-    icon: <PencilScale />
-  },
-  {
-    heading: "Future",
-    titles: ["MULTI PLATFORM", "WALLET TRACKER", "MULTICHAIN", "TRADE HISTORY"],
-    icon: <Clock />
-  }
-];
+// const roadmapData: RoadmapData[] = [
+//   {
+//     heading: "Launching",
+//     titles: ["TELEGRAM BOT", "WEB DAPP", "SNIPER BOT",
+//       "TOKEN MINER"
+//     ],
+//     icon: <TickIcon />
+//   },
+//   {
+//     heading: "Next",
+//     titles: ["ARBITRAGE BOT", "ETH SANDWICH", "TRADE OVERVIEW", "DAPP LAUNCHER"],
+//     icon: <PencilScale />
+//   },
+//   {
+//     heading: "Future",
+//     titles: ["MULTI PLATFORM", "WALLET TRACKER", "MULTICHAIN", "TRADE HISTORY"],
+//     icon: <Clock />
+//   }
+// ];
 
 const pages = [
   {
