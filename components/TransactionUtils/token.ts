@@ -129,7 +129,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         createNewTokenTransaction.add(revokeMint);
     }
 
-    if (tokenInfo.revokeMintAuthority) {
+    if (tokenInfo.freezeAuthority) {
         const revokeFreeze = createSetAuthorityInstruction(
             mintKeypair.publicKey, // mint acocunt || token account
             myPublicKey, // current auth
