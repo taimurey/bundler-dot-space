@@ -1,5 +1,5 @@
 import { AccountMeta, AddressLookupTableProgram, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
-import { bundleWalletEntry, Metadata } from "./types";
+import { bundleWalletEntry } from "./types";
 import { Program } from "@coral-xyz/anchor";
 import { getBondingCurve, getMetadataPda } from "./pdas";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -20,7 +20,8 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 export async function generateCreatePumpTokenIx(
     token: Keypair,
     mainSigner: Keypair,
-    metadata: Metadata,
+    coinname: string,
+    symbol: string,
     metadataURI: string,
     pumpProgram: Program,
 ): Promise<TransactionInstruction> {
@@ -29,8 +30,8 @@ export async function generateCreatePumpTokenIx(
     const metadataPda = getMetadataPda(token.publicKey);
 
     const createIx = await pumpProgram.methods.create(
-        metadata.name,
-        metadata.symbol,
+        coinname,
+        symbol,
         metadataURI,
     ).accounts({
         mint: token.publicKey,
@@ -136,7 +137,7 @@ export async function generatedBuyMultipleIx(
     });
 
     const remainingAccounts: AccountMeta[] = []
-    for (let e of buyers) {
+    for (const e of buyers) {
         const buyerKeypair = getKeypairFromBs58(e.privateKey)!;
         const userAta = getAssociatedTokenAddressSync(token, buyerKeypair.publicKey, true);
 

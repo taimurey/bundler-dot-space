@@ -3,7 +3,7 @@ import { metaplexMetadata } from "./constants"
 import { encode } from "@coral-xyz/anchor/dist/cjs/utils/bytes/utf8"
 
 export function getBondingCurve(mint: PublicKey, programId: PublicKey,) {
-    const [pda, _] = PublicKey.findProgramAddressSync(
+    const [pda] = PublicKey.findProgramAddressSync(
         [
             encode("bonding-curve"),
             mint.toBuffer(),
@@ -14,7 +14,7 @@ export function getBondingCurve(mint: PublicKey, programId: PublicKey,) {
 }
 
 export function getMetadataPda(mint: PublicKey) {
-    const [metadataPda, _] = PublicKey.findProgramAddressSync(
+    const [metadataPda] = PublicKey.findProgramAddressSync(
         [
             Buffer.from("metadata"),
             new PublicKey(metaplexMetadata).toBuffer(),

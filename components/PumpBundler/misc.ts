@@ -1,9 +1,8 @@
 
 import base58 from "bs58"
-import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, AddressLookupTableAccount, sendAndConfirmRawTransaction, Transaction, AccountInfo } from "@solana/web3.js";
-import { IrysOptions, irysStorage, keypairIdentity, Metaplex, toMetaplexFile } from "@metaplex-foundation/js";
-import { bundleWalletEntry, Metadata } from "./types";
-import path from "path"
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, AddressLookupTableAccount, AccountInfo } from "@solana/web3.js";
+import { IrysOptions, irysStorage, keypairIdentity, Metaplex } from "@metaplex-foundation/js";
+import { bundleWalletEntry } from "./types";
 import fs from "fs";
 import chalk from "chalk"
 import { AccountLayout, } from "@solana/spl-token";
@@ -15,8 +14,8 @@ export function sleep(ms: number) {
 
 export function validateSolAddress(address: string) {
     try {
-        let pubkey = new PublicKey(address)
-        let isOnCurveKey = PublicKey.isOnCurve(pubkey.toBuffer())
+        const pubkey = new PublicKey(address)
+        const isOnCurveKey = PublicKey.isOnCurve(pubkey.toBuffer())
         return isOnCurveKey
     } catch (error) {
         return false
@@ -76,75 +75,13 @@ export function getMetaplexInstance(
 
 
 
-export async function getImageAndMetadataUploadPrice(
-    meta: Metaplex,
-    connection: Connection,
-    imageFilePath: string,
-    metadata: Metadata,
-): Promise<{
-    imagePrice: number,
-    metadataPrice: number
-}> {
-    const imageData = fs.readFileSync(path.resolve(`assets/${imageFilePath}`));
-    const imagePrice = await meta.storage().getUploadPriceForFile(toMetaplexFile(imageData, `$${metadata.symbol.toUpperCase}`)).catch(e => null);
-    const adjustedImagePrice = Number(imagePrice ? imagePrice.basisPoints : 0) / LAMPORTS_PER_SOL;
-
-    const tempMetadata = {
-        ...metadata,
-        image: 'A'.repeat(55),
-    };
-    const metadataBuffer = Buffer.from(JSON.stringify(tempMetadata));
-    const metadataPrice = await meta.storage().getUploadPriceForFile(
-        toMetaplexFile(metadataBuffer, `$${metadata.symbol.toUpperCase()}`)).catch(e => null);
-
-    const adjustedmetadataPrice = Number(metadataPrice ? metadataPrice.basisPoints : 0) / LAMPORTS_PER_SOL;
-
-    return {
-        imagePrice: adjustedImagePrice,
-        metadataPrice: adjustedmetadataPrice,
-    }
-}
-
-export async function uploadMetadata(
-    meta: Metaplex,
-    imageFilePath: string,
-    metadata: Metadata,
-): Promise<{
-    imageUri: string,
-    metadataUri: string,
-    result: boolean
-}> {
-    const imageData = fs.readFileSync(path.resolve(`assets/${imageFilePath}`));
-
-    const image_uri = await meta.storage().upload(toMetaplexFile(imageData, `$${metadata.symbol.toUpperCase()}`)).catch(e => '');
-    if (!image_uri) {
-        return { imageUri: '', metadataUri: '', result: false };
-    }
-
-    const metadataCopy: Metadata = Object.keys(metadata).reduce((acc, key) => {
-        if (metadata[key as keyof Metadata] !== undefined && metadata[key as keyof Metadata] !== null && metadata[key as keyof Metadata] !== '') {
-            acc[key as keyof Metadata] = metadata[key as keyof Metadata] as string;
-        }
-        return acc;
-    }, {} as Metadata);
-
-    //@ts-ignore
-    metadataCopy.image = image_uri;
-    const metadata_uri = await meta.storage().upload(toMetaplexFile(Buffer.from(JSON.stringify(metadataCopy)), `$${metadata.symbol.toUpperCase()}`)).catch(e => '');
-    if (!image_uri) {
-        return { imageUri: '', metadataUri: '', result: false };
-    }
-
-
-    return { imageUri: image_uri, metadataUri: metadata_uri, result: true };
-}
 
 export async function getAluCreationCosts(
     walletCount: number,
     connection: Connection,
 ) {
     const totalBytes = 56 + ((walletCount - 1) * 32);
-    const rentCost = await connection.getMinimumBalanceForRentExemption(totalBytes).catch(e => 0);
+    const rentCost = await connection.getMinimumBalanceForRentExemption(totalBytes).catch(e => { console.log(e); return 0 });
     return rentCost / LAMPORTS_PER_SOL;
 }
 
@@ -181,49 +118,6 @@ export function extractAddressFromUrl(url: string): string | null {
         return url;
     }
 }
-
-
-
-export async function send_transactions(
-    Transactions: Transaction[],
-    connection: Connection,
-    logOutputs: boolean,
-) {
-    try {
-        var staggeredTransactions: Promise<string>[] = []
-        var i = 1
-        Transactions.forEach((tx, idx) => {
-            const prms = new Promise<string>((resolve) => {
-                setTimeout(() => {
-                    sendAndConfirmRawTransaction(connection, tx.serialize(), { skipPreflight: true, commitment: 'confirmed', maxRetries: 0 })
-                        .then(async (sig) => {
-                            if (logOutputs) {
-                                console.log('\n');
-                                console.log(chalk.gray(`Transaction ${idx + 1} successful with sig: ${chalk.whiteBright(sig)}`))
-                            }
-                            resolve(sig);
-                        })
-                        .catch(error => {
-                            //console.log('Transaction failed :c')
-                            resolve('failed');
-                        })
-                }, 100 * i)
-            })
-            staggeredTransactions.push(prms);
-            i += 1
-        })
-        const result = await Promise.allSettled(staggeredTransactions)
-        const values = []
-        for (var entry of result) {
-            //@ts-ignore      
-            values.push(entry.value)
-        }
-        return values
-
-    } catch (e) {
-        return ['failed'];
-    }
-};
 
 export async function checkkBalanceValidity(totalSol: number, wallets: bundleWalletEntry[], ghostBundlerBalance: number, devBalance: number) {
     //first check for balances
@@ -267,7 +161,7 @@ export function generateWallets(signerKeypair: Keypair, defaultSolAmount: number
             privateKey: base58.encode(newKeypair.secretKey),
             sol: amount,
         });
-    };
+    }
     fs.writeFileSync('bundle-wallets.json', JSON.stringify(emptyWalletsObject, null, 4));
 }
 
@@ -282,29 +176,7 @@ export async function validateAluFileExists() {
 
 
 
-export async function getWalletCleanUpReceiver(
-    option: '1' | '2' | '3',
-    ghostBundlerKeypair: Keypair,
-    signerKeypair: Keypair,
-) {
 
-    let receiver: PublicKey = new PublicKey(ghostBundlerKeypair.publicKey);
-
-    if (option == '1') { receiver = ghostBundlerKeypair.publicKey; }
-    if (option == '2') { receiver = signerKeypair.publicKey; }
-    if (option == '3') {
-        const inputtedWallet = (await getUserInput(chalk.white('Receiver pubkey: ')));
-        if (!validateSolAddress(inputtedWallet)) {
-            console.log(chalk.red.bold('Invalid pubkey'));
-            await sleep(3000);
-            process.exit(1);
-        } else {
-            receiver = new PublicKey(inputtedWallet);
-        }
-    };
-    return receiver;
-
-}
 
 
 export async function getDecodedAtaEntries(wallets: bundleWalletEntry[], connection: Connection, inputtedMint: string, signers: Keypair[]) {
@@ -315,7 +187,7 @@ export async function getDecodedAtaEntries(wallets: bundleWalletEntry[], connect
         ataAccountsInfo = await connection.getMultipleAccountsInfo(atas).catch(e => { console.log(e); return null });
     }
 
-    let decodedAtaAccountsEntries = ataAccountsInfo.map((e, idx) => {
+    const decodedAtaAccountsEntries = ataAccountsInfo.map((e, idx) => {
         if (e != null) {
             return {
                 validSigner: signers[idx],
@@ -352,7 +224,7 @@ export function calculateBuyTokens(
     tokenAmount = bondingCurve.virtualTokenReserves.sub(newTokenAmount);
     tokenAmount = BN.min(tokenAmount, bondingCurve.realTokenReserves);
     return tokenAmount;
-};
+}
 
 
 export function getSellQuote(amount: BN, bondingCurve: any, globalState: any) {

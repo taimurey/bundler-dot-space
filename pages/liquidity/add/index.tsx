@@ -1,7 +1,6 @@
 'use client';
 
 import React, { ChangeEvent, useState } from 'react';
-// import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
 import { Metaplex } from "@metaplex-foundation/js";
@@ -144,18 +143,8 @@ const LiquidityHandlerRaydium = () => {
         }));
     }
 
-    // const copytoClipboard = () => {
-    //     if (!buyerKeypair) {
-    //         toast.error('No keypair to copy');
-    //         return;
-    //     }
-    //     const keypair = Keypair.fromSecretKey(base58.decode(buyerKeypair));
-    //     navigator.clipboard.writeText(base58.encode(keypair.secretKey));
-    // }
 
-    const randomColor = () => {
-        return '#' + Math.floor(Math.random() * 16777215).toString(16);
-    }
+
 
 
     const handlesubmission = async (e: any) => {
@@ -165,65 +154,6 @@ const LiquidityHandlerRaydium = () => {
 
         console.log(formData);
 
-        //     try {
-        //         toast.info('Please wait, bundle acceptance may take a few seconds');
-        //         setDeployerWallets(setsideWallets)
-        //         localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
-
-        //         const response = await axios.post(
-        //             // 'https://mevarik-deployer.xyz:2891/jitoadd',
-        //             `http://localhost:8080/addliquidity_${Mode}`,
-        //             formData,
-        //             {
-        //                 headers: {
-        //                     'Content-Type': 'application/json',
-        //                 },
-        //             }
-        //         );
-
-        //         if (response.status === 200) {
-        //             const wallets: string[] = response.data.wallets;
-        //             const ammId = response.data.Id;
-        //             // adding dummy data for now and will replace with actual after when we get response
-
-        //             wallets.forEach((wallet, index) => {
-        //                 localStorage.setItem(`wallet ${index + 1}`, wallet);
-        //             });
-
-        //             // toast(
-        //             //     () => (
-        //             //         <BundleToast
-        //             //             txSig={bundleId}
-        //             //             message={'Bundle ID:'}
-        //             //         />
-        //             //     ),
-        //             //     { autoClose: 5000 }
-        //             // );
-
-        //             toast(
-        //                 () => (
-        //                     <TransactionToast
-        //                         txSig={ammId}
-        //                         message={'AMM ID:'}
-        //                     />
-        //                 ),
-        //                 { autoClose: 5000 }
-        //             );
-        //         }
-
-        //     } catch (error) {
-        //         console.log('Error:', error);
-        //         if (axios.isAxiosError(error)) {
-        //             if (error.response && error.response.status === 500) {
-        //                 toast.error(`${error.response.data}`);
-        //             } else {
-        //                 toast.error('Error occurred: Please Fill in all the fields');
-        //             }
-        //         } else {
-        //             toast.error('An unknown error occurred');
-        //         }
-        //     }
-        // };
         try {
             setDeployerWallets(setsideWallets)
             localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
@@ -291,7 +221,7 @@ const LiquidityHandlerRaydium = () => {
                                 </div>
                                 <div className='w-full'>
                                     <label className="block mt-5 text-base text-white font-semibold" >
-                                        Bundler Mode:
+                                        Bundler Mode
                                     </label>
                                     <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
                                         <select
@@ -311,64 +241,38 @@ const LiquidityHandlerRaydium = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <label className="block mt-5 text-base text-white font-semibold" htmlFor="buyerPrivateKey">
-                                        Buyer Private key
-                                    </label>
-                                    <div className="relative mt-1 rounded-md shadow-sm w-full flex gap-2">
-                                        <input
-                                            id="buyerPrivateKey"
+                                    <div className="mt-5">
+
+                                        <InputField
+                                            id="deployerPrivatekey"
+                                            label="Deployer Private Key"
+                                            subfield='Pool Deployer'
+                                            value={formData.deployerPrivateKey}
+                                            onChange={(e) => handleChange(e, 'deployerPrivateKey')}
+                                            placeholder="Enter deployer private key"
                                             type="password"
-                                            value={formData.buyerPrivateKey}
-                                            onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                            className="block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px]"
-                                            placeholder="Enter your private key"
+                                            required={true}
                                         />
-                                        {/* <button
-                                            className='btn-text-gradient border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] p-2 rounded-md duration-300 ease-in-out'
-                                            onClick={generateKeypair}
-                                        >
-                                            Gen
-                                        </button> 
-                                        <button
-                                            type='button'
-                                            className='border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] p-2 rounded-md duration-300 ease-in-out'
-                                            onClick={copytoClipboard}
-                                        >
-                                            Copy
-                                        </button>
-                                        */}
+                                        <div className={Mode === 20 ? 'w-4/5' : 'w-full'}>
+                                            <InputField
+                                                id='buyerPrivateKey'
+                                                label='Buyer Private Key'
+                                                subfield='Snipe Buyer'
+                                                value={formData.buyerPrivateKey}
+                                                onChange={(e) => handleChange(e, 'buyerPrivateKey')}
+                                                placeholder='Enter your private key'
+                                                type='password'
+                                                required={true}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <InputField
-                                    id="deployerPrivatekey"
-                                    label="Deployer Private Key"
-                                    value={formData.deployerPrivateKey}
-                                    onChange={(e) => handleChange(e, 'deployerPrivateKey')}
-                                    placeholder="Enter deployer private key"
-                                    type="password"
-                                    required={true}
-                                />
-                                {/* <div>
-                                    <input type="checkbox" id="airdropCheck" checked={airdropChecked} onChange={() => setAirdropChecked(!airdropChecked)} />
-                                    <label htmlFor="airdropCheck"> Generate and airdrop wallets</label>
-                                </div> */}
-                                {/* {airdropChecked && <InputField
-                                    id="walletsNumbers"
-                                    label="# of Wallets"
-                                    disabled={true}
-                                    value={formData.walletsNumbers}
-                                    onChange={(e) => handleChange(e, 'walletsNumbers')}
-                                    placeholder="Enter the # of Wallets"
-                                    type="number"
-                                    required={true}
-                                />
-                                } */}
-
                                 <div className='flex flex-col gap-2' id="tokeninfo">
                                     <div className='flex justify-center items-center gap-2'>
                                         <InputField
                                             id="tokenMintAddress"
-                                            label="Mint Info"
+                                            label="Mint"
+                                            subfield='token address'
                                             value={formData.tokenMintAddress}
                                             onChange={(e) => handleChange(e, 'tokenMintAddress')}
                                             placeholder="Enter Mint Address"
@@ -404,15 +308,6 @@ const LiquidityHandlerRaydium = () => {
                                             type="number"
                                             required={true}
                                         />
-                                        { /*    <InputField
-                                            label=''
-                                            id="poolstarttimer"
-                                            value={formData.poolstarttimer}
-                                            onChange={(e) => handleChange(e, 'poolstarttimer')}
-                                            placeholder="Enter start timer(secs)"
-                                            type="number"
-                                            required={true}
-                                        /> */}
                                         <InputField
                                             label=""
                                             id="totalSupply"
@@ -426,7 +321,8 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <InputField
                                         id="tokenbuyAmount"
-                                        label="Buy Amounts (SOL)"
+                                        label="Buy Amount"
+                                        subfield='sol'
                                         value={formData.tokenbuyAmount}
                                         onChange={(e) => handleChange(e, 'tokenbuyAmount')}
                                         placeholder="First Buy Amount"
@@ -437,7 +333,8 @@ const LiquidityHandlerRaydium = () => {
                                     <div className='flex justify-end items-end gap-2'>
                                         <InputField
                                             id="tokenLiquidityAmount"
-                                            label="Liquidity Amount (SOL)"
+                                            label="Liquidity Amount"
+                                            subfield='sol'
                                             value={formData.tokenLiquidityAmount}
                                             onChange={(e) => handleChange(e, 'tokenLiquidityAmount')}
                                             placeholder="Enter Liquidity Amount"
@@ -446,6 +343,7 @@ const LiquidityHandlerRaydium = () => {
                                         />
                                         <InputField
                                             id="tokenLiquidityAddPercent"
+                                            subfield='%'
                                             value={formData.tokenLiquidityAddPercent}
                                             onChange={(e) => handleChange(e, 'tokenLiquidityAddPercent')}
                                             placeholder="% of tokens (1-100)"
@@ -517,20 +415,6 @@ const LiquidityHandlerRaydium = () => {
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
                                         <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
                                     </div>
-                                    {/* <OutputField
-                                        id="predictedMarketCap"
-                                        label="Predicted Market Cap:"
-                                        value={predictedMarketCap}
-                                        latedisplay={false}
-                                    /> */}
-                                    {/* <OutputField
-                                        id="deployerPrivatekey"
-                                        label="Predicted Supply Amount:"
-                                        value={predictedSupplyAmount}
-                                        latedisplay={false}
-
-                                    /> */}
-
                                     <div className='w-full'>
                                         <label className="block mt-5 text-base text-white font-semibold" >
                                             Wallets:
@@ -596,6 +480,9 @@ const modeOptions = [
     // { value: 27, label: "Wallet Mode" },
 ];
 
+export const randomColor = () => {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
+}
 
 
 LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Manage Liquidity");

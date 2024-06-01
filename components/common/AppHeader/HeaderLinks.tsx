@@ -88,7 +88,7 @@ const HeaderLinks = () => {
 
     {
       id: 0,
-      href: '/mintinglab/create',
+      href: '/mintinglab/tokencreate',
       title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
     }

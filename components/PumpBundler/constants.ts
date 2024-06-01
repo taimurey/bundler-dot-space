@@ -1,4 +1,3 @@
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 //some constants
 export const GLOBAL_STATE = "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf"
@@ -18,7 +17,7 @@ export const tipAccounts = [
     "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
     "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
     "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
-];;
+];
 export const pumpTokenDecimals = 6;
 export const SystemAccountRent = 0.00089088;
 export const txMaxSize = 1232;

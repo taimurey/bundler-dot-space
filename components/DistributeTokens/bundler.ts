@@ -6,7 +6,7 @@ export async function ApibundleSend(
 ) {
     try {
         const response = await axios.post(
-            `https://mainnet.block-engine.jito.wtf/api/v1/bundles`,
+            `https://${blockengine}/api/v1/bundles`,
             bundle,
             {
                 headers: {
@@ -44,6 +44,6 @@ export async function ApibundleSend(
 
         return response.data.result;
     } catch (error: any) {
-        console.error('Error in ApibundleSend:', error.response ? error.response.data : error.message);
+        throw new Error(`Error sending bundle: ${error.message}`);
     }
 }

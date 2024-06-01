@@ -17,6 +17,8 @@ import SwapIcon from "../icons/SwapIcon";
 // import RepoLogo from '../../icons/RepoLogo';
 import HomeIcon from '../icons/HomeIcon';
 import LiquidityIcon from '../icons/LiquidityIcon';
+import Capsule from "../icons/capsule";
+import CashInflowIcon from "../icons/cashInflowIcon";
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     css?: TwStyle[] | undefined;
 }
@@ -135,13 +137,13 @@ const Sidebar: FC = () => {
         },
         {
             id: 1,
-            href: '/mintinglab/create',
+            href: '/mintinglab/tokencreate',
             icon: <SwapIcon width="20" height="20" />,
         },
 
         {
             id: 2,
-            href: '/liquidity/add',
+            href: '/liquidity/pumpfun',
             icon: <LiquidityIcon width="20" height="20" />,
         }
     ];
@@ -149,24 +151,23 @@ const Sidebar: FC = () => {
 
     const sublinks = [
         {
-            href: '/mintinglab/create',
-            isActive: router.pathname === '/mintinglab/create',
-            title: 'V1 Token Creation',
+            href: '/mintinglab/tokencreate',
+            isActive: router.pathname === '/mintinglab/tokencreate',
+            title: 'Token Program',
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
-
-        // {
-        //     href: '/mintinglab/disperse',
-        //     isActive: router.pathname === '/mintinglab/disperse',
-        //     title: 'Disperse Tokens',
-        //     description: 'Distribution of SPL Tokens',
-        //     icon: <SenderIcon />,
-        // },
+        {
+            href: '/mintinglab/token2022create',
+            isActive: router.pathname === '/mintinglab/token2022create',
+            title: 'Token-2022 Program',
+            description: 'Mint SPL Tokens',
+            icon: <TokenIcon />,
+        },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',
-            title: 'Market Creation',
+            title: 'Create OpenBook',
             description: 'Openbook Market Creation',
             icon: <MarketIcon />,
         },
@@ -177,11 +178,18 @@ const Sidebar: FC = () => {
             description: 'Manage SPL Tokens',
             icon: <ManagerIcon />,
         },
+        {
+            href: '/liquidity/pumpfun',
+            isActive: router.pathname === '/liquidity/pumpfun',
+            title: 'PumpFun Bundler',
+            description: 'Create a PumpFun Bundle',
+            icon: <Capsule />,
+        },
 
         {
             href: '/liquidity/add',
             isActive: router.pathname === '/liquidity/add',
-            title: 'Add Liquidity',
+            title: 'Raydium Bundler',
             description: 'Add liquidity to a market',
             icon: <FlaskIcon />,
         },
@@ -195,18 +203,49 @@ const Sidebar: FC = () => {
         {
             href: '/liquidity/manage',
             isActive: router.pathname === '/liquidity/manage',
-            title: 'Manage Liquidity',
+            title: 'Remove Liquidity',
             description: 'Handle liquidity on Raydium',
             icon: <ManageIcon />,
+        },
+        {
+            href: '/liquidity/volumebot',
+            isActive: router.pathname === '/liquidity/volumebot',
+            title: 'Volume Generator',
+            description: 'Generate volume on Raydium',
+            icon: <CashInflowIcon />,
         },
     ];
 
     // Filter links based on the current route
     const filterLinks: FilterLink = (link) => {
-        if (router.pathname === '/mintinglab/create' || router.pathname === '/mintinglab/tokenmanager' || router.pathname === '/mintinglab/disperse' || router.pathname === '/market/create') {
-            return link.href === '/mintinglab/create' || link.href === '/mintinglab/disperse' || link.href === '/market/create' || link.href === '/mintinglab/tokenmanager';
-        } else if (router.pathname === '/liquidity/add' || router.pathname === '/liquidity/manage' || router.pathname === '/liquidity/swap') {
-            return link.href === '/liquidity/add' || link.href === '/liquidity/manage' || link.href === '/liquidity/swap';
+        if (
+            router.pathname === '/mintinglab/tokencreate' ||
+            router.pathname === '/mintinglab/token2022create' ||
+            router.pathname === '/mintinglab/tokenmanager' ||
+            router.pathname === '/mintinglab/disperse' ||
+            router.pathname === '/market/create'
+        ) {
+            return (
+                link.href === '/mintinglab/tokencreate' ||
+                link.href === '/mintinglab/token2022create' ||
+                link.href === '/mintinglab/disperse' ||
+                link.href === '/market/create' ||
+                link.href === '/mintinglab/tokenmanager'
+            );
+        } else if (
+            router.pathname === '/liquidity/add' ||
+            router.pathname === '/liquidity/manage' ||
+            router.pathname === '/liquidity/swap' ||
+            router.pathname === '/liquidity/pumpfun' ||
+            router.pathname === '/liquidity/volumebot'
+        ) {
+            return (
+                link.href === '/liquidity/add' ||
+                link.href === '/liquidity/manage' ||
+                link.href === '/liquidity/swap' ||
+                link.href === '/liquidity/pumpfun' ||
+                link.href === '/liquidity/volumebot'
+            );
         }
         return false;
     };

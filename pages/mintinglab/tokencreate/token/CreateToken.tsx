@@ -11,6 +11,7 @@ import { packToBlob } from 'ipfs-car/pack/blob';
 import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
 import { createToken } from "../../../../components/TransactionUtils/token";
 import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
+import ImageUploadIcon from "../../../../components/icons/imageuploadIcon";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -334,21 +335,7 @@ const CreateToken: FC = () => {
                                         {!uploadedImage && (
                                             <div>
                                                 <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-12 w-12 text-gray-400 cursor-pointer"
-                                                        stroke="currentColor"
-                                                        fill="none"
-                                                        viewBox="0 0 48 48"
-                                                        aria-hidden="true"
-                                                    >
-                                                        <path
-                                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                        />
-                                                    </svg>
+                                                    <ImageUploadIcon />
                                                 </div>
                                                 <input
                                                     className="hidden cursor-pointer"
@@ -368,7 +355,7 @@ const CreateToken: FC = () => {
                                             </div>
                                         )}
                                         {uploadedImage && (
-                                            <div className="relative flex justify-center h-4/5 border-y-v3-bg rounded-md">
+                                            <div className="relative flex justify-center h-40 border-y-v3-bg rounded-md">
                                                 <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
                                             </div>
                                         )}
@@ -441,14 +428,14 @@ const CreateToken: FC = () => {
                             <div className="flex justify-center items-center ">
 
                                 <button
-                                    className="text-center  hover:shadow-xl hover:shadow-black/50 w-2/3 p-2 border border-[#476e34] rounded-md  "
+                                    className="text-center  hover:shadow-xl hover:shadow-black/50 w-2/3  border border-[#476e34] rounded-md  invoke-btn"
                                     disabled={uploading || creatingToken}
                                     type="submit"
                                     id="formbutton"
                                     onClick={createTokenCallback}
 
                                 >
-                                    <span className="btn-text-gradient">
+                                    <span className="btn-text-gradient font-bold">
                                         {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : 'Create token'}
                                     </span>
                                 </button>
