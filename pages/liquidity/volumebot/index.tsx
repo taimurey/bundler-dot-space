@@ -34,6 +34,11 @@ import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
+type BalanceType = {
+    balance: number;
+    truncatedValue: string;
+};
+
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
@@ -47,6 +52,7 @@ const LiquidityHandlerRaydium = () => {
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [confirmationstatus, setconfirmationstatus] = useState(`Pending`);
     const { setDeployerWallets } = useMyContext();
+    const [balances, setBalances] = useState<BalanceType[]>([]);
     const [BundleError, setBundleError] = useState(`Not Available`);
     const [wallets, setWallets] = useState<string[]>([]);
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
@@ -55,7 +61,6 @@ const LiquidityHandlerRaydium = () => {
         throw new Error('NFT_STORAGE is not defined');
     }
     const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
-
 
     const [formData, setFormData] = useState({
         coinname: '',
@@ -190,6 +195,23 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
+    React.useEffect(() => {
+        const fetchBalances = async () => {
+            const balances = await Promise.all(
+                Object.entries(wallets).map(async ([key, value]) => {
+                    const balance = await connection.getBalance(Keypair.fromSecretKey(base58.decode(value)).publicKey);
+                    const truncatedValue = value.length > 10
+                        ? value.slice(0, 6) + '...' + value.slice(-10)
+                        : value;
+                    return { balance, truncatedValue };
+                })
+            );
+            setBalances(balances);
+        };
+
+        fetchBalances();
+    }, [wallets]);
+
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
             return;
@@ -198,11 +220,13 @@ const LiquidityHandlerRaydium = () => {
 
         Papa.parse<string[]>(file, {
             complete: function (results) {
-                const wallets = results.data.map(row => row[1]);
+                //skip the first row
+                const wallets = results.data.slice(1).map(row => row[1]);
                 wallets.forEach((element: string) => {
-                    if (element === '') {
+                    if (element === '' || element === 'wallet') {
                         return;
                     }
+
                     setdeployerwallets(prevProfiles => [...prevProfiles, {
                         id: prevProfiles.length,
                         name: 'Buyer',
@@ -220,13 +244,20 @@ const LiquidityHandlerRaydium = () => {
     }
 
     const walletsfunder = async (e: any) => {
+        if (wallets.length === 0
+        ) {
+            toast.error('Please upload a csv file with wallets');
+            return;
+        }
         const csvwallets = wallets;
 
         const randomAmount = distributeRandomly(Number(formData.tokenbuyAmount), csvwallets.length, 0.01, 10);
+        toast.info(`Distributing ${formData.tokenbuyAmount} sol to ${csvwallets.length} wallets`);
         const keypairs = csvwallets.map(wallet => Keypair.fromSecretKey(base58.decode(wallet)));
         const solbundle = await solDistribution(connection, Keypair.fromSecretKey(base58.decode(formData.solfundingwallet)), keypairs, randomAmount, Number(formData.BundleTip));
 
         const EncodedbundledTxns = solbundle.map(txn => base58.encode(txn.serialize()));
+
         const bundledata = {
             jsonrpc: "2.0",
             id: 1,
@@ -265,6 +296,27 @@ const LiquidityHandlerRaydium = () => {
                                     <p className='font-bold text-[25px]'>Raydium AMM Volume</p>
                                     <p className=' text-[12px] text-[#96989c] '>Generate volume on the token using csv wallets
                                     </p>
+                                </div>
+                                <label className="block mt-5 text-base text-white font-semibold" >
+                                    Volume Mode
+                                </label>
+                                <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                    <select
+                                        id="BlockEngineSelection"
+                                        value={Mode}
+                                        onChange={(e) => setMode(Number(e.target.value))}
+                                        required={true}
+                                        className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                    >
+                                        <option value="" disabled>
+                                            Volume Mode
+                                        </option>
+                                        {modeOptions.map((option, index) => (
+                                            <option key={index} value={index}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
                                     <div className={Mode === 5 ? 'w-4/5' : 'w-full'}>
@@ -327,16 +379,17 @@ const LiquidityHandlerRaydium = () => {
                                     <div className='flex justify-center items-center gap-2'>
                                         <InputField
                                             id="tokenbuyAmount"
-                                            label="Buy Amount"
-                                            subfield='sol'
+                                            label="Funding Amount"
+                                            subfield='amount to distribute in csv wallets'
                                             value={formData.tokenbuyAmount}
                                             onChange={(e) => handleChange(e, 'tokenbuyAmount')}
-                                            placeholder="First Buy Amount"
+                                            placeholder="10..."
                                             type="number"
                                             required={true}
                                         />
                                         <button
                                             className='bundler-btn border py-2 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
+                                            onClick={walletsfunder}
                                         >
                                             Fund Wallets
                                         </button>
@@ -392,9 +445,7 @@ const LiquidityHandlerRaydium = () => {
                                         <button
                                             className="text-center hover:shadow-xl hover:shadow-black/50 w-full border border-[#476e34] rounded-md invoke-btn "
                                             disabled={uploading}
-                                            type="submit"
-                                            id="formbutton"
-
+                                            onClick={walletsfunder}
                                         >
                                             <span className="btn-text-gradient font-bold">
                                                 {uploading
@@ -409,7 +460,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="min-w-[44px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
+                            <div className="min-w-[50px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
@@ -421,19 +472,16 @@ const LiquidityHandlerRaydium = () => {
                                         </label>
                                         <br />
                                         <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {Object.entries(wallets).map(([key, value], index) => {
-                                                const truncatedValue = value.length > 10
-                                                    ? value.slice(0, 6) + '...' + value.slice(-10)
-                                                    : value;
-                                                return (
-                                                    <p
-                                                        key={index}
-                                                        className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
-                                                    >
-                                                        {key}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncatedValue}</span>
-                                                    </p>
-                                                );
-                                            })}
+                                            {balances.map(({ balance, truncatedValue }, index) => (
+                                                <p
+                                                    key={index}
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
+                                                >
+                                                    {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncatedValue}</span>
+                                                    <br />
+                                                    Balance: {balance}
+                                                </p>
+                                            ))}
                                         </div>
                                     </div>
                                     <OutputField
@@ -476,8 +524,8 @@ const LiquidityHandlerRaydium = () => {
 }
 
 const modeOptions = [
-    { value: 1, label: "Wallet Mode" },
-    { value: 5, label: "Wallet Mode" },
+    "RaydiumAMM Volume",
+    "Pump.Fun Volume",
 ];
 
 

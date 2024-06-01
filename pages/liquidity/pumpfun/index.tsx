@@ -59,7 +59,8 @@ const LiquidityHandlerRaydium = () => {
         deployerPrivateKey: '',
         buyerPrivateKey: '',
         buyerextraWallets: [],
-        tokenbuyAmount: '',
+        BuyertokenbuyAmount: '',
+        DevtokenbuyAmount: '',
         uri: uploadedImageUrl,
         websiteUrl: '',
         twitterUrl: '',
@@ -325,7 +326,7 @@ const LiquidityHandlerRaydium = () => {
                                                 id='walletsNumbers'
                                                 placeholder='27'
                                                 label='Upload Wallets'
-                                                subfield='csv file'
+                                                subfield='csv file - Max 4'
                                                 required={true}
                                                 type="file"
                                                 onChange={handleFileUpload}
@@ -435,17 +436,29 @@ const LiquidityHandlerRaydium = () => {
                                         </div>
                                     </div>
                                     <InputField
-                                        id="tokenbuyAmount"
-                                        label="Buy Amount"
+                                        id="DevtokenbuyAmount"
+                                        label="Dev Buy Amount"
                                         subfield='sol'
-                                        value={formData.tokenbuyAmount}
-                                        onChange={(e) => handleChange(e, 'tokenbuyAmount')}
+                                        value={formData.DevtokenbuyAmount}
+                                        onChange={(e) => handleChange(e, 'DevtokenbuyAmount')}
                                         placeholder="First Buy Amount"
                                         type="number"
                                         required={true}
                                     />
-
-
+                                    {Mode === 1 && (
+                                        <div className='flex justify-end items-end gap-2'>
+                                            <InputField
+                                                id="BuyertokenbuyAmount"
+                                                label="Buy Amount"
+                                                subfield='sol'
+                                                value={formData.BuyertokenbuyAmount}
+                                                onChange={(e) => handleChange(e, 'BuyertokenbuyAmount')}
+                                                placeholder="First Buy Amount"
+                                                type="number"
+                                                required={true}
+                                            />
+                                        </div>
+                                    )}
                                     <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
 
                                         <div className="w-full">
@@ -546,13 +559,6 @@ const LiquidityHandlerRaydium = () => {
                                         label="Mint Address:"
                                         value={formData.coinname}
                                         latedisplay={true}
-                                    />
-                                    <OutputField
-                                        id="buyamount"
-                                        label="Buy Amount"
-                                        value={`${formData.tokenbuyAmount && formData.tokenbuyAmount !== '0' ? `${formData.tokenbuyAmount} sol` : formData.tokenbuyAmount}`}
-                                        latedisplay={true}
-
                                     />
                                     <OutputField
                                         id='bundlestatus'

