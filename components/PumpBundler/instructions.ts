@@ -54,15 +54,15 @@ export async function generateCreatePumpTokenIx(
 
 
 export async function generateBuyIx(
-    token: Keypair,
+    token: PublicKey,
     amount: BN,
     maxSolAmount: BN,
     mainSigner: Keypair,
     pumpProgram: Program,
 ) {
-    const bondingCurvePda = getBondingCurve(token.publicKey, pumpProgram.programId);
-    const bondingCurveAta = getAssociatedTokenAddressSync(token.publicKey, bondingCurvePda, true);
-    const signerAta = getAssociatedTokenAddressSync(token.publicKey, mainSigner.publicKey, true);
+    const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);
+    const bondingCurveAta = getAssociatedTokenAddressSync(token, bondingCurvePda, true);
+    const signerAta = getAssociatedTokenAddressSync(token, mainSigner.publicKey, true);
 
     const buyIx = await pumpProgram.methods.buy(
         amount,
@@ -70,7 +70,7 @@ export async function generateBuyIx(
     ).accounts({
         global: GLOBAL_STATE,
         feeRecipient: FEE_RECEPIENT,
-        mint: token.publicKey,
+        mint: token,
         bondingCurve: bondingCurvePda,
         associatedBondingCurve: bondingCurveAta,
         associatedUser: signerAta,

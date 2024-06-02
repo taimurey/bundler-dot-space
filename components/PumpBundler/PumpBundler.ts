@@ -33,6 +33,7 @@ export async function PumpBundler(
     connection: Connection,
     pool_data: PumpTokenCreator,
     TokenKeypair: Keypair,
+    metadata: any,
 ): Promise<string> {
 
     const devkeypair = getKeypairFromBs58(pool_data.deployerPrivateKey);
@@ -50,7 +51,7 @@ export async function PumpBundler(
     const createIx = await generateCreatePumpTokenIx(TokenKeypair, devkeypair, pool_data.coinname, pool_data.symbol, pool_data.uri, pumpProgram);
 
 
-    const devBuyIx = await generateBuyIx(TokenKeypair, new BN(pool_data.BuyertokenbuyAmount), new BN(0), devkeypair, pumpProgram);
+    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(pool_data.BuyertokenbuyAmount), new BN(0), devkeypair, pumpProgram);
 
     const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
         devkeypair.publicKey,
@@ -100,7 +101,7 @@ export async function PumpBundler(
             new PublicKey(TokenKeypair.publicKey),
         ))
 
-        const buyerBuyIx = await generateBuyIx(TokenKeypair, new BN(balance), new BN(0), buyerWallet, pumpProgram);
+        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(balance), new BN(0), buyerWallet, pumpProgram);
 
 
         let buyerIxs = [ataIx, buyerBuyIx];
