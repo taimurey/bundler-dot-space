@@ -6,18 +6,18 @@ export function distributeRandomly(total: number, iterations: number, minValue: 
         throw new Error("Total must be greater than or equal to the number of iterations");
     }
 
-    let amounts = Array(iterations).fill(0);
+    const amounts = Array(iterations).fill(0);
     let remaining = total;
 
     // Create a list of indices and shuffle it
-    let indices = Array.from({ length: iterations }, (_, i) => i);
+    const indices = Array.from({ length: iterations }, (_, i) => i);
     indices.sort(() => Math.random() - 0.5);
 
-    for (let index of indices) {
+    for (const index of indices) {
         // Determine the maximum amount that can be added to the current iteration
-        let minPerIteration = Math.floor(total / iterations);
-        let maxPerIteration = total - (iterations - 1) * minPerIteration;
-        let maxAddition = Math.min(remaining, maxPerIteration);
+        const minPerIteration = Math.floor(total / iterations);
+        const maxPerIteration = total - (iterations - 1) * minPerIteration;
+        const maxAddition = Math.min(remaining, maxPerIteration);
 
         // Generate a random amount to add within the allowed range
         let amountToAdd;

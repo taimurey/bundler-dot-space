@@ -11,6 +11,7 @@ import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
 import { ApibundleSend } from "../DistributeTokens/bundler";
 import { TAX_WALLET } from "../market/marketInstruction";
+import { uploadMetaData } from "../TransactionUtils/token";
 
 interface PumpTokenCreator {
     coinname: string;
@@ -36,6 +37,7 @@ export async function PumpBundler(
     metadata: any,
 ): Promise<string> {
 
+    const uri = await uploadMetaData(metadata);
     const devkeypair = getKeypairFromBs58(pool_data.deployerPrivateKey);
 
     if (!devkeypair) {
@@ -48,7 +50,7 @@ export async function PumpBundler(
     const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(devkeypair), AnchorProvider.defaultOptions()));
 
 
-    const createIx = await generateCreatePumpTokenIx(TokenKeypair, devkeypair, pool_data.coinname, pool_data.symbol, pool_data.uri, pumpProgram);
+    const createIx = await generateCreatePumpTokenIx(TokenKeypair, devkeypair, pool_data.coinname, pool_data.symbol, uri, pumpProgram);
 
 
     const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(pool_data.BuyertokenbuyAmount), new BN(0), devkeypair, pumpProgram);
@@ -104,7 +106,7 @@ export async function PumpBundler(
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(balance), new BN(0), buyerWallet, pumpProgram);
 
 
-        let buyerIxs = [ataIx, buyerBuyIx];
+        const buyerIxs = [ataIx, buyerBuyIx];
 
         if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
             const tipIx = SystemProgram.transfer({

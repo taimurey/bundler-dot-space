@@ -181,7 +181,7 @@ const LiquidityHandlerRaydium = () => {
     React.useEffect(() => {
         const fetchBalances = async () => {
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([_, value]) => {
+                Object.entries(wallets).map(async ([value]) => {
                     try {
                         const keypair = Keypair.fromSecretKey(base58.decode(value));
                         const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
@@ -370,7 +370,7 @@ const LiquidityHandlerRaydium = () => {
                                     subfield='Coin Funder and First Buyer'
                                     value={formData.deployerPrivateKey}
                                     onChange={(e) => handleChange(e, 'deployerPrivateKey')}
-                                    placeholder="coin maker - deployer private key + dev buy"
+                                    placeholder="deployer private key - coin maker + dev buy"
                                     type="password"
                                     required={true}
                                 />
@@ -644,6 +644,12 @@ const LiquidityHandlerRaydium = () => {
                                         id='bundleError'
                                         label='Bundle Error'
                                         value={BundleError}
+                                        latedisplay={true}
+                                    />
+                                    <OutputField
+                                        id='percentComplete'
+                                        label='Image Size'
+                                        value={percentComplete.toString()}
                                         latedisplay={true}
                                     />
 

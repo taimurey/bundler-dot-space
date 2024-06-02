@@ -205,7 +205,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
     return { signature, token };
 }
 
-async function uploadMetaData(metadata: any) {
+export async function uploadMetaData(metadata: any) {
     const endpoint = new URL('https://api.nft.storage');
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NEXT_PUBLIC_NFT_STORAGE_TOKEN is not defined');

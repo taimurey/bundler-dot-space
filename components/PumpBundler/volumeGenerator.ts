@@ -1,24 +1,24 @@
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import pumpIdl from "./pump-idl.json";
-import { PUMP_PROGRAM_ID } from "./constants";
+import { PUMP_PROGRAM_ID, tipAccounts } from "./constants";
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
 import { ApibundleSend } from "../DistributeTokens/bundler";
-import { TAX_WALLET } from "../market/marketInstruction";
-import { getRandomElement } from './misc';
 import { generateBuyIx } from "./instructions";
 import { Liquidity, TxVersion } from '@raydium-io/raydium-sdk';
 
 
 export async function PumpVolumeGenerator(
     connection: Connection,
+    fundingWallet: Keypair,
     keypair: Keypair,
     tokenMint: string,
     BlockEngineSelection: string,
+    tip: string,
 ): Promise<string> {
 
     const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(keypair), AnchorProvider.defaultOptions()));
@@ -34,7 +34,15 @@ export async function PumpVolumeGenerator(
 
     const buyerBuyIx = await generateBuyIx(mintaddress, new BN(balance), new BN(0), keypair, pumpProgram);
 
-    let buyerIxs = [ataIx, buyerBuyIx];
+    const buyerIxs = [ataIx, buyerBuyIx];
+
+    const tipIxs = SystemProgram.transfer({
+        fromPubkey: fundingWallet.publicKey,
+        toPubkey: new PublicKey(tipAccounts[0]),
+        lamports: Number(tip) * LAMPORTS_PER_SOL,
+    });
+
+    buyerIxs.push(tipIxs);
 
     const buyerTx = new VersionedTransaction(
         new TransactionMessage({
@@ -59,7 +67,7 @@ export async function PumpVolumeGenerator(
     return response;
 }
 
-export async function build_swap_instructions({  connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }: any, BuyerPublicKey: PublicKey) {
+export async function build_swap_instructions({ connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }: any, BuyerPublicKey: PublicKey) {
 
     const { innerTransactions } = await Liquidity.makeSwapInstructionSimple({
         connection,

@@ -3,15 +3,11 @@
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
-import { packToBlob } from 'ipfs-car/pack/blob';
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
-import pumpIdl from "../../../components/PumpBundler/pump-idl.json";
 import {
-    Currency,
     MAINNET_PROGRAM_ID,
-    TokenAmount,
 } from '@raydium-io/raydium-sdk';
-import { Keypair, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
@@ -21,21 +17,13 @@ import { toast } from 'react-toastify';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
-import { NFTStorage } from 'nft.storage';
 import Papa from 'papaparse';
 import { randomColor } from '../add';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { distributeRandomly } from '../../../components/randomgen';
 import { solDistribution } from '../../../components/SolDistribution';
 import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
-import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token-2';
-import { generateBuyIx } from '../../../components/PumpBundler/instructions';
-import { PublicKey } from '@metaplex-foundation/js';
-import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
-import { PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
-import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import { build_swap_instructions, PumpVolumeGenerator } from '../../../components/PumpBundler/volumeGenerator';
-import { formatAmmKeysById } from '../../../components/removeLiquidity/formatAmmKeysById';
+import { PumpVolumeGenerator } from '../../../components/PumpBundler/volumeGenerator';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -50,24 +38,17 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
     const connection = new Connection(cluster.endpoint);
-    const [uploading, setUploading] = useState(false);
-    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [airdropChecked, setAirdropChecked] = useState(false);
-    const [percentComplete, setPercentComplete] = useState(0);
     const [Mode, setMode] = useState(`RaydiumAMM Volume`);
-    const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-    const [confirmationstatus, setconfirmationstatus] = useState(`Pending`);
     const { setDeployerWallets } = useMyContext();
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [BundleError, setBundleError] = useState(`Not Available`);
     const [wallets, setWallets] = useState<string[]>([]);
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
-    const [loop, setLoop] = useState(false);
-    const [count, setCount] = useState(0);
+    // const [loop, setLoop] = useState(false);
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
     }
-    const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
 
     const [formData, setFormData] = useState({
         coinname: '',
@@ -76,7 +57,6 @@ const LiquidityHandlerRaydium = () => {
         walletcount: '',
         buyerextraWallets: [],
         tokenbuyAmount: '',
-        uri: uploadedImageUrl,
         websiteUrl: '',
         twitterUrl: '',
         telegramUrl: '',
@@ -132,7 +112,7 @@ const LiquidityHandlerRaydium = () => {
 
     //generate wallets and write them to a csv file
     const generatewallets = () => {
-        let wallets = [];
+        const wallets = [];
         for (let i = 0; i < Number(formData.walletcount); i++) {
             const keypair = Keypair.generate();
             wallets.push({
@@ -153,59 +133,10 @@ const LiquidityHandlerRaydium = () => {
         document.body.removeChild(a);
     }
 
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files && e.target.files[0];
-        handleChange(e, "uploadedImage")
-        console.log(file, "filee");
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const base64Image = reader.result as string;
-                setUploadedImage(base64Image);
-
-                // Set the uploading state to true
-                setUploading(true);
-
-                try {
-                    // Pack the image into a CAR file
-                    const { car } = await packToBlob({
-                        input: [file],
-                        wrapWithDirectory: false,
-                    });
-
-                    // Upload the CAR file to NFT.Storage
-                    const cid = await client.storeCar(car, {
-                        onStoredChunk: (size) => {
-                            // Update the upload progress
-                            setPercentComplete((prevPercentComplete) => prevPercentComplete + size);
-                        },
-                    });
-
-
-                    // Convert the IPFS URL to a HTTP URL
-                    const httpUrl = `https://nftstorage.link/ipfs/${cid}`;
-
-                    // Set the uploadedImage state variable to the HTTP URL of the uploaded image
-                    setUploadedImage(httpUrl);
-                    console.log(httpUrl);
-                    setUploadedImageUrl(httpUrl);
-                } catch (error) {
-                    console.error('Error uploading file:', error);
-                } finally {
-                    // Set the uploading state to false
-                    setUploading(false);
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     React.useEffect(() => {
         const fetchBalances = async () => {
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([key, value]) => {
+                Object.entries(wallets).map(async ([value]) => {
                     const balance = await connection.getBalance(Keypair.fromSecretKey(base58.decode(value)).publicKey);
                     const truncatedValue = value.length > 10
                         ? value.slice(0, 6) + '...' + value.slice(-10)
@@ -293,38 +224,49 @@ const LiquidityHandlerRaydium = () => {
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         e.preventDefault();
-        if (formData.tokenMintAddress === '' || wallets.length === 0) {
+        if (formData.tokenMintAddress === '' || wallets.length === 0 || formData.solfundingwallet === '' || formData.tokenbuyAmount === '' || formData.BlockEngineSelection === '' || formData.BundleTip === '' || formData.TransactionTip === ''
+
+        ) {
             toast.error('Please upload a csv file with wallets and provide a token mint address');
             return;
         }
-        setLoop(true);
+        // setLoop(true);
         if (Mode === "RaydiumAMM Volume") {
-            toast.info(`Generating Volume on Raydium AMM`);
+            toast.info(`Not available Yet`);
 
-            wallets.map(async (wallet, index) => {
-                setCount(index);
-                const keypair = Keypair.fromSecretKey(base58.decode(wallet));
+            // wallets.map(async (wallet, index) => {
+            //     setCount(index);
+            //     const keypair = Keypair.fromSecretKey(base58.decode(wallet));
 
-                // try {
-                //     const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
-                //     const InputTokenAmount  = new TokenAmount(new Currency(6, 'RAY', 'Raydium'), new BN(1)
-                //     const txn = await build_swap_instructions({  connection, poolkeys, tokenAccountRawInfos_Swap, inputTokenAmount, new BN(1) }, keypair.publicKey)
-                // } catch (error: any) {
-                //     setBundleError(error);
-                //     toast.error(`Error sending bundle: ${error}`);
-                // }
-            })
+            //     // try {
+            //     //     const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
+            //     //     const InputTokenAmount  = new TokenAmount(new Currency(6, 'RAY', 'Raydium'), new BN(1)
+            //     //     const txn = await build_swap_instructions({  connection, poolkeys, tokenAccountRawInfos_Swap, inputTokenAmount, new BN(1) }, keypair.publicKey)
+            //     // } catch (error: any) {
+            //     //     setBundleError(error);
+            //     //     toast.error(`Error sending bundle: ${error}`);
+            //     // }
+            // })
 
 
         }
         else if (Mode === "Pump.Fun Volume") {
             toast.info(`Generating Volume on Pump.Fun`);
-
+            const fundingWallet = Keypair.fromSecretKey(base58.decode(formData.solfundingwallet));
             wallets.map(async (wallet) => {
                 const keypair = Keypair.fromSecretKey(base58.decode(wallet));
 
                 try {
-                    const txn = await PumpVolumeGenerator(connection, keypair, formData.tokenMintAddress, formData.BlockEngineSelection);
+                    const txn = await PumpVolumeGenerator(connection, fundingWallet, keypair, formData.tokenMintAddress, formData.BlockEngineSelection, formData.BundleTip);
+                    toast(
+                        () => (
+                            <BundleToast
+                                txSig={txn}
+                                message={'Bundle ID:'}
+                            />
+                        ),
+                        { autoClose: 5000 }
+                    )
                 } catch (error: any) {
                     setBundleError(error);
                     toast.error(`Error sending bundle: ${error}`);
@@ -488,31 +430,27 @@ const LiquidityHandlerRaydium = () => {
                             <div className='justify-center'>
                                 <button
                                     className="text-center hover:shadow-xl hover:shadow-black/50 w-full border border-[#476e34] rounded-md invoke-btn "
-                                    disabled={uploading}
                                     onClick={volumeBot}
                                 >
                                     <span className="btn-text-gradient font-bold">
-                                        {uploading
-                                            ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
-                                            : <>
-                                                Start Generating Volume
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
-                                            </>
-                                        }
+                                        ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
+                                        : <>
+                                            Start Generating Volume
+                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
+                                        </>
                                     </span>
                                 </button>
                             </div>
-                            <div className='justify-center flex gap-2'>
+                            {/* <div className='justify-center flex gap-2'>
                                 <button
                                     className="text-center hover:shadow-xl hover:shadow-black/50 w-1/2 border rounded-2xl font-bold py-2 hover:border-[#ff0000] flex justify-center items-center border-[#70616e71] text-[16px] duration-200 ease-in-out"
-                                    disabled={uploading}
                                     onClick={walletsfunder}
                                 >
                                     <span className="btn-text-gradient font-bold">
                                         {loop ? count : "Stop Generating Volume"}
                                     </span>
                                 </button>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                     <div className="min-w-[50px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
@@ -553,17 +491,12 @@ const LiquidityHandlerRaydium = () => {
 
                             />
                             <OutputField
-                                id='bundlestatus'
-                                label='Bundle Status'
-                                value={confirmationstatus}
-                                latedisplay={true}
-                            />
-                            <OutputField
                                 id='bundleError'
                                 label='Bundle Error'
                                 value={BundleError}
                                 latedisplay={true}
                             />
+
 
                         </div>
                     </div>
