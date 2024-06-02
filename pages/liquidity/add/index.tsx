@@ -484,6 +484,6 @@ export const randomColor = () => {
 }
 
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Manage Liquidity");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Raydium AMM");
 
 export default LiquidityHandlerRaydium;

@@ -400,7 +400,7 @@ const LiquidityHandlerRaydium = () => {
                                 </div>
 
                                 <InputField
-                                    label={Mode === "RaydiumAMM Volume" ? "Token Mint Address" : "Token Address"}
+                                    label={Mode === "RaydiumAMM Volume" ? "Pool ID" : "Token Address"}
                                     subfield='address'
                                     id="mintAddress"
                                     value={formData.tokenMintAddress}
@@ -509,7 +509,7 @@ const LiquidityHandlerRaydium = () => {
                                     onClick={walletsfunder}
                                 >
                                     <span className="btn-text-gradient font-bold">
-                                      {loop ? count :   "Stop Generating Volume"}
+                                        {loop ? count : "Stop Generating Volume"}
                                     </span>
                                 </button>
                             </div>
@@ -583,6 +583,6 @@ const modeOptions = [
 
 
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Manage Liquidity");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Volume Generator");
 
 export default LiquidityHandlerRaydium;
