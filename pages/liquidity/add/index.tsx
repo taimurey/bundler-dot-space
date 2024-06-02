@@ -477,7 +477,6 @@ const LiquidityHandlerRaydium = () => {
 
 const modeOptions = [
     { value: 1, label: "Wallet Mode" },
-    // { value: 27, label: "Wallet Mode" },
 ];
 
 export const randomColor = () => {
