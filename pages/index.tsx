@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from "react";
 import { getSearchLayout } from "../components/layouts/SearchLayout";
 import { ReactNode } from "react";

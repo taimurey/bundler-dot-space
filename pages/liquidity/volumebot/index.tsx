@@ -7,7 +7,9 @@ import { packToBlob } from 'ipfs-car/pack/blob';
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import pumpIdl from "../../../components/PumpBundler/pump-idl.json";
 import {
+    Currency,
     MAINNET_PROGRAM_ID,
+    TokenAmount,
 } from '@raydium-io/raydium-sdk';
 import { Keypair, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
@@ -32,7 +34,7 @@ import { PublicKey } from '@metaplex-foundation/js';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import { PumpVolumeGenerator } from '../../../components/PumpBundler/volumeGenerator';
+import { build_swap_instructions, PumpVolumeGenerator } from '../../../components/PumpBundler/volumeGenerator';
 import { formatAmmKeysById } from '../../../components/removeLiquidity/formatAmmKeysById';
 
 const ZERO = new BN(0)
@@ -60,7 +62,8 @@ const LiquidityHandlerRaydium = () => {
     const [BundleError, setBundleError] = useState(`Not Available`);
     const [wallets, setWallets] = useState<string[]>([]);
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
-
+    const [loop, setLoop] = useState(false);
+    const [count, setCount] = useState(0);
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
     }
@@ -247,7 +250,8 @@ const LiquidityHandlerRaydium = () => {
     }
 
     const walletsfunder = async (e: any) => {
-        if (wallets.length === 0
+        e.preventDefault();
+        if (wallets.length === 0 || formData.tokenbuyAmount === '' || formData.solfundingwallet === ''
         ) {
             toast.error('Please upload a csv file with wallets');
             return;
@@ -285,25 +289,35 @@ const LiquidityHandlerRaydium = () => {
         }
     }
 
-    const volumeBot = async () => {
+    const volumeBot = async (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
+        e.preventDefault();
         if (formData.tokenMintAddress === '' || wallets.length === 0) {
             toast.error('Please upload a csv file with wallets and provide a token mint address');
             return;
         }
+        setLoop(true);
         if (Mode === "RaydiumAMM Volume") {
             toast.info(`Generating Volume on Raydium AMM`);
-            wallets.map(async (wallet) => {
+
+            wallets.map(async (wallet, index) => {
+                setCount(index);
                 const keypair = Keypair.fromSecretKey(base58.decode(wallet));
 
-                try {
-                    const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
-                    const txn = await build_swap_instructions({ Liquidity, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }, buyerpublickey)
-                } catch (error: any) {
-                    setBundleError(error);
-                    toast.error(`Error sending bundle: ${error}`);
-                }
+                // try {
+                //     const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
+                //     const InputTokenAmount  = new TokenAmount(new Currency(6, 'RAY', 'Raydium'), new BN(1)
+                //     const txn = await build_swap_instructions({  connection, poolkeys, tokenAccountRawInfos_Swap, inputTokenAmount, new BN(1) }, keypair.publicKey)
+                // } catch (error: any) {
+                //     setBundleError(error);
+                //     toast.error(`Error sending bundle: ${error}`);
+                // }
             })
 
+
+        }
+        else if (Mode === "Pump.Fun Volume") {
             toast.info(`Generating Volume on Pump.Fun`);
 
             wallets.map(async (wallet) => {
@@ -360,7 +374,7 @@ const LiquidityHandlerRaydium = () => {
                                     onChange={(e) => handleChange(e, 'walletcount')}
                                     placeholder='40...'
                                     type='string'
-                                    required={true}
+                                    required={false}
                                 />
                             </div>
                             <button
@@ -390,10 +404,10 @@ const LiquidityHandlerRaydium = () => {
                                     subfield='address'
                                     id="mintAddress"
                                     value={formData.tokenMintAddress}
-                                    onChange={(e) => handleChange(e, 'mintAddress')}
+                                    onChange={(e) => handleChange(e, 'tokenMintAddress')}
                                     placeholder="D5bBV....eVK7K"
                                     type="text"
-                                    required={true}
+                                    required={false}
                                 />
                             </div>
                             <InputField
@@ -404,7 +418,7 @@ const LiquidityHandlerRaydium = () => {
                                 onChange={(e) => handleChange(e, 'solfundingwallet')}
                                 placeholder="Keypair to Fund sol to the uploaded wallets in the csv"
                                 type="password"
-                                required={true}
+                                required={false}
                             />
                             <div className='flex justify-center items-center gap-2'>
                                 <InputField
@@ -415,7 +429,7 @@ const LiquidityHandlerRaydium = () => {
                                     onChange={(e) => handleChange(e, 'tokenbuyAmount')}
                                     placeholder="10..."
                                     type="number"
-                                    required={true}
+                                    required={false}
                                 />
                                 <button
                                     className='bundler-btn border py-2 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
@@ -495,7 +509,7 @@ const LiquidityHandlerRaydium = () => {
                                     onClick={walletsfunder}
                                 >
                                     <span className="btn-text-gradient font-bold">
-                                        Stop Generating Volume
+                                      {loop ? count :   "Stop Generating Volume"}
                                     </span>
                                 </button>
                             </div>

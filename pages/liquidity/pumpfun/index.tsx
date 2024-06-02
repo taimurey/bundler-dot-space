@@ -315,6 +315,15 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
+    const DownloadSample = ()=>{
+        const file  = ("/sample_wallets.csv")
+        const link = document.createElement('a');
+        link.href = file;
+        link.download = 'sample_wallets.csv';
+        link.click();
+        
+    }
+
     const { setDeployerWallets } = useMyContext();
 
     return (
@@ -395,7 +404,7 @@ const LiquidityHandlerRaydium = () => {
                                     {Mode === 5 && (
                                         <button
                                             className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                                        >
+                                        onClick={()=>DownloadSample()}>
                                             Download Sample
                                         </button>
                                     )}

@@ -59,7 +59,7 @@ export async function PumpVolumeGenerator(
     return response;
 }
 
-export async function build_swap_instructions({ Liquidity1, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }: any, BuyerPublicKey: PublicKey) {
+export async function build_swap_instructions({  connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }: any, BuyerPublicKey: PublicKey) {
 
     const { innerTransactions } = await Liquidity.makeSwapInstructionSimple({
         connection,
@@ -71,7 +71,7 @@ export async function build_swap_instructions({ Liquidity1, connection, poolKeys
         amountIn: inputTokenAmount,
         amountOut: minAmountOut,
         fixedSide: "in",
-        TxVersion: TxVersion.V0,
+        makeTxVersion: TxVersion.V0
         // computeBudgetConfig: await getComputeBudgetConfigHigh(),
     })
 
