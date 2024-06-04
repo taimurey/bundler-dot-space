@@ -110,8 +110,8 @@ export async function PumpBundler(
 
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, balance, 0, buyerWallet, pumpProgram);
 
-        let buyerIxs = [ataIx, buyerBuyIx];
-        let signers = [buyerWallet];
+        const buyerIxs = [ataIx, buyerBuyIx];
+        const signers = [buyerWallet];
 
         if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
             const tipAmount = Number(pool_data.BundleTip) * (LAMPORTS_PER_SOL);
