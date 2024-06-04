@@ -4,23 +4,28 @@ import { SendBundle } from './bundle-sender';
 import express from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
-const app = express();
-
-const port = 2891;
-
-app.use(cors({
-    origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
-    methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors());
-
-
 import * as http from 'http';
 import * as path from 'path';
 
+const app = express();
+const port = 2891;
+
+
+
+app.use(
+    cors({
+      origin: [
+        'https://mevarik.com',
+        'https://bundler.space',
+         'http://localhost:3000',
+      ],  
+      methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+      credentials: true,
+    })
+  );
 
 app.use(bodyParser.json());
+
 
 app.get('/', (_, res) => {
     const filePath = path.join(__dirname, 'index.html');
