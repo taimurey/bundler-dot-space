@@ -73,16 +73,13 @@ const Swap = () => {
         }
 
         if (field === 'deployerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = ((Keypair.fromSecretKey(new Uint8Array(base58.decode(value)))));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet2: wallet.publicKey.toString(),
             }));
 
-            // if (!process.env.NEXT_PUBLIC_KEY_RSA) {
-            //     throw new Error('No public key found');
-            // }
-            //  const encrypted = encryptWithPublicKey(process.env.NEXT_PUBLIC_KEY_RSA, PrivateKey);
+
             setFormData(prevState => ({
                 ...prevState,
                 deployerPrivateKey: value,
@@ -90,7 +87,7 @@ const Swap = () => {
         }
 
         if (field === 'buyerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = ((Keypair.fromSecretKey(new Uint8Array(base58.decode(value)))));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet1: wallet.publicKey.toString(),

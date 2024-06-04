@@ -37,9 +37,8 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     const [uploading, setUploading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [airdropChecked, setAirdropChecked] = useState(false);
     const [percentComplete, setPercentComplete] = useState(0);
-    const [Mode, setMode] = useState(5);
+    const [Mode, setMode] = useState(1);
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [confirmationstatus, setconfirmationstatus] = useState(`Pending`);
@@ -53,7 +52,22 @@ const LiquidityHandlerRaydium = () => {
     const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
 
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        coinname: string;
+        symbol: string;
+        tokenDescription: string;
+        deployerPrivateKey: string;
+        buyerPrivateKey: string;
+        buyerextraWallets: string[];
+        BuyertokenbuyAmount: string;
+        DevtokenbuyAmount: string;
+        websiteUrl: string;
+        twitterUrl: string;
+        telegramUrl: string;
+        BundleTip: string;
+        TransactionTip: string;
+        BlockEngineSelection: string;
+    }>({
         coinname: '',
         symbol: '',
         tokenDescription: '',
@@ -62,7 +76,6 @@ const LiquidityHandlerRaydium = () => {
         buyerextraWallets: [],
         BuyertokenbuyAmount: '',
         DevtokenbuyAmount: '',
-        uri: uploadedImageUrl,
         websiteUrl: '',
         twitterUrl: '',
         telegramUrl: '',
@@ -87,17 +100,16 @@ const LiquidityHandlerRaydium = () => {
             [field]: value,
         }));
 
-        //handle airdropChecked
-        if (field === 'airdropChecked') {
-            setAirdropChecked(airdropChecked);
-        }
-
         if (field === 'deployerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
-            setWallets(prevState => ({
-                ...prevState,
-                Wallet2: wallet.publicKey.toString(),
-            }));
+            let wallet: Keypair;
+            try {
+                wallet = (Keypair.fromSecretKey(new Uint8Array(base58.decode(value))));
+
+            } catch (error) {
+                toast.error('Invalid Private Key');
+                return;
+            }
+
 
             // Add new wallet to setsideWallets
             setdeployerwallets(prevProfiles => [...prevProfiles, {
@@ -114,11 +126,8 @@ const LiquidityHandlerRaydium = () => {
         }
 
         if (field === 'buyerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
-            setWallets(prevState => ({
-                ...prevState,
-                Wallet1: wallet.publicKey.toString(),
-            }));
+            const wallet = ((Keypair.fromSecretKey(new Uint8Array(base58.decode(value)))));
+            // setWallets([value]);
 
             // Add new wallet to setsideWallets
             setdeployerwallets(prevProfiles => [...prevProfiles, {
@@ -177,31 +186,44 @@ const LiquidityHandlerRaydium = () => {
             reader.readAsDataURL(file);
         }
     };
-
     React.useEffect(() => {
         const fetchBalances = async () => {
+            let allBalances: BalanceType[] = [];
+
+            if (formData.deployerPrivateKey) {
+                const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
+            }
+
+            if (formData.buyerPrivateKey) {
+                const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
+            }
+
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([value]) => {
+                Object.entries(wallets).map(async ([key, value]) => {
                     try {
-                        const keypair = Keypair.fromSecretKey(base58.decode(value));
+                        console.log('value:', key);
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
                         const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                        const truncatedValue = value.length > 10
-                            ? value.slice(0, 6) + '...' + value.slice(-10)
-                            : value;
-                        return { balance, truncatedValue };
+                        return { balance, publicKey: keypair.publicKey.toString() };
+
                     }
                     catch (error) {
                         toast.error(`Error fetching balance: ${error}`);
-                        return { balance: 0, truncatedValue: 'Invalid' };
+                        return { balance: 0, publicKey: 'Invalid' };
                     }
-
                 })
             );
-            setBalances(balances);
+
+            allBalances = [...allBalances, ...balances];
+            setBalances(allBalances);
         };
 
         fetchBalances();
-    }, [wallets]);
+    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -213,22 +235,23 @@ const LiquidityHandlerRaydium = () => {
             complete: function (results) {
                 //skip the first row
                 const wallets = results.data.slice(1).map(row => row[1]);
+
+                const walletset: string[] = [];
                 wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet') {
+                    if (element === '' || element === 'wallet' || element === undefined) {
                         return;
                     }
-
-                    setdeployerwallets(prevProfiles => [...prevProfiles, {
-                        id: prevProfiles.length,
-                        name: 'Buyer',
-                        wallet: element,
-                        color: randomColor(),
-                    }]);
+                    walletset.push(element);
                 });
                 toast.success('Wallets Loaded Successfully')
-                setDeployerWallets(setsideWallets)
-                localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
-                setWallets(wallets);
+                // setDeployerWallets(setsideWallets)
+                // localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
+                // console.log(walletset);
+                setWallets(walletset);
+                setFormData(prevState => ({
+                    ...prevState,
+                    buyerextraWallets: walletset,
+                }));
             }
         });
     }
@@ -273,6 +296,7 @@ const LiquidityHandlerRaydium = () => {
             setDeployerWallets(setsideWallets)
             localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
             toast.info('Please wait, bundle acceptance may take a few seconds');
+            console.log('formData:', formData);
             const TokenKeypair = Keypair.generate();
             const bundler = await PumpBundler(connection, formData, TokenKeypair, TokenMetadata);
 
@@ -289,7 +313,7 @@ const LiquidityHandlerRaydium = () => {
                 () => (
                     <TransactionToast
                         txSig={TokenKeypair.publicKey.toString()}
-                        message={'AMM ID:'}
+                        message={'Mint:'}
                     />
                 ),
                 { autoClose: 5000 }
@@ -374,19 +398,20 @@ const LiquidityHandlerRaydium = () => {
                                     type="password"
                                     required={true}
                                 />
-                                <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
-                                    <div className={Mode === 5 ? 'w-4/5' : 'w-full'}>
+                                {Mode === 1 && (
+                                    <div className='w-full'>
                                         <InputField
                                             id='buyerPrivateKey'
                                             label='Buyer Private Key'
-                                            subfield={Mode === 5 ? '3 in csv + 1 buyer (🔻) -- or -- 4 in csv' : 'Ghost Bundler'}
+                                            subfield='Ghost Bundler'
                                             value={formData.buyerPrivateKey}
                                             onChange={(e) => handleChange(e, 'buyerPrivateKey')}
                                             placeholder='ghost bundler - buyer private key'
                                             type='password'
                                             required={true}
                                         />
-                                    </div>
+                                    </div>)}
+                                <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
                                     {Mode === 5 && (
                                         <div>
                                             <InputField
@@ -400,7 +425,6 @@ const LiquidityHandlerRaydium = () => {
                                             />
                                         </div>
                                     )}
-
                                     {Mode === 5 && (
                                         <button
                                             className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
@@ -427,7 +451,7 @@ const LiquidityHandlerRaydium = () => {
                                             subfield='ticker'
                                             id="tokenMarketID"
                                             value={formData.symbol}
-                                            onChange={(e) => handleChange(e, 'tokenMarketID')}
+                                            onChange={(e) => handleChange(e, 'symbol')}
                                             placeholder="FLOKI..."
                                             type="text"
                                             required={true}
@@ -438,7 +462,7 @@ const LiquidityHandlerRaydium = () => {
                                         label="Description"
                                         subfield='bla bla bla...'
                                         value={formData.tokenDescription}
-                                        onChange={(e) => handleChange(e, 'tokendescription')}
+                                        onChange={(e) => handleChange(e, 'tokenDescription')}
                                         placeholder="..."
                                         type="text"
                                         required={false}
@@ -615,15 +639,27 @@ const LiquidityHandlerRaydium = () => {
                                         </label>
                                         <br />
                                         <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {balances.map(({ balance, truncatedValue }, index) => (
+                                            {balances.map(({ balance, publicKey }, index) => (
                                                 <p
                                                     key={index}
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[5px] max-w-[300px]"
                                                 >
-                                                    {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncatedValue}</span>
-                                                    <span className='text-[#96989c] text-[12px] font-normal ml-2'
-                                                    > Balance: {balance}</span>
-
+                                                    <span className='text-[#96989c] text-[10px] font-normal'
+                                                    >{index + 1}: </span>
+                                                    <a
+                                                        href={`https://solscan.io/account/${publicKey}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
+                                                        style={{ userSelect: 'text' }}
+                                                    >
+                                                        {publicKey}
+                                                    </a>
+                                                    <br />
+                                                    <span className='text-[#96989c] text-[14px] font-normal ml-2'>
+                                                        Balance: {balance}
+                                                    </span>
+                                                    <br />
                                                 </p>
                                             ))}
                                         </div>

@@ -30,7 +30,7 @@ type BN = typeof ZERO
 
 export type BalanceType = {
     balance: number;
-    truncatedValue: string;
+    publicKey: string;
 };
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
@@ -87,7 +87,7 @@ const LiquidityHandlerRaydium = () => {
         }
 
         if (field === 'solfundingwallet') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = (Keypair.fromSecretKey(new Uint8Array(base58.decode(value))));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet2: wallet.publicKey.toString(),
@@ -137,11 +137,10 @@ const LiquidityHandlerRaydium = () => {
         const fetchBalances = async () => {
             const balances = await Promise.all(
                 Object.entries(wallets).map(async ([value]) => {
-                    const balance = await connection.getBalance(Keypair.fromSecretKey(base58.decode(value)).publicKey);
-                    const truncatedValue = value.length > 10
-                        ? value.slice(0, 6) + '...' + value.slice(-10)
-                        : value;
-                    return { balance, truncatedValue };
+                    const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
+                    const balance = await connection.getBalance(keypair.publicKey);
+
+                    return { balance, publicKey: keypair.publicKey.toString() };
                 })
             );
             setBalances(balances);
@@ -432,13 +431,7 @@ const LiquidityHandlerRaydium = () => {
                                     className="text-center hover:shadow-xl hover:shadow-black/50 w-full border border-[#476e34] rounded-md invoke-btn "
                                     onClick={volumeBot}
                                 >
-                                    <span className="btn-text-gradient font-bold">
-                                        ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
-                                        : <>
-                                            Start Generating Volume
-                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
-                                        </>
-                                    </span>
+                                    Start Generating Volume
                                 </button>
                             </div>
                             {/* <div className='justify-center flex gap-2'>
@@ -465,12 +458,12 @@ const LiquidityHandlerRaydium = () => {
                                 </label>
                                 <br />
                                 <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                    {balances.map(({ balance, truncatedValue }, index) => (
+                                    {balances.map(({ balance, publicKey }, index) => (
                                         <p
                                             key={index}
                                             className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
                                         >
-                                            {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncatedValue}</span>
+                                            {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{publicKey}</span>
                                             <br />
                                             Balance: {balance}
                                         </p>

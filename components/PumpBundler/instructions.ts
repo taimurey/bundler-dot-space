@@ -55,8 +55,8 @@ export async function generateCreatePumpTokenIx(
 
 export async function generateBuyIx(
     token: PublicKey,
-    amount: BN,
-    maxSolAmount: BN,
+    amount: any,
+    maxSolAmount: any,
     mainSigner: Keypair,
     pumpProgram: Program,
 ) {
@@ -65,8 +65,8 @@ export async function generateBuyIx(
     const signerAta = getAssociatedTokenAddressSync(token, mainSigner.publicKey, true);
 
     const buyIx = await pumpProgram.methods.buy(
-        amount,
-        maxSolAmount,
+        new BN(amount),
+        new BN(maxSolAmount),
     ).accounts({
         global: GLOBAL_STATE,
         feeRecipient: FEE_RECEPIENT,

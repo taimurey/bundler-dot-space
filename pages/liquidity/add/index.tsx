@@ -85,7 +85,7 @@ const LiquidityHandlerRaydium = () => {
         }
 
         if (field === 'deployerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = ((Keypair.fromSecretKey(new Uint8Array(base58.decode(value)))));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet2: wallet.publicKey.toString(),
@@ -106,7 +106,7 @@ const LiquidityHandlerRaydium = () => {
         }
 
         if (field === 'buyerPrivateKey') {
-            const wallet = (Keypair.fromSecretKey(base58.decode(value)));
+            const wallet = ((Keypair.fromSecretKey(new Uint8Array(base58.decode(value)))));
             setWallets(prevState => ({
                 ...prevState,
                 Wallet1: wallet.publicKey.toString(),

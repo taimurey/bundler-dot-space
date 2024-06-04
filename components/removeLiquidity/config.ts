@@ -83,7 +83,6 @@ export function LP_wallet_keypair() {
 
 export const lookupTableCache = {}
 
-// export const PUBLIC_KEY_RSA = process.env.NEXT_PUBLIC_KEY_RSA ? process.env.NEXT_PUBLIC_KEY_RSA : (() => { throw new Error("PUBLIC_KEY_RSA is not set") })()
 
 
 

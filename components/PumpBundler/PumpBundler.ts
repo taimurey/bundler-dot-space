@@ -6,17 +6,15 @@ import { getKeypairFromBs58, getRandomElement } from "./misc";
 import { PUMP_PROGRAM_ID, tipAccounts } from './constants';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
+import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddress, } from "@solana/spl-token-2";
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
-import { ApibundleSend } from "../DistributeTokens/bundler";
 import { TAX_WALLET } from "../market/marketInstruction";
 import { uploadMetaData } from "../TransactionUtils/token";
 
 interface PumpTokenCreator {
     coinname: string;
     symbol: string;
-    uri: string;
     websiteUrl: string;
     twitterUrl: string;
     deployerPrivateKey: string;
@@ -36,7 +34,7 @@ export async function PumpBundler(
     TokenKeypair: Keypair,
     metadata: any,
 ): Promise<string> {
-
+    console.log(metadata)
     const uri = await uploadMetaData(metadata);
     const devkeypair = getKeypairFromBs58(pool_data.deployerPrivateKey);
 
@@ -53,24 +51,20 @@ export async function PumpBundler(
     const createIx = await generateCreatePumpTokenIx(TokenKeypair, devkeypair, pool_data.coinname, pool_data.symbol, uri, pumpProgram);
 
 
-    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(pool_data.BuyertokenbuyAmount), new BN(0), devkeypair, pumpProgram);
+    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL), 0, devkeypair, pumpProgram);
 
-    const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
+    const associatedToken = await getAssociatedTokenAddress(TokenKeypair.publicKey, devkeypair.publicKey);
+    const ataIx = createAssociatedTokenAccountIdempotentInstruction(
         devkeypair.publicKey,
-        getAssociatedTokenAddressSync(TokenKeypair.publicKey, devkeypair.publicKey),
+        associatedToken,
         devkeypair.publicKey,
-        new PublicKey(TokenKeypair.publicKey),
-    ))
-
-    const tipAmount = new BN(pool_data.BundleTip).mul(new BN(LAMPORTS_PER_SOL));
-
-    // Convert BN to bigint
-    const tipAmountBigInt = BigInt(tipAmount.toString());
+        TokenKeypair.publicKey,
+    )
 
     const taxIx = SystemProgram.transfer({
         fromPubkey: devkeypair.publicKey,
         toPubkey: TAX_WALLET,
-        lamports: tipAmountBigInt
+        lamports: 0.25 * LAMPORTS_PER_SOL
     });
 
     const devIxs = [createIx, ataIx, devBuyIx, taxIx];
@@ -84,7 +78,6 @@ export async function PumpBundler(
         }).compileToV0Message());
     devTx.sign([devkeypair, TokenKeypair]);
     bundleTxn.push(devTx);
-
     const buyerwallets = [pool_data.buyerPrivateKey, ...pool_data.buyerextraWallets];
 
     // Create a bundle for each buyer
@@ -94,21 +87,34 @@ export async function PumpBundler(
         if (!buyerWallet) {
             throw new Error("Invalid buyer private key");
         }
-        const balance = await connection.getBalance(buyerWallet.publicKey);
 
-        const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
-            buyerWallet.publicKey,
-            getAssociatedTokenAddressSync(TokenKeypair.publicKey, buyerWallet.publicKey),
-            buyerWallet.publicKey,
-            new PublicKey(TokenKeypair.publicKey),
-        ))
+        let balance;
+        if (buyerwallets.length === 1) {
+            balance = Number(pool_data.BuyertokenbuyAmount) * LAMPORTS_PER_SOL;
+        } else {
+            balance = await connection.getBalance(buyerWallet.publicKey);
+        }
+
+        const ata = await getAssociatedTokenAddress(TokenKeypair.publicKey, buyerWallet.publicKey);
+
+        const ataIx = createAssociatedTokenAccountIdempotentInstruction(
+            devkeypair.publicKey,
+            ata,
+            devkeypair.publicKey,
+            TokenKeypair.publicKey,
+        )
+
 
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(balance), new BN(0), buyerWallet, pumpProgram);
-
 
         const buyerIxs = [ataIx, buyerBuyIx];
 
         if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
+            const tipAmount = Number(pool_data.BundleTip) * (LAMPORTS_PER_SOL);
+
+            // Convert BN to bigint
+            const tipAmountBigInt = BigInt(tipAmount.toString());
+
             const tipIx = SystemProgram.transfer({
                 fromPubkey: devkeypair.publicKey,
                 toPubkey: new PublicKey(getRandomElement(tipAccounts)),
@@ -117,7 +123,6 @@ export async function PumpBundler(
 
             buyerIxs.push(tipIx);
         }
-
 
         const buyerTx = new VersionedTransaction(
             new TransactionMessage({
@@ -129,18 +134,24 @@ export async function PumpBundler(
         buyerTx.sign([buyerWallet]);
         bundleTxn.push(buyerTx);
     }
-
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
-    const bundledata = {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "sendBundle",
-        params: [EncodedbundledTxns]
-    };
 
-    const response = await ApibundleSend(bundledata, pool_data.BlockEngineSelection);
+    //send to local server port 2891'
+    const response = await fetch('http://localhost:2891/jitoadd', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ blockengine: pool_data.BlockEngineSelection, txns: EncodedbundledTxns })
+    });
 
-    return response;
+    if (!response.ok) {
+        throw new Error("Failed to send bundle");
+    }
+
+    const result = await response.json();
+
+    return result;
 }
 
 export async function getBundleStatuses(bundleId: string, pool_data: PumpTokenCreator) {
