@@ -109,7 +109,7 @@ export async function PumpBundler(
         )
 
 
-        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, new BN(balance), new BN(0), buyerWallet, pumpProgram);
+        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, balance, 0, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
 
