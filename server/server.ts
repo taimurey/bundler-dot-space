@@ -11,6 +11,7 @@ const port = 2891;
 app.use(cors({
     origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
     methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors());
 

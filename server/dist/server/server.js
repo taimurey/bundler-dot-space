@@ -72,7 +72,9 @@ var port = 2891;
 app.use((0, cors_1.default)({
     origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
     methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', (0, cors_1.default)());
 var http = __importStar(require("http"));
 var path = __importStar(require("path"));
 app.use(bodyParser.json());
