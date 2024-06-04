@@ -12,7 +12,7 @@ app.use(cors({
     origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
     methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
 }));
-
+app.options('*', cors());
 
 
 import * as http from 'http';
