@@ -63,15 +63,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require('dotenv').config();
+var bundle_sender_1 = require("./bundle-sender");
 var express_1 = __importDefault(require("express"));
 var cors_1 = __importDefault(require("cors"));
+var bodyParser = __importStar(require("body-parser"));
 var app = (0, express_1.default)();
 var port = 2891;
-app.use((0, cors_1.default)());
-var bodyParser = __importStar(require("body-parser"));
+app.use((0, cors_1.default)({
+    origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
+    methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+}));
 var http = __importStar(require("http"));
 var path = __importStar(require("path"));
-var bundle_sender_1 = require("./bundle-sender");
 app.use(bodyParser.json());
 app.get('/', function (_, res) {
     var filePath = path.join(__dirname, 'index.html');

@@ -1,19 +1,22 @@
-
 require('dotenv').config();
+
+import { SendBundle } from './bundle-sender';
 import express from 'express';
 import cors from 'cors';
-
+import * as bodyParser from 'body-parser';
 const app = express();
+
 const port = 2891;
 
-app.use(cors()); import * as bodyParser from 'body-parser';
-cors({
-    origin: ['https://mevarik.com', 'http://bundler.space', 'http://localhost:3000'],
-});
+app.use(cors({
+    origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
+    methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+}));
+
+
 
 import * as http from 'http';
 import * as path from 'path';
-import { SendBundle } from './bundle-sender';
 
 
 app.use(bodyParser.json());
