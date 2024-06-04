@@ -110,21 +110,20 @@ export async function PumpBundler(
 
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, balance, 0, buyerWallet, pumpProgram);
 
-        const buyerIxs = [ataIx, buyerBuyIx];
+        let buyerIxs = [ataIx, buyerBuyIx];
+        let signers = [buyerWallet];
 
         if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
             const tipAmount = Number(pool_data.BundleTip) * (LAMPORTS_PER_SOL);
 
-            // Convert BN to bigint
-            const tipAmountBigInt = BigInt(tipAmount.toString());
-
             const tipIx = SystemProgram.transfer({
                 fromPubkey: devkeypair.publicKey,
                 toPubkey: new PublicKey(getRandomElement(tipAccounts)),
-                lamports: tipAmountBigInt
+                lamports: tipAmount
             });
 
             buyerIxs.push(tipIx);
+            signers.push(devkeypair);
         }
 
         const buyerTx = new VersionedTransaction(
@@ -134,7 +133,7 @@ export async function PumpBundler(
                 instructions: buyerIxs,
             }).compileToV0Message());
 
-        buyerTx.sign([buyerWallet]);
+        buyerTx.sign(signers);
         bundleTxn.push(buyerTx);
     }
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
