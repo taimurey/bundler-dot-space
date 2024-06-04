@@ -102,9 +102,9 @@ export async function PumpBundler(
         const ata = await getAssociatedTokenAddress(TokenKeypair.publicKey, buyerWallet.publicKey);
 
         const ataIx = createAssociatedTokenAccountIdempotentInstruction(
-            devkeypair.publicKey,
+            buyerWallet.publicKey,
             ata,
-            devkeypair.publicKey,
+            buyerWallet.publicKey,
             TokenKeypair.publicKey,
         )
 
