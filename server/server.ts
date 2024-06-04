@@ -4,21 +4,24 @@ import { SendBundle } from './bundle-sender';
 import express from 'express';
 import cors from 'cors';
 import * as bodyParser from 'body-parser';
+import * as path from 'path';
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { createServer, Server } from 'http';
+
 const app = express();
 
-const port = 2891;
-
-app.use(cors({
-    origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
-    methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors());
-
-
-import * as http from 'http';
-import * as path from 'path';
-
+app.use(
+    cors({
+        origin: [
+            'https://mevarik.com',
+            'https://bundler.space',
+            'http://localhost:3000',
+            'https://bundler-web.vercel.app'
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+        credentials: true,
+    })
+);
 
 app.use(bodyParser.json());
 
@@ -56,6 +59,11 @@ app.post('/jitoadd', async (req, res) => {
     }
 });
 
-http.createServer(app).listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-});
+let server: Server | null = null;
+
+module.exports = (req: VercelRequest, res: VercelResponse) => {
+    if (server === null) {
+        server = createServer(app);
+    }
+    server.emit('request', req, res);
+};
