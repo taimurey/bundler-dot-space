@@ -5,7 +5,6 @@ import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import { getKeypairFromBs58, getRandomElement } from "./misc";
 import { PUMP_PROGRAM_ID, tipAccounts } from './constants';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { BN } from "bn.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddress, } from "@solana/spl-token-2";
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
