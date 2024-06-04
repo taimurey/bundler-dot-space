@@ -12,21 +12,22 @@ const port = 2891;
 
 
 
-app.use(
-    cors({
-      origin: [
-        'https://mevarik.com',
-        'https://bundler.space',
-         'http://localhost:3000',
-      ],  
-      methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
-      credentials: true,
-    })
-  );
+// app.use(
+//     cors({
+//       origin: [
+//         'https://mevarik.com',
+//         'https://bundler.space',
+//          'http://localhost:3000',
+//       ],  
+//       methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
+//       credentials: true,
+//     })
+//   );
+
+// alow acces from every where
+app.use(cors( {origin: '*'} ));
 
 app.use(bodyParser.json());
-
-
 app.get('/', (_, res) => {
     const filePath = path.join(__dirname, 'index.html');
     res.sendFile(filePath);
