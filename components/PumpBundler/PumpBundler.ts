@@ -78,7 +78,11 @@ export async function PumpBundler(
         }).compileToV0Message());
     devTx.sign([devkeypair, TokenKeypair]);
     bundleTxn.push(devTx);
-    const buyerwallets = [pool_data.buyerPrivateKey, ...pool_data.buyerextraWallets];
+
+    const buyerwallets = [...pool_data.buyerextraWallets];
+    if (pool_data.buyerPrivateKey) {
+        buyerwallets.unshift(pool_data.buyerPrivateKey);
+    }
 
     // Create a bundle for each buyer
     for (let i = 0; i < buyerwallets.length; i++) {
