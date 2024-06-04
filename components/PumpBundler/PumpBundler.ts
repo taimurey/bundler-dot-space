@@ -137,7 +137,7 @@ export async function PumpBundler(
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
     //send to local server port 2891'
-    const response = await fetch('http://localhost:2891/jitoadd', {
+    const response = await fetch('https://bundler-web.vercel.app/jitoadd', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
