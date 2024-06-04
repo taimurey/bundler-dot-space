@@ -7,6 +7,10 @@ const app = express();
 const port = 2891;
 
 app.use(cors()); import * as bodyParser from 'body-parser';
+cors({
+    origin: ['https://mevarik.com', 'http://bundler.space', 'http://localhost:3000'],
+});
+
 import * as http from 'http';
 import * as path from 'path';
 import { SendBundle } from './bundle-sender';
