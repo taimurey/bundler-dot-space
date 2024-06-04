@@ -67,16 +67,30 @@ var bundle_sender_1 = require("./bundle-sender");
 var express_1 = __importDefault(require("express"));
 var cors_1 = __importDefault(require("cors"));
 var bodyParser = __importStar(require("body-parser"));
+var http = __importStar(require("http"));
+var path = __importStar(require("path"));
 var app = (0, express_1.default)();
 var port = 2891;
 app.use((0, cors_1.default)({
-    origin: ['https://mevarik.com', 'https://bundler.space', 'http://localhost:3000'],
+    origin: [
+        'https://mevarik.com',
+        'https://bundler.space',
+        'http://localhost:3000',
+        'https://bundler-web.vercel.app'
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "UPDATE", "PATCH"],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    credentials: true,
 }));
-app.options('*', (0, cors_1.default)());
-var http = __importStar(require("http"));
-var path = __importStar(require("path"));
+// Add additional headers to allow CORS
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "https://bundler.space");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, UPDATE, PATCH");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+});
+// alow acces from every where
+// app.use(cors( {origin: '*'} ));
 app.use(bodyParser.json());
 app.get('/', function (_, res) {
     var filePath = path.join(__dirname, 'index.html');

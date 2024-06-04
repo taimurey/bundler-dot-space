@@ -25,6 +25,16 @@ app.use(
     })
 );
 
+// Add additional headers to allow CORS
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "https://bundler.space");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, UPDATE, PATCH");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+});
+
+
 // alow acces from every where
 // app.use(cors( {origin: '*'} ));
 
