@@ -7,6 +7,10 @@ export interface BundleData {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
     if (req.method === 'POST') {
         // Check if the request body is empty
         if (Object.keys(req.body).length === 0) {
