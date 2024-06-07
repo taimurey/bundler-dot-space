@@ -1,5 +1,6 @@
 'use client';
 
+import pumpIdl from "./pump-idl.json";
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
@@ -24,8 +25,13 @@ import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedIn
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
 import Papa from 'papaparse';
 import { randomColor } from '../add';
-import { getBundleStatuses, PumpBundler } from '../../../components/PumpBundler/PumpBundler';
+import { createLutPump, PumpBundler } from '../../../components/PumpBundler/PumpBundler';
 import { BalanceType } from '../volumebot';
+import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { calculateBuyTokens } from '../../../components/PumpBundler/misc';
+import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
+import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
+import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -34,6 +40,7 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
+    const { setDeployerWallets } = useMyContext();
     const connection = new Connection(cluster.endpoint);
     const [uploading, setUploading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -41,9 +48,11 @@ const LiquidityHandlerRaydium = () => {
     const [Mode, setMode] = useState(1);
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-    const [confirmationstatus, setconfirmationstatus] = useState(`Pending`);
     const [BundleError, setBundleError] = useState(`Not Available`);
     const [wallets, setWallets] = useState<string[]>([]);
+    const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
+    const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
+
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
 
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
@@ -56,6 +65,8 @@ const LiquidityHandlerRaydium = () => {
         coinname: string;
         symbol: string;
         tokenDescription: string;
+        tokenKeypair: string;
+        tokenKeypairpublicKey: string;
         deployerPrivateKey: string;
         buyerPrivateKey: string;
         buyerextraWallets: string[];
@@ -71,6 +82,8 @@ const LiquidityHandlerRaydium = () => {
         coinname: '',
         symbol: '',
         tokenDescription: '',
+        tokenKeypair: '',
+        tokenKeypairpublicKey: '',
         deployerPrivateKey: '',
         buyerPrivateKey: '',
         buyerextraWallets: [],
@@ -139,6 +152,9 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
+
+
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
         handleChange(e, "uploadedImage")
@@ -186,44 +202,6 @@ const LiquidityHandlerRaydium = () => {
             reader.readAsDataURL(file);
         }
     };
-    React.useEffect(() => {
-        const fetchBalances = async () => {
-            let allBalances: BalanceType[] = [];
-
-            if (formData.deployerPrivateKey) {
-                const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
-                const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
-            }
-
-            if (formData.buyerPrivateKey) {
-                const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
-                const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
-            }
-
-            const balances = await Promise.all(
-                Object.entries(wallets).map(async ([key, value]) => {
-                    try {
-                        console.log('value:', key);
-                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
-                        const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                        return { balance, publicKey: keypair.publicKey.toString() };
-
-                    }
-                    catch (error) {
-                        toast.error(`Error fetching balance: ${error}`);
-                        return { balance: 0, publicKey: 'Invalid' };
-                    }
-                })
-            );
-
-            allBalances = [...allBalances, ...balances];
-            setBalances(allBalances);
-        };
-
-        fetchBalances();
-    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -318,11 +296,7 @@ const LiquidityHandlerRaydium = () => {
                 ),
                 { autoClose: 5000 }
             );
-            const result = await getBundleStatuses(bundler, formData);
-            const confirmationStatus = result.value[0].confirmation_status;
-            const err = result.value[0].err;
-            setconfirmationstatus(confirmationStatus);
-            setBundleError(err);
+
 
 
         } catch (error) {
@@ -348,7 +322,86 @@ const LiquidityHandlerRaydium = () => {
 
     }
 
-    const { setDeployerWallets } = useMyContext();
+    React.useEffect(() => {
+        const fetchBalances = async () => {
+            let allBalances: BalanceType[] = [];
+
+            if (formData.deployerPrivateKey) {
+                const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
+            }
+
+            if (formData.buyerPrivateKey) {
+                const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
+            }
+
+            const balances = await Promise.all(
+                Object.entries(wallets).map(async ([key, value]) => {
+                    try {
+                        console.log('value:', key);
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
+                        const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                        return { balance, publicKey: keypair.publicKey.toString() };
+
+                    }
+                    catch (error) {
+                        toast.error(`Error fetching balance: ${error}`);
+                        return { balance: 0, publicKey: 'Invalid' };
+                    }
+                })
+            );
+
+            allBalances = [...allBalances, ...balances];
+            setBalances(allBalances);
+        };
+
+        fetchBalances();
+    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
+
+    React.useEffect(() => {
+        const amountsCalculation = async () => {
+            const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(Keypair.generate()), AnchorProvider.defaultOptions()));
+
+            const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
+            const tempBondingCurveData = {
+                virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
+                virtualSolReserves: globalStateData.initialVirtualSolReserves,
+                realTokenReserves: globalStateData.initialRealTokenReserves,
+            }
+            const devBuyQuote = calculateBuyTokens(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
+            const devMaxSolPercentage = ((devBuyQuote.toNumber() / 1000000) / 1000000000) * 100;
+
+            setDevMaxSolPercentage(devMaxSolPercentage.toFixed(2));
+        }
+
+        amountsCalculation();
+
+    }, [formData.DevtokenbuyAmount]);
+
+    React.useEffect(() => {
+        const amountsCalculation = async () => {
+            const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(Keypair.generate()), AnchorProvider.defaultOptions()));
+
+            const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
+            const tempBondingCurveData = {
+                virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
+                virtualSolReserves: globalStateData.initialVirtualSolReserves,
+                realTokenReserves: globalStateData.initialRealTokenReserves,
+            }
+            const devBuyQuote = calculateBuyTokens(new BN(Number(formData.BuyertokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
+
+            const devMaxSolPercentage = ((devBuyQuote.toNumber() / 1000000) / 1000000000) * 100;
+
+            setbuyerMaxSolPercentage(devMaxSolPercentage.toFixed(2));
+        }
+
+        amountsCalculation();
+    }, [formData.BuyertokenbuyAmount]);
+
+
 
     return (
         <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative">
@@ -387,7 +440,31 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
 
                                 </div>
-
+                                <div className='flex justify-center items-center gap-2'>
+                                    <InputField
+                                        id="tokenmintKeypair"
+                                        label="Token Address"
+                                        subfield='token Address to be deployed'
+                                        value={formData.tokenKeypairpublicKey}
+                                        onChange={(e) => handleChange(e, 'tokenKeypairpublicKey')}
+                                        placeholder="Mint Token Address"
+                                        type="text"
+                                        disabled={true}
+                                        required={false}
+                                    />
+                                    <button
+                                        className='bundler-btn border p-2 w-1/3 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            const tokenMint = Keypair.generate();
+                                            setFormData(prevState => ({
+                                                ...prevState,
+                                                tokenKeypairpublicKey: tokenMint.publicKey.toBase58(),
+                                                tokenKeypair: bs58.encode(tokenMint.secretKey),
+                                            }))
+                                        }}
+                                    >Generate</button>
+                                </div>
                                 <InputField
                                     id="deployerPrivatekey"
                                     label="Deployer Private Key"
@@ -433,6 +510,7 @@ const LiquidityHandlerRaydium = () => {
                                         </button>
                                     )}
                                 </div>
+
                                 <div className='flex flex-col gap-2' id="tokeninfo">
                                     <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Coin Metadata</h3>
                                     <div className='flex justify-center items-center gap-2'>
@@ -537,8 +615,8 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <InputField
                                         id="DevtokenbuyAmount"
-                                        label="Dev Buy Amount"
-                                        subfield='sol'
+                                        label={`Dev Buy Amount`}
+                                        subfield={`${formData.DevtokenbuyAmount} Supply: ${devMaxSolPercentage}%`}
                                         value={formData.DevtokenbuyAmount}
                                         onChange={(e) => handleChange(e, 'DevtokenbuyAmount')}
                                         placeholder="First Buy Amount"
@@ -550,7 +628,7 @@ const LiquidityHandlerRaydium = () => {
                                             <InputField
                                                 id="BuyertokenbuyAmount"
                                                 label="Buy Amount"
-                                                subfield='sol'
+                                                subfield={`${formData.BuyertokenbuyAmount} Supply: ${buyerMaxSolPercentage}%`}
                                                 value={formData.BuyertokenbuyAmount}
                                                 onChange={(e) => handleChange(e, 'BuyertokenbuyAmount')}
                                                 placeholder="First Buy Amount"
@@ -607,7 +685,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                     <div className='justify-center'>
                                         <button
-                                            className="text-center hover:shadow-xl hover:shadow-black/50 w-full border border-[#476e34] rounded-md invoke-btn "
+                                            className="text-center w-full invoke-btn"
                                             disabled={uploading}
                                             type="submit"
                                             id="formbutton"
@@ -618,7 +696,7 @@ const LiquidityHandlerRaydium = () => {
                                                 {uploading
                                                     ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
                                                     : <>
-                                                        Initiate Deployment Sequence
+                                                        Initiate Deployment
                                                         <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
                                                     </>
                                                 }
@@ -671,24 +749,11 @@ const LiquidityHandlerRaydium = () => {
                                         latedisplay={true}
                                     />
                                     <OutputField
-                                        id='bundlestatus'
-                                        label='Bundle Status'
-                                        value={confirmationstatus}
-                                        latedisplay={true}
-                                    />
-                                    <OutputField
                                         id='bundleError'
                                         label='Bundle Error'
                                         value={BundleError}
                                         latedisplay={true}
                                     />
-                                    <OutputField
-                                        id='percentComplete'
-                                        label='Image Size'
-                                        value={percentComplete.toString()}
-                                        latedisplay={true}
-                                    />
-
                                 </div>
                             </div>
                         </div>
