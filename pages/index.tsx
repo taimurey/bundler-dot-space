@@ -39,11 +39,6 @@ interface Feature {
   description: string;
 }
 
-// interface RoadmapData {
-//   heading: string;
-//   titles: string[];
-//   icon: React.ReactNode;
-// }
 
 const features: Feature[] = [
   {
@@ -73,25 +68,6 @@ const features: Feature[] = [
   }
 ];
 
-// const roadmapData: RoadmapData[] = [
-//   {
-//     heading: "Launching",
-//     titles: ["TELEGRAM BOT", "WEB DAPP", "SNIPER BOT",
-//       "TOKEN MINER"
-//     ],
-//     icon: <TickIcon />
-//   },
-//   {
-//     heading: "Next",
-//     titles: ["ARBITRAGE BOT", "ETH SANDWICH", "TRADE OVERVIEW", "DAPP LAUNCHER"],
-//     icon: <PencilScale />
-//   },
-//   {
-//     heading: "Future",
-//     titles: ["MULTI PLATFORM", "WALLET TRACKER", "MULTICHAIN", "TRADE HISTORY"],
-//     icon: <Clock />
-//   }
-// ];
 
 const pages = [
   {
@@ -185,31 +161,6 @@ const Home = () => {
       </div>
 
       <div className="p-20">
-        {/* <p className={`text-[42px] lg:text-[72px] leading-[50px] text-start px-2
-     font-[HeliukBrave] `}>
-          ROADMAP
-        </p>
-        <p className="max-w-[600px] py-12 px-4 text-[18px] font-thin leading-[27px] text-white">
-          We&apos;re continually working on innovations to enhance the trading experience and empower users with a competitive edge. Instead of a traditional roadmap with deadlines, we present our plans through a &apos;now/next/later&apos; approach.
-        </p>
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-          {roadmapData.map(({ heading, titles, icon }, index) => (
-            <div key={index} className="w-full p-6 border bg-[#0f1117] border-[#232221] rounded-xl shadow-lg shadow-[#1a1919]">
-              <div className="flex justify-start items-center mb-2 px-2 gap-4">
-                <div className="bg-[#f5ac40] p-2 rounded-md text-black">{icon}</div>
-                <h2 className="text-xl font-light">{heading}</h2>
-              </div>
-              <div className="flex flex-col gap-4 py-2">
-                {titles.map((title, index) => (
-                  <p key={index} className="p-6 border border-[#232221] font-[HeliukBrave] text-[32px] rounded-xl shadow-md shadow-[#1a1919] bg-[#0f1117] cursor-pointer">
-                    {title}
-                  </p>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div> */}
-
         <div>
           <div className=" flex justify-center items-center h-screen">
             <div className="font-normal font-heliukBrave text-[90px] tracking-wide uppercase bg-gradient-to-br from-[#f3986d] to-[#b3c420] bg-clip-text text-transparent animate-typing">

@@ -1,7 +1,7 @@
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import pumpIdl from "./pump-idl.json";
-import { PUMP_PROGRAM_ID, tipAccounts } from "./constants";
+import { GLOBAL_STATE, PUMP_PROGRAM_ID, tipAccounts } from "./constants";
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
@@ -10,6 +10,7 @@ import base58 from "bs58";
 import { ApibundleSend } from "../DistributeTokens/bundler";
 import { generateBuyIx } from "./instructions";
 import { Liquidity, TxVersion } from '@raydium-io/raydium-sdk';
+import { calculateBuyTokens } from "./misc";
 
 
 export async function PumpVolumeGenerator(
@@ -32,7 +33,18 @@ export async function PumpVolumeGenerator(
         new PublicKey(keypair.publicKey),
     ))
 
-    const buyerBuyIx = await generateBuyIx(mintaddress, new BN(balance), new BN(0), keypair, pumpProgram);
+    const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
+
+    const tempBondingCurveData = {
+        virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
+        virtualSolReserves: globalStateData.initialVirtualSolReserves,
+        realTokenReserves: globalStateData.initialRealTokenReserves,
+    }
+
+    const devBuyQuote = calculateBuyTokens(new BN(balance), tempBondingCurveData);
+    const devMaxSol = new BN((balance + ((balance * 0.5))))
+    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote, devMaxSol, keypair, getAssociatedTokenAddressSync(mintaddress, keypair.publicKey), pumpProgram);
+
 
     const buyerIxs = [ataIx, buyerBuyIx];
 

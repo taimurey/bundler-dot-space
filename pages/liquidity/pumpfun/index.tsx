@@ -25,7 +25,7 @@ import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedIn
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
 import Papa from 'papaparse';
 import { randomColor } from '../add';
-import { createLutPump, PumpBundler } from '../../../components/PumpBundler/PumpBundler';
+import { PumpBundler } from '../../../components/PumpBundler/PumpBundler';
 import { BalanceType } from '../volumebot';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { calculateBuyTokens } from '../../../components/PumpBundler/misc';
@@ -44,11 +44,9 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     const [uploading, setUploading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [percentComplete, setPercentComplete] = useState(0);
     const [Mode, setMode] = useState(1);
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-    const [BundleError, setBundleError] = useState(`Not Available`);
     const [wallets, setWallets] = useState<string[]>([]);
     const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
@@ -180,7 +178,7 @@ const LiquidityHandlerRaydium = () => {
                     const cid = await client.storeCar(car, {
                         onStoredChunk: (size) => {
                             // Update the upload progress
-                            setPercentComplete((prevPercentComplete) => prevPercentComplete + size);
+                            console.log('Stored', size);
                         },
                     });
 
@@ -270,13 +268,14 @@ const LiquidityHandlerRaydium = () => {
             }
         }
 
+        setDeployerWallets(setsideWallets)
+        localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
+        toast.info('Please wait, bundle acceptance may take a few seconds');
+
+        const TokenKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.tokenKeypair)));
+        let bundler = '';
         try {
-            setDeployerWallets(setsideWallets)
-            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
-            toast.info('Please wait, bundle acceptance may take a few seconds');
-            console.log('formData:', formData);
-            const TokenKeypair = Keypair.generate();
-            const bundler = await PumpBundler(connection, formData, TokenKeypair, TokenMetadata);
+            bundler = await PumpBundler(connection, formData, TokenKeypair, TokenMetadata);
 
             toast(
                 () => (
@@ -296,22 +295,19 @@ const LiquidityHandlerRaydium = () => {
                 ),
                 { autoClose: 5000 }
             );
-
-
-
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
                 if (error.response && error.response.status === 500) {
                     toast.error(`${error.response.data}`);
                 } else {
-                    toast.error('Error occurred: Please Fill in all the fields');
+                    toast.error('Unknown error occurred');
                 }
             } else {
                 toast.error('An unknown error occurred');
             }
         }
-    };
+    }
 
     const DownloadSample = () => {
         const file = ("/sample_wallets.csv")
@@ -748,12 +744,12 @@ const LiquidityHandlerRaydium = () => {
                                         value={formData.coinname}
                                         latedisplay={true}
                                     />
-                                    <OutputField
+                                    {/* <OutputField
                                         id='bundleError'
                                         label='Bundle Error'
                                         value={BundleError}
                                         latedisplay={true}
-                                    />
+                                    /> */}
                                 </div>
                             </div>
                         </div>
