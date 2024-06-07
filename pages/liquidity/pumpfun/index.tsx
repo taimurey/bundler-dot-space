@@ -398,6 +398,14 @@ const LiquidityHandlerRaydium = () => {
     }, [formData.BuyertokenbuyAmount]);
 
 
+    React.useEffect(() => {
+        const tokenMint = Keypair.generate();
+        setFormData(prevState => ({
+            ...prevState,
+            tokenKeypairpublicKey: tokenMint.publicKey.toBase58(),
+            tokenKeypair: bs58.encode(tokenMint.secretKey),
+        }));
+    }, []);
 
     return (
         <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative">
