@@ -58,7 +58,6 @@ export async function generateBuyIx(
     amount: any,
     maxSolAmount: any,
     mainSigner: Keypair,
-    ata: PublicKey,
     pumpProgram: Program,
 ) {
     const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);

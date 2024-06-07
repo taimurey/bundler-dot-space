@@ -43,7 +43,7 @@ export async function PumpVolumeGenerator(
 
     const devBuyQuote = calculateBuyTokens(new BN(balance), tempBondingCurveData);
     const devMaxSol = new BN((balance + ((balance * 0.5))))
-    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote, devMaxSol, keypair, getAssociatedTokenAddressSync(mintaddress, keypair.publicKey), pumpProgram);
+    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote, devMaxSol, keypair, pumpProgram);
 
 
     const buyerIxs = [ataIx, buyerBuyIx];

@@ -59,8 +59,8 @@ export async function PumpBundler(
 
     //calculate the amount of tokens for tghe dev to buy depending on the configured sol amount
     const devBuyQuote = calculateBuyTokens(new BN(Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
-    const devMaxSol = new BN((Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL) + ((Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL) * 0.5))))
-    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, devkeypair, associatedToken, pumpProgram);
+    const devMaxSol = new BN((Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL) + 0.5))
+    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, devkeypair, pumpProgram);
 
 
     const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
@@ -122,8 +122,8 @@ export async function PumpBundler(
         )
 
         const devBuyQuote = calculateBuyTokens(new BN(balance), tempBondingCurveData);
-        const devMaxSol = new BN((balance + ((Number(pool_data.DevtokenbuyAmount) * (LAMPORTS_PER_SOL) * 0.5))))
-        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, ata, pumpProgram);
+        const devMaxSol = new BN((balance))
+        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
         const signers = [buyerWallet];
