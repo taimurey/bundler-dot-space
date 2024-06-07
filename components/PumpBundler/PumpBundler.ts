@@ -4,7 +4,7 @@ import pumpIdl from "./pump-idl.json";
 import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import { calculateBuyTokens, getKeypairFromBs58, getRandomElement } from "./misc";
 import { GLOBAL_STATE, PUMP_PROGRAM_ID, tipAccounts } from './constants';
-import { ComputeBudgetProgram, Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
@@ -78,10 +78,7 @@ export async function PumpBundler(
         lamports: 0.25 * LAMPORTS_PER_SOL
     });
 
-    const computeLimitIx = (ComputeBudgetProgram.setComputeUnitLimit({ units: 250000 }));
-    const computePriceIx = (ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250000 }));
-
-    const devIxs = [computeLimitIx, computePriceIx, createIx, ataIx, devBuyIx, taxIx];
+    const devIxs = [createIx, ataIx, devBuyIx, taxIx];
 
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
@@ -123,10 +120,9 @@ export async function PumpBundler(
             TokenKeypair.publicKey,
         )
 
-        const rent = 0.00203928 * LAMPORTS_PER_SOL;
 
-        const devBuyQuote = calculateBuyTokens(new BN(balance - rent).muln(99).divn(100), tempBondingCurveData);
-        const devMaxSol = new BN((balance))
+        const devBuyQuote = calculateBuyTokens(new BN(balance).muln(90).divn(100), tempBondingCurveData);
+        const devMaxSol = new BN((balance)).muln(92).divn(100)
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
