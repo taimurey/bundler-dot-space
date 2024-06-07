@@ -60,8 +60,8 @@ export async function PumpBundler(
     const devBuyAmount = Number(pool_data.DevtokenbuyAmount) * LAMPORTS_PER_SOL;
 
     //calculate the amount of tokens for tghe dev to buy depending on the configured sol amount
-    const devBuyQuote = calculateBuyTokens(new BN(devBuyAmount), tempBondingCurveData);
-    const devMaxSol = new BN((devBuyAmount + ((devBuyAmount * 0.5))))
+    const devBuyQuote = calculateBuyTokens(new BN(devBuyAmount).muln(99).divn(100), tempBondingCurveData);
+    const devMaxSol = new BN((devBuyAmount))
     const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, devkeypair, pumpProgram);
 
 
@@ -123,8 +123,10 @@ export async function PumpBundler(
             TokenKeypair.publicKey,
         )
 
-        const devBuyQuote = calculateBuyTokens(new BN(balance - ((0.005) * LAMPORTS_PER_SOL)), tempBondingCurveData);
-        const devMaxSol = new BN((balance + ((balance * 0.5))))
+        const rent = 0.00203928 * LAMPORTS_PER_SOL;
+
+        const devBuyQuote = calculateBuyTokens(new BN(balance - rent).muln(99).divn(100), tempBondingCurveData);
+        const devMaxSol = new BN((balance))
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
