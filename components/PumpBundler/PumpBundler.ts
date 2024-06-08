@@ -121,8 +121,8 @@ export async function PumpBundler(
         )
 
 
-        const devBuyQuote = calculateBuyTokens(new BN(balance).muln(98).divn(100), tempBondingCurveData);
-        const devMaxSol = new BN((balance)).muln(99).divn(100)
+        const devBuyQuote = calculateBuyTokens(new BN(balance).muln(90).divn(100), tempBondingCurveData);
+        const devMaxSol = new BN((balance)).muln(91).divn(100)
         const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
