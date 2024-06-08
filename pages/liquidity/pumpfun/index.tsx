@@ -32,6 +32,7 @@ import { calculateBuyTokens } from '../../../components/PumpBundler/misc';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
+import { truncate } from "../../../components/common/Allprofiles";
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -203,6 +204,7 @@ const LiquidityHandlerRaydium = () => {
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
+            toast.error('No file selected');
             return;
         }
         const file = event.target.files[0];
@@ -217,17 +219,24 @@ const LiquidityHandlerRaydium = () => {
                     if (element === '' || element === 'wallet' || element === undefined) {
                         return;
                     }
-                    walletset.push(element);
+                    try {
+                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(element)));
+                        walletset.push(element);
+                    } catch (err) {
+                        toast.error(`Invalid wallet address: ${element}`);
+                    }
                 });
-                toast.success('Wallets Loaded Successfully')
-                // setDeployerWallets(setsideWallets)
-                // localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
-                // console.log(walletset);
-                setWallets(walletset);
-                setFormData(prevState => ({
-                    ...prevState,
-                    buyerextraWallets: walletset,
-                }));
+                if (walletset.length > 0) {
+                    toast.success('Wallets Loaded Successfully')
+                    setWallets(walletset);
+                    setFormData(prevState => ({
+                        ...prevState,
+                        Wallets: walletset,
+                    }));
+                }
+            },
+            error: function (err) {
+                toast.error(`An error occurred while parsing the file: ${err.message}`);
             }
         });
     }
@@ -722,27 +731,22 @@ const LiquidityHandlerRaydium = () => {
                                         <br />
                                         <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
                                             {balances.map(({ balance, publicKey }, index) => (
-                                                <p
+                                                <a
                                                     key={index}
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[5px] max-w-[300px]"
+                                                    href={`https://solscan.io/account/${publicKey}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[5px] max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
+                                                    style={{ userSelect: 'text' }}
                                                 >
-                                                    <span className='text-[#96989c] text-[10px] font-normal'
-                                                    >{index + 1}: </span>
-                                                    <a
-                                                        href={`https://solscan.io/account/${publicKey}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
-                                                        style={{ userSelect: 'text' }}
-                                                    >
-                                                        {publicKey}
-                                                    </a>
-                                                    <br />
-                                                    <span className='text-[#96989c] text-[14px] font-normal ml-2'>
-                                                        Balance: {balance}
-                                                    </span>
-                                                    <br />
-                                                </p>
+                                                    <p>
+                                                        <span className='text-[#96989c] text-[15px] font-normal'>{index + 1}: </span>
+                                                        {truncate(publicKey, 6, 7)!}
+                                                        <br />
+                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
+                                                        <br />
+                                                    </p>
+                                                </a>
                                             ))}
                                         </div>
                                     </div>

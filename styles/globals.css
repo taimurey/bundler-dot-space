@@ -83,6 +83,10 @@ body {
   @apply font-bold rounded-xl py-2 hover:border-[#00ffdd] flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
 }
 
+.btn-normal {
+  @apply font-bold rounded-xl py-2 hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
+}
+
 .bundler-btn {
   @apply font-bold rounded-xl hover:border-[#00ffdd] flex mt-9 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
 }

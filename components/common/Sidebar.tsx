@@ -185,6 +185,13 @@ const Sidebar: FC = () => {
             description: 'Create a PumpFun Bundle',
             icon: <Capsule />,
         },
+        {
+            href: '/liquidity/pumpfunSeller',
+            isActive: router.pathname === '/liquidity/pumpfunSeller',
+            title: 'PumpFun Seller',
+            description: 'Create a PumpFun Bundle',
+            icon: <Capsule />,
+        },
 
         {
             href: '/liquidity/add',
@@ -237,14 +244,16 @@ const Sidebar: FC = () => {
             router.pathname === '/liquidity/manage' ||
             router.pathname === '/liquidity/swap' ||
             router.pathname === '/liquidity/pumpfun' ||
-            router.pathname === '/liquidity/volumebot'
+            router.pathname === '/liquidity/volumebot' ||
+            router.pathname === '/liquidity/pumpfunSeller'
         ) {
             return (
                 link.href === '/liquidity/add' ||
                 link.href === '/liquidity/manage' ||
                 link.href === '/liquidity/swap' ||
                 link.href === '/liquidity/pumpfun' ||
-                link.href === '/liquidity/volumebot'
+                link.href === '/liquidity/volumebot' ||
+                link.href === '/liquidity/pumpfunSeller'
             );
         }
         return false;
