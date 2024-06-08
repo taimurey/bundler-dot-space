@@ -181,6 +181,7 @@ export async function PumpBundler(
     console.log(EncodedbundledTxns);
 
     //send to local server port 2891'
+    //send to local server port 2891'
     const response = await fetch('https://mevarik-deployer.xyz:8080/bundlesend', {
         method: 'POST',
         headers: {
@@ -189,14 +190,12 @@ export async function PumpBundler(
         body: JSON.stringify({ blockengine: `https://${pool_data.BlockEngineSelection}`, txns: EncodedbundledTxns })
     });
 
-    let result;
-
-    try {
-        result = await response.json();
-    } catch (error) {
-        result = await response.text();
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
     }
 
+    const result = await response.json();
 
     return result;
 }

