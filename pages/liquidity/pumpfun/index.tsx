@@ -28,11 +28,11 @@ import { randomColor } from '../add';
 import { PumpBundler } from '../../../components/PumpBundler/PumpBundler';
 import { BalanceType } from '../volumebot';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { calculateBuyTokens } from '../../../components/PumpBundler/misc';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { truncate } from "../../../components/common/Allprofiles";
+import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -359,6 +359,11 @@ const LiquidityHandlerRaydium = () => {
                 })
             );
 
+            setFormData(prevState => ({
+                ...prevState,
+                buyerextraWallets: wallets,
+            }));
+
             allBalances = [...allBalances, ...balances];
             setBalances(allBalances);
         };
@@ -376,8 +381,8 @@ const LiquidityHandlerRaydium = () => {
                 virtualSolReserves: globalStateData.initialVirtualSolReserves,
                 realTokenReserves: globalStateData.initialRealTokenReserves,
             }
-            const devBuyQuote = calculateBuyTokens(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
-            const devMaxSolPercentage = ((devBuyQuote.toNumber() / 1000000) / 1000000000) * 100;
+            const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
+            const devMaxSolPercentage = ((devBuyQuote.tokenAmount.toNumber() / 1000000) / 1000000000) * 100;
 
             setDevMaxSolPercentage(devMaxSolPercentage.toFixed(2));
         }
@@ -396,9 +401,9 @@ const LiquidityHandlerRaydium = () => {
                 virtualSolReserves: globalStateData.initialVirtualSolReserves,
                 realTokenReserves: globalStateData.initialRealTokenReserves,
             }
-            const devBuyQuote = calculateBuyTokens(new BN(Number(formData.BuyertokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
+            const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(Number(formData.BuyertokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
 
-            const devMaxSolPercentage = ((devBuyQuote.toNumber() / 1000000) / 1000000000) * 100;
+            const devMaxSolPercentage = ((devBuyQuote.tokenAmount.toNumber() / 1000000) / 1000000000) * 100;
 
             setbuyerMaxSolPercentage(devMaxSolPercentage.toFixed(2));
         }

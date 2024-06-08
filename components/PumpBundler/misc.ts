@@ -208,14 +208,32 @@ const calculateFee = (amount: BN, feeBasisPoints: BN): BN => {
     return amount.mul(feeBasisPoints).div(new BN(10000));
 };
 
-export function calculateBuyTokens(
+// export function calculateBuyTokens(
+//     solAmount: BN,
+//     bondingCurve: any,
+// ): BN {
+//     if (solAmount.eq(new BN(0)) || !bondingCurve) {
+//         return new BN(0);
+//     }
+//     //let quote: BN;
+//     let tokenAmount: BN;
+
+//     const product = bondingCurve.virtualSolReserves.mul(bondingCurve.virtualTokenReserves);
+//     const newSolReserves = bondingCurve.virtualSolReserves.add(solAmount);
+//     const newTokenAmount = product.div(newSolReserves).add(new BN(1));
+//     tokenAmount = bondingCurve.virtualTokenReserves.sub(newTokenAmount);
+//     tokenAmount = BN.min(tokenAmount, bondingCurve.realTokenReserves);
+//     return tokenAmount;
+// }
+
+export function calculateBuyTokensAndNewReserves(
     solAmount: BN,
     bondingCurve: any,
-): BN {
+): { tokenAmount: BN, newReserves: any } {
     if (solAmount.eq(new BN(0)) || !bondingCurve) {
-        return new BN(0);
+        return { tokenAmount: new BN(0), newReserves: bondingCurve };
     }
-    //let quote: BN;
+
     let tokenAmount: BN;
 
     const product = bondingCurve.virtualSolReserves.mul(bondingCurve.virtualTokenReserves);
@@ -223,7 +241,14 @@ export function calculateBuyTokens(
     const newTokenAmount = product.div(newSolReserves).add(new BN(1));
     tokenAmount = bondingCurve.virtualTokenReserves.sub(newTokenAmount);
     tokenAmount = BN.min(tokenAmount, bondingCurve.realTokenReserves);
-    return tokenAmount;
+
+    const newReserves = {
+        ...bondingCurve,
+        virtualSolReserves: newSolReserves,
+        virtualTokenReserves: bondingCurve.virtualTokenReserves.sub(tokenAmount),
+    };
+
+    return { tokenAmount, newReserves };
 }
 
 

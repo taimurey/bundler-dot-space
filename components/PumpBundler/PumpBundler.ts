@@ -2,7 +2,7 @@ import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { generateBuyIx, generateCreatePumpTokenIx } from "./instructions";
 import pumpIdl from "./pump-idl.json";
 import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
-import { calculateBuyTokens, getKeypairFromBs58, getRandomElement } from "./misc";
+import { calculateBuyTokensAndNewReserves, getKeypairFromBs58, getRandomElement } from "./misc";
 import { GLOBAL_STATE, PUMP_PROGRAM_ID, tipAccounts } from './constants';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
@@ -60,9 +60,9 @@ export async function PumpBundler(
     const devBuyAmount = Number(pool_data.DevtokenbuyAmount) * LAMPORTS_PER_SOL;
 
     //calculate the amount of tokens for tghe dev to buy depending on the configured sol amount
-    const devBuyQuote = calculateBuyTokens(new BN(devBuyAmount), tempBondingCurveData);
+    const devBuyQuote1 = calculateBuyTokensAndNewReserves(new BN(devBuyAmount), tempBondingCurveData);
     const devMaxSol = new BN(devBuyAmount).muln(101).divn(100);
-    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, devkeypair, pumpProgram);
+    const devBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote1.tokenAmount, devMaxSol, devkeypair, pumpProgram);
 
 
     const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
@@ -96,6 +96,24 @@ export async function PumpBundler(
         buyerwallets.unshift(pool_data.buyerPrivateKey);
     }
 
+    let lastNonZeroBalanceIndex = -1;
+
+    // Find the last non-zero balance wallet
+    for (let i = 0; i < buyerwallets.length; i++) {
+        const buyerWallet = getKeypairFromBs58(buyerwallets[i])!;
+        let balance;
+        if (buyerwallets.length === 1) {
+            balance = new BN(Number(pool_data.BuyertokenbuyAmount) * LAMPORTS_PER_SOL);
+        } else {
+            balance = await connection.getBalance(buyerWallet.publicKey);
+        }
+        if (balance != 0) {
+            lastNonZeroBalanceIndex = i;
+        }
+    }
+
+    let currentReserves = devBuyQuote1.newReserves;
+    console.log(buyerwallets.length);
     // Create a bundle for each buyer
     for (let i = 0; i < buyerwallets.length; i++) {
         const buyerWallet = getKeypairFromBs58(buyerwallets[i]);
@@ -111,6 +129,10 @@ export async function PumpBundler(
             balance = await connection.getBalance(buyerWallet.publicKey);
         }
 
+        if (balance == 0) {
+            continue;
+        }
+
         const ata = getAssociatedTokenAddressSync(TokenKeypair.publicKey, buyerWallet.publicKey);
 
         const ataIx = createAssociatedTokenAccountIdempotentInstruction(
@@ -120,15 +142,18 @@ export async function PumpBundler(
             TokenKeypair.publicKey,
         )
 
+        //90% of the balance + 15% of the balance
+        // const devBuyQuote = new BN(balance).muln(90).divn(100).add(new BN(balance).muln(15).divn(100));
 
-        const devBuyQuote = calculateBuyTokens(new BN(balance).muln(90).divn(100), tempBondingCurveData);
-        const devMaxSol = new BN((balance)).muln(91).divn(100)
-        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, devBuyQuote, devMaxSol, buyerWallet, pumpProgram);
+        const { tokenAmount, newReserves } = calculateBuyTokensAndNewReserves((new BN(balance).muln(98).divn(100)), currentReserves);
+        currentReserves = newReserves;
+        // const devMaxSol = Number(balance);
+        const buyerBuyIx = await generateBuyIx(TokenKeypair.publicKey, tokenAmount, balance, buyerWallet, pumpProgram);
 
         const buyerIxs = [ataIx, buyerBuyIx];
         const signers = [buyerWallet];
 
-        if (i === buyerwallets.length - 1 && i === buyerwallets.length - 1) {
+        if (i === lastNonZeroBalanceIndex) {
             const tipAmount = Number(pool_data.BundleTip) * (LAMPORTS_PER_SOL);
 
             const tipIx = SystemProgram.transfer({
@@ -153,6 +178,8 @@ export async function PumpBundler(
     }
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
+    console.log(EncodedbundledTxns);
+
     //send to local server port 2891'
     const response = await fetch('https://mevarik-deployer.xyz:8080/bundlesend', {
         method: 'POST',
@@ -162,7 +189,14 @@ export async function PumpBundler(
         body: JSON.stringify({ blockengine: `https://${pool_data.BlockEngineSelection}`, txns: EncodedbundledTxns })
     });
 
-    const result = await response.json();
+    let result;
+
+    try {
+        result = await response.json();
+    } catch (error) {
+        result = await response.text();
+    }
+
 
     return result;
 }

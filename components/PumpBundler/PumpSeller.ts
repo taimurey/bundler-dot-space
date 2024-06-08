@@ -29,20 +29,50 @@ export async function PumpSeller(
 
     const bundleTxn = [];
 
+    let lastNonZeroBalanceIndex = -1;
+
+    // Find the last non-zero balance wallet
+    for (let i = 0; i < wallets.length; i++) {
+        const wallet = Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallets[i])));
+        let tokenBalance;
+        try {
+            tokenBalance = await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(tokenMint, wallet.publicKey));
+        } catch (e) {
+            console.log(e)
+            continue;
+        }
+
+        if (Number(tokenBalance!.value.amount) != 0) {
+            lastNonZeroBalanceIndex = i;
+        }
+    }
+
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    // fetch token balance
+    // Create a bundle for each wallet
     for (let i = 1; i < wallets.length; i++) {
         const wallet = Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallets[i])));
-        const tokenBalance = await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(wallet.publicKey, initKeypair.publicKey));
+        let tokenBalance;
+        try {
+            tokenBalance = await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(tokenMint, wallet.publicKey));
+        } catch (e) {
+            console.log(e)
+            continue;
+        }
 
-        const totalAmount = Number(tokenBalance.value.amount) * Number(SellPercentage);
+        if (Number(tokenBalance!.value.amount) == 0) {
+            continue;
+        }
+
+        console.log(`Selling ${tokenBalance!.value.amount} tokens from wallet ${wallet.publicKey}`);
+
+        const totalAmount = Number(tokenBalance!.value.amount) * (Number(SellPercentage) / 100);
 
         const buyerIxs = [];
         const signers = [wallet];
 
-        const sellIx = await generatedSellIx(tokenMint, wallet, new BN(totalAmount), new BN(0), pumpProgram);
+        const sellIx = await generatedSellIx(tokenMint, wallet, new BN(totalAmount), new BN(1), pumpProgram);
 
-        if (i === wallets.length - 1 && i === wallets.length - 1) {
+        if (i === lastNonZeroBalanceIndex) {
             const tipAmount = Number(BundleTip) * (LAMPORTS_PER_SOL);
 
             const tipIx = SystemProgram.transfer({
@@ -53,8 +83,6 @@ export async function PumpSeller(
 
             buyerIxs.push(tipIx);
             signers.push(initKeypair);
-
-
         }
 
         buyerIxs.push(sellIx);
@@ -70,7 +98,6 @@ export async function PumpSeller(
         versionedtxn.sign(signers);
         bundleTxn.push(versionedtxn);
     }
-
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
     //send to local server port 2891'

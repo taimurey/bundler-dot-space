@@ -10,7 +10,7 @@ import base58 from "bs58";
 import { ApibundleSend } from "../DistributeTokens/bundler";
 import { generateBuyIx } from "./instructions";
 import { Liquidity, TxVersion } from '@raydium-io/raydium-sdk';
-import { calculateBuyTokens } from "./misc";
+import { calculateBuyTokensAndNewReserves } from "./misc";
 
 
 export async function PumpVolumeGenerator(
@@ -41,9 +41,9 @@ export async function PumpVolumeGenerator(
         realTokenReserves: globalStateData.initialRealTokenReserves,
     }
 
-    const devBuyQuote = calculateBuyTokens(new BN(balance), tempBondingCurveData);
+    const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(balance), tempBondingCurveData);
     const devMaxSol = new BN((balance + ((balance * 0.5))))
-    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote, devMaxSol, keypair, pumpProgram);
+    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote.tokenAmount, devMaxSol, keypair, pumpProgram);
 
 
     const buyerIxs = [ataIx, buyerBuyIx];

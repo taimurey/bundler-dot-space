@@ -186,10 +186,10 @@ const LiquidityHandlerRaydium = () => {
             return;
         }
 
-        if (formData.GoalSolAmount === '') {
-            toast.error('Please enter a goal sol amount');
-            return;
-        }
+        // if (formData.GoalSolAmount === '') {
+        //     toast.error('Please enter a goal sol amount');
+        //     return;
+        // }
 
         let sellBundler = '';
         try {
