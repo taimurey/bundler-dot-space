@@ -247,7 +247,7 @@ const LiquidityHandlerRaydium = () => {
                 <div className="">
                     <div className="">
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
+                            <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Pump.Fun Manager</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a pumpfun token and ghost wallet buys in one go</p>
@@ -401,7 +401,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="min-w-[44px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
+                            <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>

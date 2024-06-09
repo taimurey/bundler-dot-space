@@ -157,13 +157,13 @@ const Sidebar: FC = () => {
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
-        {
-            href: '/mintinglab/token2022create',
-            isActive: router.pathname === '/mintinglab/token2022create',
-            title: 'Token-2022 Program',
-            description: 'Mint SPL Tokens',
-            icon: <TokenIcon />,
-        },
+        // {
+        //     href: '/mintinglab/token2022create',
+        //     isActive: router.pathname === '/mintinglab/token2022create',
+        //     title: 'Token-2022 Program',
+        //     description: 'Mint SPL Tokens',
+        //     icon: <TokenIcon />,
+        // },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',

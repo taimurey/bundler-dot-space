@@ -13,7 +13,6 @@ import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import { OutputField } from '../../../components/FieldComponents/OutputField';
 import { useSolana } from '../../../components/context';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -427,7 +426,7 @@ const LiquidityHandlerRaydium = () => {
                 <div className="">
                     <div className="">
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
+                            <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Pump.Fun Bundle</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a pumpfun token and ghost wallet buys in one go</p>
@@ -723,7 +722,7 @@ const LiquidityHandlerRaydium = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="min-w-[44px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
+                            <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
                                         <p className='font-bold text-[25px]'>Predicted Parameters</p>
@@ -755,12 +754,12 @@ const LiquidityHandlerRaydium = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    <OutputField
+                                    {/* <OutputField
                                         id="totalmintaddress"
                                         label="Mint Address:"
                                         value={formData.coinname}
                                         latedisplay={true}
-                                    />
+                                    /> */}
                                     {/* <OutputField
                                         id='bundleError'
                                         label='Bundle Error'

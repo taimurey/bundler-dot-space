@@ -33,7 +33,7 @@ const AppHeader: React.FC = () => {
 
   return (
     <>
-      <div className="relative flex items-center justify-between w-full bg-[#010409]">
+      <div className="relative flex items-center justify-between w-full bg-[#010409] bg-opacity-50 border-b-2 border-[#333333] backdrop-blur-3xl">
         <div className="flex items-center px-2 gap-1">
           <div className="flex items-center  ">
             <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">

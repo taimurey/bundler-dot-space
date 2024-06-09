@@ -79,45 +79,12 @@ const HeaderLinks = () => {
   }
 
   const headerLinks = [
-    // {
-    //   id: 0,
-    //   href: '/',
-    //   title: 'Home',
-    //   icon: <HomeIcon />,
-    // },
-
     {
       id: 0,
       href: '/mintinglab/tokencreate',
       title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
     }
-    // {
-    //   id: 1,
-    //   href: '/',
-    //   title: 'Home',
-    //   icon: <HomeIcon width="20" height="20" />
-    // },
-    // {
-    //   id: 2,
-    //   href: '/liquidity/add',
-    //   title: 'Liquidity',
-    //   icon: <LiquidityIcon width="20" height="20" />,
-    // }
-    ,
-    // {
-    //   id: 3,
-    //   href: '/docs',
-    //   title: 'Docs',
-    //   icon: <RepoLogo width="20" height="20" />,
-    // },
-    // {
-    //   id: 4,
-    //   href: 'https://discord.gg/HGFf7NNHrp',
-    //   external: true,
-    //   title: 'Discord',
-    //   icon: <DiscordIcon width="20" height="20" />,
-    // },
   ];
 
   return (

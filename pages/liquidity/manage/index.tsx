@@ -304,15 +304,14 @@ const RaydiumLiquidityRemover = () => {
             <form>
                 <div className="flex justify-between">
                     <div className="space-y-4 w-1/2 mx-auto">
-                        <div className="bg-[#1c2936]  border border-neutral-600 shadow-2xl shadow-black rounded-2xl sm:p-6">
-                            <div>
-                                <h1 className=" bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent">
-                                    Liquidity Manager
-                                </h1>
-                            </div>
+                        <div>
+                            <h1 className=" bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] bg-clip-text text-left text-2xl font-semibold text-transparent">
+                                Liquidity Manager
+                            </h1>
+                        </div>
 
-                            <div className='border bg-[#0c0e11]  border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
-                                {/* <div className="flex gap-2">
+                        <div className='border bg-[#0c0e11] bg-opacity-40 m-5 p-10 border-neutral-600 rounded-2xl sm:p-6 mt-6 shadow-[#000000] hover:shadow-2xl duration-300 ease-in-out'>
+                            {/* <div className="flex gap-2">
                                     <input
                                         type="checkbox"
                                         id="toggle"
@@ -326,95 +325,94 @@ const RaydiumLiquidityRemover = () => {
                                     </label>
                                 </div> */}
 
-                                {isToggle && (
-                                    <div className="w-full">
-                                        <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
-                                            Block Engine
-                                        </label>
-                                        <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                                            <select
-                                                id="BlockEngineSelection"
-                                                value={formData.BlockEngineSelection}
-                                                onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
-                                                required={true}
-                                                className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                                            >
-                                                <option value="" disabled>
-                                                    Block Engine Location(Closest to you)
+                            {isToggle && (
+                                <div className="w-full">
+                                    <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
+                                        Block Engine
+                                    </label>
+                                    <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                        <select
+                                            id="BlockEngineSelection"
+                                            value={formData.BlockEngineSelection}
+                                            onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
+                                            required={true}
+                                            className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                        >
+                                            <option value="" disabled>
+                                                Block Engine Location(Closest to you)
+                                            </option>
+                                            {BlockEngineLocation.map((option, index) => (
+                                                <option key={index} value={option}>
+                                                    {option}
                                                 </option>
-                                                {BlockEngineLocation.map((option, index) => (
-                                                    <option key={index} value={option}>
-                                                        {option}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className='flex justify-end items-end gap-2'>
-                                            <InputField
-                                                id="BundleTip"
-                                                value={formData.BundleTip}
-                                                onChange={(e) => handleChange(e, 'BundleTip')}
-                                                placeholder="0.01"
-                                                type="number"
-                                                label="Bundle Tip"
-                                                required={true}
-                                            />
-                                            <InputField
-                                                id="TransactionTip"
-                                                value={formData.TransactionTip}
-                                                onChange={(e) => handleChange(e, 'TransactionTip')}
-                                                placeholder="0.0001"
-                                                type="number"
-                                                label="Txn Tip (SOL)"
-                                                required={true}
-                                            />
-                                        </div>
-                                    </div>)}
-
-                                <div className="flex items-center justify-center gap-2 ">
-                                    {/* <div className="space-y-4  mt-20">
-                                <div className="relative mt-1 rounded-md shadow-sm"> */}
-
-                                    <InputField
-                                        label='Pool ID'
-                                        id="poolID"
-                                        type="text"
-                                        value={poolID}
-                                        onChange={handlePoolIDChange}
-                                        placeholder="Enter Pool ID..."
-                                        required={true}
-                                    />
-
-
-                                    {!isToggle && (<div className='w-2/3'>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className='flex justify-end items-end gap-2'>
                                         <InputField
-                                            label='Priotiy Fee(Sol)'
-                                            id="microLamports"
-                                            type="text"
-                                            value={microLamportsInput}
-                                            onChange={handleMicroLamportsInputChange}
-                                            placeholder="Enter 0.001 etc..."
+                                            id="BundleTip"
+                                            value={formData.BundleTip}
+                                            onChange={(e) => handleChange(e, 'BundleTip')}
+                                            placeholder="0.01"
+                                            type="number"
+                                            label="Bundle Tip"
                                             required={true}
                                         />
-                                    </div>)}
+                                        <InputField
+                                            id="TransactionTip"
+                                            value={formData.TransactionTip}
+                                            onChange={(e) => handleChange(e, 'TransactionTip')}
+                                            placeholder="0.0001"
+                                            type="number"
+                                            label="Txn Tip (SOL)"
+                                            required={true}
+                                        />
+                                    </div>
+                                </div>)}
 
-                                </div>
-                                <button
-                                    onClick={handleRemoveLiquidity}
-                                    disabled={isLoading}
-                                    className="invoke-btn w-full font-bold py-2 px-4 rounded-lg ml-2"
-                                >
-                                    <span className='btn-text-gradient'>  {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}</span>
-                                </button>
+                            <div className="flex items-center justify-center gap-2 ">
+                                {/* <div className="space-y-4  mt-20">
+                                <div className="relative mt-1 rounded-md shadow-sm"> */}
+
+                                <InputField
+                                    label='Pool ID'
+                                    id="poolID"
+                                    type="text"
+                                    value={poolID}
+                                    onChange={handlePoolIDChange}
+                                    placeholder="Enter Pool ID..."
+                                    required={true}
+                                />
+
+
+                                {!isToggle && (<div className='w-2/3'>
+                                    <InputField
+                                        label='Priotiy Fee(Sol)'
+                                        id="microLamports"
+                                        type="text"
+                                        value={microLamportsInput}
+                                        onChange={handleMicroLamportsInputChange}
+                                        placeholder="Enter 0.001 etc..."
+                                        required={true}
+                                    />
+                                </div>)}
+
                             </div>
-                            <br />
-
+                            <button
+                                onClick={handleRemoveLiquidity}
+                                disabled={isLoading}
+                                className="invoke-btn w-full font-bold py-2 px-4 rounded-lg ml-2"
+                            >
+                                <span className='btn-text-gradient'>  {isLoading ? 'Loading Pool...' : 'Remove Liquidity'}</span>
+                            </button>
                         </div>
+                        <br />
+
                         <div>
                             <h1 className=' bg-gradient-to-r from-[#e2c95b] to-[#03ff03] bg-clip-text text-left text-xl font-semibold text-transparent'>
                                 Pool Data Logger:
                             </h1>
-                            <div className='bg-[#1a232e] border border-neutral-400 shadow rounded-2xl sm:p-6 align-baseline mt-2'>
+                            <div className='bg-[#1a232e] bg-opacity-35 border border-neutral-400 shadow rounded-2xl sm:p-6 align-baseline mt-2'>
                                 {targetPoolInfo && (
                                     <div className="mt-4 text-white">
                                         <h2>Fetched Keys:</h2>
