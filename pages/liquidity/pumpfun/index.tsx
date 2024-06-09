@@ -30,8 +30,8 @@ import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
-import { truncate } from "../../../components/common/Allprofiles";
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
+import { truncate } from "../../../components/common/Allprofiles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface WorkerResult {
@@ -71,6 +71,7 @@ const LiquidityHandlerRaydium = () => {
         symbol: string;
         tokenDescription: string;
         vanity: string;
+        threads: number;
         tokenKeypair: string;
         tokenKeypairpublicKey: string;
         deployerPrivateKey: string;
@@ -89,6 +90,7 @@ const LiquidityHandlerRaydium = () => {
         symbol: '',
         tokenDescription: '',
         vanity: '',
+        threads: 4,
         tokenKeypair: '',
         tokenKeypairpublicKey: '',
         deployerPrivateKey: '',
@@ -209,7 +211,7 @@ const LiquidityHandlerRaydium = () => {
             reader.readAsDataURL(file);
         }
     };
-    const NUM_WORKERS = 4; // Number of workers to use
+    const NUM_WORKERS = formData.threads;
 
     const vanityAddressGenerator = async (e: any) => {
         e.preventDefault();
@@ -217,7 +219,7 @@ const LiquidityHandlerRaydium = () => {
         setIsLoading(true); // Start showing the loading SVG
 
         const workers = Array.from({ length: NUM_WORKERS }, () =>
-            new Worker(new URL('./vanityWorker.ts', import.meta.url))
+            new Worker(new URL('../../../components/vanityWorker', import.meta.url))
         );
 
         const promises = workers.map((worker) =>
@@ -528,17 +530,30 @@ const LiquidityHandlerRaydium = () => {
                                         disabled={true}
                                         required={false}
                                     />
-                                    <div>
-                                        <InputField
-                                            id="vanity"
-                                            label="Prefix"
-                                            subfield='4 words max'
-                                            value={formData.vanity}
-                                            onChange={(e) => handleChange(e, 'vanity')}
-                                            placeholder="pump.."
-                                            type="text"
-                                            required={false}
-                                        /></div>
+                                    <div className="w-4/12 flex">
+                                        <div>
+                                            <InputField
+                                                id="vanity"
+                                                label="Prefix"
+                                                value={formData.vanity}
+                                                onChange={(e) => handleChange(e, 'vanity')}
+                                                placeholder="pump.."
+                                                type="text"
+                                                required={false}
+                                            />
+                                        </div>
+                                        <div className="w-1/2 pl-2">
+                                            <InputField
+                                                id="threads"
+                                                label="Threads"
+                                                value={formData.threads.toString()}
+                                                onChange={(e) => handleChange(e, 'threads')}
+                                                placeholder="4"
+                                                type="number"
+                                                required={false}
+                                            />
+                                        </div>
+                                    </div>
                                     <button
                                         className='bundler-btn border p-2 w-1/3 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
                                         onClick={vanityAddressGenerator}
@@ -811,7 +826,7 @@ const LiquidityHandlerRaydium = () => {
                                                     href={`https://solscan.io/account/${publicKey}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[5px] max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
+                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
                                                     style={{ userSelect: 'text' }}
                                                 >
                                                     <p>
