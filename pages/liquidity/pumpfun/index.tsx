@@ -32,6 +32,12 @@ import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/c
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { truncate } from "../../../components/common/Allprofiles";
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+interface WorkerResult {
+    secretKey: Uint8Array;
+    publicKey: string;
+}
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -49,6 +55,7 @@ const LiquidityHandlerRaydium = () => {
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [wallets, setWallets] = useState<string[]>([]);
     const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
 
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
@@ -63,6 +70,7 @@ const LiquidityHandlerRaydium = () => {
         coinname: string;
         symbol: string;
         tokenDescription: string;
+        vanity: string;
         tokenKeypair: string;
         tokenKeypairpublicKey: string;
         deployerPrivateKey: string;
@@ -80,6 +88,7 @@ const LiquidityHandlerRaydium = () => {
         coinname: '',
         symbol: '',
         tokenDescription: '',
+        vanity: '',
         tokenKeypair: '',
         tokenKeypairpublicKey: '',
         deployerPrivateKey: '',
@@ -200,6 +209,42 @@ const LiquidityHandlerRaydium = () => {
             reader.readAsDataURL(file);
         }
     };
+    const NUM_WORKERS = 4; // Number of workers to use
+
+    const vanityAddressGenerator = async (e: any) => {
+        e.preventDefault();
+
+        setIsLoading(true); // Start showing the loading SVG
+
+        const workers = Array.from({ length: NUM_WORKERS }, () =>
+            new Worker(new URL('./vanityWorker.ts', import.meta.url))
+        );
+
+        const promises = workers.map((worker) =>
+            new Promise((resolve, reject) => {
+                worker.onmessage = (event) => {
+                    resolve(event.data);
+                    worker.terminate();
+                };
+                worker.onerror = reject;
+                worker.postMessage(formData.vanity);
+            })
+        );
+
+        try {
+            const result = await Promise.race(promises) as WorkerResult; // Wait for the fastest worker
+            setFormData(prevState => ({
+                ...prevState,
+                tokenKeypair: bs58.encode(Buffer.from(result.secretKey)),
+                tokenKeypairpublicKey: result.publicKey,
+            }));
+        } catch (error) {
+            console.error('Error generating vanity address:', error);
+        } finally {
+            setIsLoading(false); // Stop showing the loading SVG
+        }
+    }
+
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -483,18 +528,30 @@ const LiquidityHandlerRaydium = () => {
                                         disabled={true}
                                         required={false}
                                     />
+                                    <div>
+                                        <InputField
+                                            id="vanity"
+                                            label="Prefix"
+                                            subfield='4 words max'
+                                            value={formData.vanity}
+                                            onChange={(e) => handleChange(e, 'vanity')}
+                                            placeholder="pump.."
+                                            type="text"
+                                            required={false}
+                                        /></div>
                                     <button
                                         className='bundler-btn border p-2 w-1/3 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            const tokenMint = Keypair.generate();
-                                            setFormData(prevState => ({
-                                                ...prevState,
-                                                tokenKeypairpublicKey: tokenMint.publicKey.toBase58(),
-                                                tokenKeypair: bs58.encode(tokenMint.secretKey),
-                                            }))
-                                        }}
-                                    >Generate</button>
+                                        onClick={vanityAddressGenerator}
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <span className="italic font-i ellipsis">Generating..</span>
+                                                <FontAwesomeIcon icon="spinner" />
+                                            </>
+                                        ) : (
+                                            'Generate'
+                                        )}
+                                    </button>
                                 </div>
                                 <InputField
                                     id="deployerPrivatekey"
