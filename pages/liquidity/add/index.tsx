@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
 import Allprofiles from '../../../components/common/Allprofiles';
+import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
 
 
 const ZERO = new BN(0)
@@ -41,7 +42,6 @@ const LiquidityHandlerRaydium = () => {
     const [formData, setFormData] = useState({
         buyerPrivateKey: '',
         deployerPrivateKey: '',
-        airdropChecked: airdropChecked,
         walletsNumbers: '27',
         tokenMintAddress: '',
         tokenMarketID: '',
@@ -152,53 +152,57 @@ const LiquidityHandlerRaydium = () => {
         setDeployerWallets([])
         localStorage.removeItem("deployerwallets")
 
-        console.log(formData);
-
+        let bundler = '';
+        let ammID = '';
         try {
             setDeployerWallets(setsideWallets)
             localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
             toast.info('Please wait, bundle acceptance may take a few seconds');
-
-            const response = await axios.post(
-                'https://mevarik-deployer.xyz:2891/jitoadd',
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-            if (response.status === 200) {
-                const bundleId = response.data.bundleId;
-                const ammId = response.data.Id;
-
-                toast(
-                    () => (
-                        <BundleToast
-                            txSig={bundleId}
-                            message={'Bundle ID:'}
-                        />
-                    ),
-                    { autoClose: 5000 }
-                );
-
-                toast(
-                    () => (
-                        <TransactionToast
-                            txSig={ammId}
-                            message={'AMM ID:'}
-                        />
-                    ),
-                    { autoClose: 5000 }
-                );
+            const result = await CreatePoolSwap(connection, formData);
+            if (result) {
+                bundler = result.result;
+                ammID = result.ammID.toString();
             }
+
+            toast(
+                () => (
+                    <BundleToast
+                        txSig={bundler}
+                        message={'Bundle ID:'}
+                    />
+                ),
+                { autoClose: 5000 }
+            );
+            toast(
+                () => (
+                    <TransactionToast
+                        txSig={ammID}
+                        message={'Mint:'}
+                    />
+                ),
+                { autoClose: 5000 }
+            );
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
                 if (error.response && error.response.status === 500) {
                     toast.error(`${error.response.data}`);
                 } else {
-                    toast.error('Error occurred: Please Fill in all the fields');
+                    toast.error('Unknown error occurred');
+                }
+            } else if (error instanceof Error) {
+                const errorMessage = error.message;
+                const jsonStart = errorMessage.indexOf('{');
+                if (jsonStart !== -1) {
+                    const errorJsonStr = errorMessage.slice(jsonStart);
+                    try {
+                        const errorData = JSON.parse(errorJsonStr);
+                        toast.error(errorData.error);
+                    } catch (e) {
+                        toast.error(errorMessage);
+                    }
+                } else {
+                    toast.error(errorMessage);
                 }
             } else {
                 toast.error('An unknown error occurred');
