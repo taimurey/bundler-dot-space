@@ -311,6 +311,20 @@ const LiquidityHandlerRaydium = () => {
                 } else {
                     toast.error('Unknown error occurred');
                 }
+            } else if (error instanceof Error) {
+                const errorMessage = error.message;
+                const jsonStart = errorMessage.indexOf('{');
+                if (jsonStart !== -1) {
+                    const errorJsonStr = errorMessage.slice(jsonStart);
+                    try {
+                        const errorData = JSON.parse(errorJsonStr);
+                        toast.error(errorData.error);
+                    } catch (e) {
+                        toast.error(errorMessage);
+                    }
+                } else {
+                    toast.error(errorMessage);
+                }
             } else {
                 toast.error('An unknown error occurred');
             }
