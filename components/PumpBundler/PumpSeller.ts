@@ -8,7 +8,7 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 import { generatedSellIx } from "./instructions";
 import { PublicKey } from "@metaplex-foundation/js";
 import { BN } from "bn.js";
-import { getRandomElement } from "./misc";
+import { getKeypairFromBs58, getRandomElement } from "./misc";
 import base58 from "bs58";
 
 export async function PumpSeller(
@@ -21,7 +21,7 @@ export async function PumpSeller(
     BlockEngineSelection: string,
 ): Promise<string> {
 
-    const initKeypair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(feepayer)));
+    const initKeypair = getKeypairFromBs58(feepayer)!;
     const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(initKeypair), AnchorProvider.defaultOptions()));
 
 
@@ -68,10 +68,13 @@ export async function PumpSeller(
 
         const totalAmount = Number(tokenBalance!.value.amount) * (Number(SellPercentage) / 100);
 
+        const sellIx = await generatedSellIx(tokenMint, wallet, new BN(totalAmount), new BN(1), pumpProgram);
+
         const buyerIxs = [];
         const signers = [wallet];
 
-        const sellIx = await generatedSellIx(tokenMint, wallet, new BN(totalAmount), new BN(1), pumpProgram);
+
+        buyerIxs.push(sellIx);
 
         if (i === lastNonZeroBalanceIndex) {
             const tipAmount = Number(BundleTip) * (LAMPORTS_PER_SOL);
@@ -86,7 +89,6 @@ export async function PumpSeller(
             signers.push(initKeypair);
         }
 
-        buyerIxs.push(sellIx);
 
         //generate txn and sign
         const versionedtxn = new VersionedTransaction(

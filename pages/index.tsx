@@ -70,22 +70,26 @@ const features: Feature[] = [
 
 
 const pages = [
+  // {
+  //   name: "About",
+  //   url: "/about",
+  // },
+  // {
+  //   name: "Support",
+  //   url: "/support",
+  // },
+  // {
+  //   name: "Terms & Privacy Policy",
+  //   url: "/privacypolicy",
+  // },
+  // {
+  //   name: "Contact us",
+  //   url: "/contactus",
+  // },
   {
-    name: "About",
-    url: "/about",
-  },
-  {
-    name: "Support",
-    url: "/support",
-  },
-  {
-    name: "Terms & Privacy Policy",
-    url: "/privacypolicy",
-  },
-  {
-    name: "Contact us",
-    url: "/contactus",
-  },
+    name: "Bundler",
+    url: "/liquidity/pumpfun",
+  }
 ];
 
 
@@ -173,7 +177,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="z-40  w-full  bg-gradient-to-t from-[#02040a] to-[#11171f] p-2 border-b border-[#a19f9f] ">
+      <div className="z-40 w-full p-2 border-b border-[#a19f9f] ">
         <div
           className="flex flex-col lg:flex-row gap-4 relative w-full justify-between
 items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  "
@@ -191,7 +195,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
               return (
                 <>
                   <Link href={item?.url} passHref>
-                    <a target="_blank" rel="noreferrer">
+                    <a >
                       <li
                         key={index}
                         className={` p-2 relative    group text-[12px] lg:text-[14px]   cursor-pointer  hover:text-[#f5ac40] transition-all duration-500 ease-in-out 
@@ -259,7 +263,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
       </div>
       <div className="bg-[#02040a] px-4 py-8">
         <p className="text-[#d0d1d3] text-[14px] text-center ">
-          © 2023-224 MEVARIK. All Rights Reserved.
+          © 2024 Bundler. All Rights Reserved.
         </p>
       </div>
     </div >
