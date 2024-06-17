@@ -13,7 +13,7 @@ import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
 import ManagerIcon from "../icons/ManagerIcon";
 import { useState, useEffect } from 'react';
-import SwapIcon from "../icons/SwapIcon";
+// import SwapIcon from "../icons/SwapIcon";
 // import RepoLogo from '../../icons/RepoLogo';
 import HomeIcon from '../icons/HomeIcon';
 import LiquidityIcon from '../icons/LiquidityIcon';
@@ -135,11 +135,11 @@ const Sidebar: FC = () => {
             href: '/',
             icon: <HomeIcon />,
         },
-        {
-            id: 1,
-            href: '/mintinglab/tokencreate',
-            icon: <SwapIcon width="20" height="20" />,
-        },
+        // {
+        //     id: 1,
+        //     href: '/mintinglab/tokencreate',
+        //     icon: <SwapIcon width="20" height="20" />,
+        // },
 
         {
             id: 2,
@@ -222,47 +222,12 @@ const Sidebar: FC = () => {
             icon: <CashInflowIcon />,
         },
     ];
-
-    // Filter links based on the current route
-    const filterLinks: FilterLink = (link) => {
-        if (
-            router.pathname === '/mintinglab/tokencreate' ||
-            router.pathname === '/mintinglab/token2022create' ||
-            router.pathname === '/mintinglab/tokenmanager' ||
-            router.pathname === '/mintinglab/disperse' ||
-            router.pathname === '/market/create'
-        ) {
-            return (
-                link.href === '/mintinglab/tokencreate' ||
-                link.href === '/mintinglab/token2022create' ||
-                link.href === '/mintinglab/disperse' ||
-                link.href === '/market/create' ||
-                link.href === '/mintinglab/tokenmanager'
-            );
-        } else if (
-            router.pathname === '/liquidity/add' ||
-            router.pathname === '/liquidity/manage' ||
-            router.pathname === '/liquidity/swap' ||
-            router.pathname === '/liquidity/pumpfun' ||
-            router.pathname === '/liquidity/volumebot' ||
-            router.pathname === '/liquidity/pumpfunSeller'
-        ) {
-            return (
-                link.href === '/liquidity/add' ||
-                link.href === '/liquidity/manage' ||
-                link.href === '/liquidity/swap' ||
-                link.href === '/liquidity/pumpfun' ||
-                link.href === '/liquidity/volumebot' ||
-                link.href === '/liquidity/pumpfunSeller'
-            );
-        }
-        return false;
-    };
+    // Simplified the filter function as 'link' parameter is unused
+    const filterLinks: FilterLink = () => true;
 
     const filteredLinks = sublinks.filter(filterLinks);
     const showAllPortfolios = router.pathname.includes('/liquidity/');
     const { isProfilesActive, setisProfilesActive } = useMyContext();
-
 
     return (
         <>

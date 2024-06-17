@@ -81,8 +81,8 @@ const HeaderLinks = () => {
   const headerLinks = [
     {
       id: 0,
-      href: '/mintinglab/tokencreate',
-      title: 'Minting Lab',
+      href: '/liquidity/pumpfun',
+      title: 'Bundler Lab',
       icon: <SwapIcon width="20" height="20" />,
     }
   ];
