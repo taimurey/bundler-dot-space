@@ -23,3 +23,6 @@ export const SystemAccountRent = 0.00089088;
 export const txMaxSize = 1232;
 export const ataRent = 0.00203928;
 
+export const registerEndpoint = "https://client-api-2-74b1891ee9f9.herokuapp.com/users/register";
+export const loginEndpoint = "https://client-api-2-74b1891ee9f9.herokuapp.com/auth/login";
+export const repliesEndpoint = "https://client-api-2-74b1891ee9f9.herokuapp.com/replies"

@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, VersionedTransaction } from "@solana/web3.js";
 import {
     jsonInfo2PoolKeys,
     Liquidity,
@@ -6,6 +6,8 @@ import {
     MARKET_STATE_LAYOUT_V3, LiquidityPoolKeys,
     Token, TokenAmount, ONE,
     TOKEN_PROGRAM_ID, parseBigNumberish,
+    buildSimpleTransaction,
+    TxVersion,
 } from "@raydium-io/raydium-sdk";
 import { unpackMint } from "@solana/spl-token-2";
 import {
@@ -15,8 +17,10 @@ import {
 } from "./get_balance";
 import { build_swap_instructions, build_create_pool_instructions } from "./build_a_sendtxn";
 import base58 from "bs58";
-import { DEFAULT_TOKEN } from "../removeLiquidity/config";
-import { BuildandSendTxn } from "./send-bundle";
+import { addLookupTableInfo, DEFAULT_TOKEN } from "../removeLiquidity/config";
+import { getKeypairFromBs58, getRandomElement } from "../PumpBundler/misc";
+import { tipAccounts } from "../PumpBundler/constants";
+import { BN } from "bn.js";
 
 export interface JitoPoolData {
     buyerPrivateKey: string;
@@ -34,22 +38,30 @@ export interface JitoPoolData {
     TransactionTip: string;
 }
 
-export async function CreatePoolSwap(connection: Connection, data: JitoPoolData) {
+export async function CreatePoolSwap(connection: Connection, data: JitoPoolData, BuyerWallets: string[]) {
+
+    console.log(data);
 
     const deployerPrivateKey = Keypair.fromSecretKey(base58.decode(data.deployerPrivateKey));
-    const BuyerPrivateKey = Keypair.fromSecretKey(base58.decode(data.buyerPrivateKey));
+    const wallets = [...BuyerWallets];
+    const tokenAccountRawInfos_Swap = [];
+    if (data.buyerPrivateKey !== "") {
+        wallets.push(data.buyerPrivateKey);
+    }
+    for (let i = 0; i < wallets.length; i++) {
+        const wallet = Keypair.fromSecretKey(base58.decode(wallets[i]));
+        const tokenAccountRawInfo = await getWalletTokenAccount(
+            connection,
+            wallet.publicKey
+        );
+        tokenAccountRawInfos_Swap.push(tokenAccountRawInfo);
+    }
+
     const market_id = new PublicKey(data.tokenMarketID);
-
-
 
     const tokenAccountRawInfos_LP = await getWalletTokenAccount(
         connection,
         deployerPrivateKey.publicKey
-    )
-
-    const tokenAccountRawInfos_Swap = await getWalletTokenAccount(
-        connection,
-        BuyerPrivateKey.publicKey
     )
 
     const marketBufferInfo = await connection.getAccountInfo(market_id);
@@ -178,15 +190,83 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData)
 
     const TOKEN_TYPE = new Token(TOKEN_PROGRAM_ID, baseMint, baseDecimals, 'ABC', 'ABC')
 
-    const buyerpublickey = BuyerPrivateKey.publicKey;
+    let buyAmount = Number(data.tokenbuyAmount);
+    if (BuyerWallets.length > 1) {
+        for (let i = 0; i < BuyerWallets.length; i++) {
+            const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
+            const balance = await connection.getBalance(buyerWallet.publicKey);
+            if (balance != 0) {
+                buyAmount = balance - (0.003 * LAMPORTS_PER_SOL)
+                break;
+            }
+        }
+    }
 
-    const inputTokenAmount = new TokenAmount(DEFAULT_TOKEN.WSOL, (Number(data.tokenbuyAmount) * (10 ** quoteDecimals)))
+    const inputTokenAmount = new TokenAmount(DEFAULT_TOKEN.WSOL, buyAmount)
     const minAmountOut = new TokenAmount(TOKEN_TYPE, parseBigNumberish(ONE))
-    const swap_ix = await build_swap_instructions({ Liquidity, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }, buyerpublickey)
 
-    const bundleTxn = await BuildandSendTxn(connection, lp_ix, swap_ix, data);
+    // const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-    const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
+    const BundleTxns = [];
+
+    const lp_txn = await buildSimpleTransaction({
+        connection,
+        makeTxVersion: TxVersion.V0,
+        payer: deployerPrivateKey.publicKey,
+        innerTransactions: lp_ix,
+        addLookupTableInfo: addLookupTableInfo,
+    });
+
+    if (lp_txn[0] instanceof VersionedTransaction) {
+        lp_txn[0].sign([deployerPrivateKey]);
+        BundleTxns.push(lp_txn[0]);
+    }
+
+    let lastNonZeroBalanceIndex = -1;
+
+    // Find the last non-zero balance wallet
+    for (let i = 0; i < BuyerWallets.length; i++) {
+        const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
+        let balance;
+        if (BuyerWallets.length === 1) {
+            balance = new BN(Number(data.tokenbuyAmount) * LAMPORTS_PER_SOL);
+        } else {
+            balance = await connection.getBalance(buyerWallet.publicKey);
+        }
+        if (balance != 0) {
+            lastNonZeroBalanceIndex = i;
+        }
+    }
+
+    for (let i = 0; i < BuyerWallets.length; i++) {
+        const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
+        const swap_ix = await build_swap_instructions({ Liquidity, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }, buyerWallet.publicKey);
+
+        if (i === lastNonZeroBalanceIndex) {
+            const tipIx = SystemProgram.transfer({
+                fromPubkey: buyerWallet.publicKey,
+                toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+                lamports: Number(data.TransactionTip) * LAMPORTS_PER_SOL
+            });
+
+            swap_ix[0].instructions.push(tipIx);
+        }
+
+        const buyerTxn = await buildSimpleTransaction({
+            connection,
+            makeTxVersion: TxVersion.V0,
+            payer: buyerWallet.publicKey,
+            innerTransactions: swap_ix,
+            addLookupTableInfo: addLookupTableInfo,
+        });
+
+        if (buyerTxn[0] instanceof VersionedTransaction) {
+            buyerTxn[0].sign([buyerWallet]);
+            BundleTxns.push(buyerTxn[0]);
+        }
+    }
+
+    const EncodedbundledTxns = BundleTxns.map(txn => base58.encode(txn.serialize()));
 
     console.log(EncodedbundledTxns);
 

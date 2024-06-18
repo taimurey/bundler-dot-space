@@ -24,7 +24,7 @@ export async function getTokenAccountBalance(connection: Connection, wallet: str
         bytes: wallet,  //our search criteria, a base58 encoded string
       },
     },
-    //Add this search parameter
+    //raydium/create this search parameter
     {
       memcmp: {
         offset: 0, //number of bytes

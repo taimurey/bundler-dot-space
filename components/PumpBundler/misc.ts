@@ -22,6 +22,16 @@ export function validateSolAddress(address: string) {
     }
 }
 
+export function convertIPFSURL(originalURL: string): string {
+    const ipfsIdentifier = originalURL.split('/ipfs/')[1];
+    if (ipfsIdentifier) {
+        return `https://pump.mypinata.cloud/ipfs/${ipfsIdentifier}`;
+    } else {
+        // If the URL format is not correct, return the original URL
+        return originalURL;
+    }
+}
+
 export function getCurrentDateTime(): string {
     const now = new Date();
     const date = now.toISOString().split('T')[0];

@@ -63,25 +63,25 @@ const HeaderLink = ({
 
 const HeaderLinks = () => {
   const router = useRouter();
-  // const [active, setActive] = useState(router.pathname.startsWith('/liquidity') ? 2 : 1);
+  // const [active, setActive] = useState(router.pathname.startsWith('/raydium') ? 2 : 1);
   const [active, setActive] = useState<number>(getActiveLink(router.pathname));
 
   useEffect(() => {
-    // setActive(router.pathname.startsWith('/liquidity') ? 2 : 1);
+    // setActive(router.pathname.startsWith('/raydium') ? 2 : 1);
     setActive(getActiveLink(router.pathname));
 
   }, [router.pathname]);
   function getActiveLink(pathname: string): number {
     if (pathname === '/swap') return 1; // Home link
     if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 0; // Minting Lab link
-    if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
+    if (pathname.startsWith('/raydium')) return 2; // Liquidity link
     return -1; // None of the above
   }
 
   const headerLinks = [
     {
       id: 0,
-      href: '/liquidity/pumpfun',
+      href: '/pumpfun/create',
       title: 'Bundler Lab',
       icon: <SwapIcon width="20" height="20" />,
     }

@@ -104,8 +104,8 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
 
                     />
                     <HeaderLink
-                        href="/liquidity/add"
-                        isActive={router.pathname === "/liquidity/add"}
+                        href="/raydium/create"
+                        isActive={router.pathname === "/raydium/create"}
                         title="Add Liquidity"
                         description="Add liquidity to a market"
                         icon={<FlaskIcon />}
@@ -113,8 +113,8 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
 
                     />
                     <HeaderLink
-                        href="/liquidity/manage"
-                        isActive={router.pathname === "/liquidity/manage"}
+                        href="/raydium/manage"
+                        isActive={router.pathname === "/raydium/manage"}
                         title="Manage Liquidity"
                         description="Handle liquidity on Raydium"
                         icon={<ManageIcon />}

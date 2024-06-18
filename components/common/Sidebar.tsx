@@ -8,17 +8,15 @@ import FlaskIcon from "../icons/FlaskIcon";
 import ManageIcon from "../icons/ManageIcon";
 import { useMyContext } from '../../contexts/Maincontext';
 import VirusIcon from "../icons/VirusIcon";
-// import SenderIcon from "../icons/SenderIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import { TwStyle } from 'twin.macro';
 import ManagerIcon from "../icons/ManagerIcon";
 import { useState, useEffect } from 'react';
-// import SwapIcon from "../icons/SwapIcon";
-// import RepoLogo from '../../icons/RepoLogo';
 import HomeIcon from '../icons/HomeIcon';
 import LiquidityIcon from '../icons/LiquidityIcon';
-import Capsule from "../icons/capsule";
 import CashInflowIcon from "../icons/cashInflowIcon";
+import SwapIcon from "../icons/SwapIcon";
+import PillIcon from "../icons/PillIcon";
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     css?: TwStyle[] | undefined;
 }
@@ -113,20 +111,23 @@ const HeaderLink = ({
 
 const Sidebar: FC = () => {
     const router = useRouter();
-    type FilterLink = (link: LinkProps) => boolean;
+    const [isRaydiumOpen, setIsRaydiumOpen] = useState<boolean>(false);
+    const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(true);
+
+    const toggleRaydium = () => setIsRaydiumOpen(!isRaydiumOpen);
+    const togglePumpFun = () => setIsPumpFunOpen(!isPumpFunOpen);
 
     const [active, setActive] = useState<number>(getActiveLink(router.pathname));
 
     useEffect(() => {
-        // setActive(router.pathname.startsWith('/liquidity') ? 2 : 1);
         setActive(getActiveLink(router.pathname));
 
     }, [router.pathname]);
     function getActiveLink(pathname: string): number {
-        if (pathname === '/') return 0; // Home link
-        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1; // Minting Lab link
-        if (pathname.startsWith('/liquidity')) return 2; // Liquidity link
-        return -1; // None of the above
+        if (pathname === '/') return 0;
+        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1;
+        if (pathname.startsWith('')) return 2;
+        return -1;
     }
 
     const headerLinks = [
@@ -135,15 +136,14 @@ const Sidebar: FC = () => {
             href: '/',
             icon: <HomeIcon />,
         },
-        // {
-        //     id: 1,
-        //     href: '/mintinglab/tokencreate',
-        //     icon: <SwapIcon width="20" height="20" />,
-        // },
-
+        {
+            id: 1,
+            href: '/mintinglab/tokencreate',
+            icon: <SwapIcon width="20" height="20" />,
+        },
         {
             id: 2,
-            href: '/liquidity/pumpfun',
+            href: '/pumpfun/create',
             icon: <LiquidityIcon width="20" height="20" />,
         }
     ];
@@ -157,13 +157,6 @@ const Sidebar: FC = () => {
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,
         },
-        // {
-        //     href: '/mintinglab/token2022create',
-        //     isActive: router.pathname === '/mintinglab/token2022create',
-        //     title: 'Token-2022 Program',
-        //     description: 'Mint SPL Tokens',
-        //     icon: <TokenIcon />,
-        // },
         {
             href: '/market/create',
             isActive: router.pathname === '/market/create',
@@ -179,56 +172,71 @@ const Sidebar: FC = () => {
             icon: <ManagerIcon />,
         },
         {
-            href: '/liquidity/pumpfun',
-            isActive: router.pathname === '/liquidity/pumpfun',
-            title: 'PumpFun Bundler',
+            href: '/pumpfun/create',
+            isActive: router.pathname === '/pumpfun/create',
+            title: 'Bundler',
             description: 'Create a PumpFun Bundle',
-            icon: <Capsule />,
+            icon: <PillIcon />,
         },
+        // {
+        //     href: '/pumpfun/bomber',
+        //     isActive: router.pathname === '/pumpfun/bomber',
+        //     title: 'Spammer',
+        //     description: 'Create a PumpFun Bundle',
+        //     icon: <PillIcon />,
+        // },
         {
-            href: '/liquidity/pumpfunSeller',
-            isActive: router.pathname === '/liquidity/pumpfunSeller',
-            title: 'PumpFun Seller',
+            href: '/pumpfun/seller',
+            isActive: router.pathname === '/pumpfun/seller',
+            title: 'Seller',
             description: 'Create a PumpFun Bundle',
-            icon: <Capsule />,
+            icon: <PillIcon rotate={true} />,
         },
 
         {
-            href: '/liquidity/add',
-            isActive: router.pathname === '/liquidity/add',
-            title: 'Raydium Bundler',
+            href: '/raydium/create',
+            isActive: router.pathname === '/raydium/create',
+            title: 'Bundler',
             description: 'Add liquidity to a market',
             icon: <FlaskIcon />,
         },
-        // {
-        //     href: '/liquidity/swap',
-        //     isActive: router.pathname === '/liquidity/swap',
-        //     title: 'Token Manager',
-        //     description: 'Swap tokens',
-        //     icon: <TokenIcon />,
-        // },
         {
-            href: '/liquidity/manage',
-            isActive: router.pathname === '/liquidity/manage',
-            title: 'Remove Liquidity',
+            href: '/raydium/manage',
+            isActive: router.pathname === '/raydium/manage',
+            title: 'Remover',
             description: 'Handle liquidity on Raydium',
             icon: <ManageIcon />,
         },
         {
-            href: '/liquidity/volumebot',
-            isActive: router.pathname === '/liquidity/volumebot',
+            href: '/volumebot',
+            isActive: router.pathname === '/volumebot',
             title: 'Volume Generator',
             description: 'Generate volume on Raydium',
             icon: <CashInflowIcon />,
         },
     ];
-    // Simplified the filter function as 'link' parameter is unused
-    const filterLinks: FilterLink = () => true;
 
-    const filteredLinks = sublinks.filter(filterLinks);
-    const showAllPortfolios = router.pathname.includes('/liquidity/');
+    const isMintingLabPage = router.pathname.includes('/mintinglab');
+
+    // Filter links based on the current page
+    const filteredLinks = sublinks.filter(link => {
+        // If on the /mintinglab page, exclude Raydium and PumpFun links
+        if (isMintingLabPage) {
+            return !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/');
+        }
+        // Otherwise, include all links
+        return true;
+    });
+
+    const raydiumLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/raydium/') && !link.href.includes('volumebot'));
+    const pumpFunLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/pumpfun/') && !link.href.includes('volumebot'));
+
+    const volumeBotLink = filteredLinks.filter(link => link.href.includes('/volumebot'));
+
+    // Filter other links excluding Raydium and PumpFun links
+    const otherLinks = filteredLinks.filter(link => !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/') && !link.href.includes('/volumebot'));
+    const showAllPortfolios = router.pathname.includes('/');
     const { isProfilesActive, setisProfilesActive } = useMyContext();
-
     return (
         <>
             <div className=" min-h-screen h-full flex bg-[#0c1118]">
@@ -237,7 +245,6 @@ const Sidebar: FC = () => {
                         <HeaderLink
                             key={index}
                             href={link.href}
-                            // external={link.external}
                             icon={link.icon}
                             index={index}
                             active={active}
@@ -261,7 +268,69 @@ const Sidebar: FC = () => {
 
 
                     <div className="flex  flex-col gap-2 h-full p-2">
-                        {filteredLinks.map((link, index) => (
+                        {!isMintingLabPage && (
+                            <div className="accordion-item cursor-pointer select-none">
+                                <div className="accordion-title flex items-center " onClick={toggleRaydium}>
+                                    <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                    >
+                                        <h2>Raydium</h2>
+                                        <span className={`ease-in-out duration-300 cursor-pointer ml-2 ${isRaydiumOpen ? 'rotate-90' : 'rotate-0'}`}
+                                        >➤</span>
+                                    </div>
+                                </div>
+                                {isRaydiumOpen && (
+                                    <div className="accordion-content">
+                                        {raydiumLinks.map((link, index) => (
+                                            <SidebarSublinks
+                                                key={index}
+                                                href={link.href}
+                                                isActive={link.isActive}
+                                                title={link.title}
+                                                description={link.description}
+                                                icon={link.icon}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {!isMintingLabPage && (
+                            <div className="accordion-item cursor-pointer">
+                                <div className="accordion-title flex items-center " onClick={togglePumpFun}>
+                                    <div className="flex justify-start items-center select-none gap-4 w-full bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                    >
+                                        <h2>PumpFun</h2>
+                                        <span className={`ease-in-out duration-300 cursor-pointer  ${isPumpFunOpen ? 'rotate-90' : 'rotate-0'}`}
+                                        >➤</span>
+                                    </div>
+                                </div>
+                                {isPumpFunOpen && (
+                                    <div className="accordion-content">
+                                        {pumpFunLinks.map((link, index) => (
+                                            <SidebarSublinks
+                                                key={index}
+                                                href={link.href}
+                                                isActive={link.isActive}
+                                                title={link.title}
+                                                description={link.description}
+                                                icon={link.icon}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {isMintingLabPage && otherLinks.map((link, index) => (
+                            <SidebarSublinks
+                                key={index}
+                                href={link.href}
+                                isActive={link.isActive}
+                                title={link.title}
+                                description={link.description}
+                                icon={link.icon}
+                            />
+                        ))}
+                        {volumeBotLink.map((link, index) => (
                             <SidebarSublinks
                                 key={index}
                                 href={link.href}
@@ -272,13 +341,10 @@ const Sidebar: FC = () => {
                             />
                         ))}
                     </div>
-
                 </div>
-            </div>
-            {/* } */}
-
+            </div >
         </>
-    );
+    )
 };
 
 export default Sidebar;

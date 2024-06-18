@@ -1,6 +1,6 @@
 'use client';
 
-import pumpIdl from "./pump-idl.json";
+import pumpIdl from "../pump-idl.json";
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
@@ -23,9 +23,9 @@ import { NFTStorage } from 'nft.storage';
 import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedInputfield';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
 import Papa from 'papaparse';
-import { randomColor } from '../add';
+import { randomColor } from '../../raydium/create';
 import { PumpBundler } from '../../../components/PumpBundler/PumpBundler';
-import { BalanceType } from '../volumebot';
+import { BalanceType } from "../../volumebot";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';

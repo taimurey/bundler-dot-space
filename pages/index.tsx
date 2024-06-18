@@ -88,7 +88,7 @@ const pages = [
   // },
   {
     name: "Bundler",
-    url: "/liquidity/pumpfun",
+    url: "/pumpfun/create",
   }
 ];
 

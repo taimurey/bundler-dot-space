@@ -3,27 +3,27 @@
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
-import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
+import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
 import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
 import { Keypair } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
-import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import { OutputField } from '../../../components/FieldComponents/OutputField';
-import { useSolana } from '../../../components/context';
+import { OutputField } from '../../components/FieldComponents/OutputField';
+import { useSolana } from '../../components/context';
 import { toast } from 'react-toastify';
-import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
-import { useMyContext } from '../../../contexts/Maincontext';
-import Allprofiles from '../../../components/common/Allprofiles';
+import { BundleToast } from '../../components/common/Toasts/TransactionToast';
+import Allprofiles from '../../components/common/Allprofiles';
 import Papa from 'papaparse';
-import { randomColor } from '../add';
+import { randomColor } from '../raydium/create';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { distributeRandomly } from '../../../components/randomgen';
-import { solDistribution } from '../../../components/SolDistribution';
-import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
-import { PumpVolumeGenerator } from '../../../components/PumpBundler/volumeGenerator';
+import { distributeRandomly } from '../../components/randomgen';
+import { solDistribution } from '../../components/SolDistribution';
+import { ApibundleSend } from '../../components/DistributeTokens/bundler';
+import { PumpVolumeGenerator } from '../../components/PumpBundler/volumeGenerator';
+import { useMyContext } from '../../contexts/Maincontext';
+import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO

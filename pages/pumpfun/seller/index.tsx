@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import Allprofiles from '../../../components/common/Allprofiles';
 import Papa from 'papaparse';
-import { BalanceType } from '../volumebot';
+import { BalanceType } from '../../volumebot';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { truncate } from "../../../components/common/Allprofiles";
 import { PumpSeller } from "../../../components/PumpBundler/PumpSeller";
