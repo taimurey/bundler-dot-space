@@ -205,7 +205,7 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
 
     const TOKEN_TYPE = new Token(TOKEN_PROGRAM_ID, baseMint, baseDecimals, 'ABC', 'ABC')
 
-    let buyAmount = [(Number(data.tokenbuyAmount) * LAMPORTS_PER_SOL)];
+    const buyAmount = [(Number(data.tokenbuyAmount) * LAMPORTS_PER_SOL)];
     if (BuyerWallets.length > 1) {
         for (let i = 0; i < BuyerWallets.length; i++) {
             const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
