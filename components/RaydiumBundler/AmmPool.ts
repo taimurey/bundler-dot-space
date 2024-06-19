@@ -153,7 +153,22 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
 
     const base_amount_input = Math.ceil(base_balance * ((Number(data.tokenLiquidityAddPercent)) / 100));
 
+    const BundleTxns = [];
+
     const lp_ix = await build_create_pool_instructions(connection, data, tokenAccountRawInfos_LP, base_amount_input, quote_amount);
+
+    const lp_txn = await buildSimpleTransaction({
+        connection,
+        makeTxVersion: TxVersion.V0,
+        payer: deployerPrivateKey.publicKey,
+        innerTransactions: lp_ix,
+        addLookupTableInfo: addLookupTableInfo,
+    });
+
+    if (lp_txn[0] instanceof VersionedTransaction) {
+        lp_txn[0].sign([deployerPrivateKey]);
+        BundleTxns.push(lp_txn[0]);
+    }
 
     // ---- Swap info
     const targetPoolInfo = {
@@ -190,37 +205,17 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
 
     const TOKEN_TYPE = new Token(TOKEN_PROGRAM_ID, baseMint, baseDecimals, 'ABC', 'ABC')
 
-    let buyAmount = Number(data.tokenbuyAmount);
+    let buyAmount = [(Number(data.tokenbuyAmount) * LAMPORTS_PER_SOL)];
     if (BuyerWallets.length > 1) {
         for (let i = 0; i < BuyerWallets.length; i++) {
             const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
             const balance = await connection.getBalance(buyerWallet.publicKey);
-            if (balance != 0) {
-                buyAmount = balance - (0.003 * LAMPORTS_PER_SOL)
-                break;
-            }
+            buyAmount.push(balance);
         }
     }
 
-    const inputTokenAmount = new TokenAmount(DEFAULT_TOKEN.WSOL, buyAmount)
-    const minAmountOut = new TokenAmount(TOKEN_TYPE, parseBigNumberish(ONE))
 
-    // const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-    const BundleTxns = [];
-
-    const lp_txn = await buildSimpleTransaction({
-        connection,
-        makeTxVersion: TxVersion.V0,
-        payer: deployerPrivateKey.publicKey,
-        innerTransactions: lp_ix,
-        addLookupTableInfo: addLookupTableInfo,
-    });
-
-    if (lp_txn[0] instanceof VersionedTransaction) {
-        lp_txn[0].sign([deployerPrivateKey]);
-        BundleTxns.push(lp_txn[0]);
-    }
 
     let lastNonZeroBalanceIndex = -1;
 
@@ -240,6 +235,8 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
 
     for (let i = 0; i < BuyerWallets.length; i++) {
         const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
+        const inputTokenAmount = new TokenAmount(DEFAULT_TOKEN.WSOL, buyAmount[i])
+        const minAmountOut = new TokenAmount(TOKEN_TYPE, parseBigNumberish(ONE))
         const swap_ix = await build_swap_instructions({ Liquidity, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }, buyerWallet.publicKey);
 
         if (i === lastNonZeroBalanceIndex) {
