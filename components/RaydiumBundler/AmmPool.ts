@@ -15,7 +15,7 @@ import {
     assert,
     getWalletTokenAccount,
 } from "./get_balance";
-import { build_swap_instructions, build_create_pool_instructions } from "./build_a_sendtxn";
+import { build_create_pool_instructions } from "./build_a_sendtxn";
 import base58 from "bs58";
 import { addLookupTableInfo, DEFAULT_TOKEN } from "../removeLiquidity/config";
 import { getKeypairFromBs58, getRandomElement } from "../PumpBundler/misc";
@@ -43,13 +43,10 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
     console.log(data);
 
     const deployerPrivateKey = Keypair.fromSecretKey(base58.decode(data.deployerPrivateKey));
-    const wallets = [...BuyerWallets];
+
     const tokenAccountRawInfos_Swap = [];
-    if (data.buyerPrivateKey !== "") {
-        wallets.push(data.buyerPrivateKey);
-    }
-    for (let i = 0; i < wallets.length; i++) {
-        const wallet = Keypair.fromSecretKey(base58.decode(wallets[i]));
+    for (let i = 0; i < BuyerWallets.length; i++) {
+        const wallet = Keypair.fromSecretKey(base58.decode(BuyerWallets[i]));
         const tokenAccountRawInfo = await getWalletTokenAccount(
             connection,
             wallet.publicKey
@@ -58,7 +55,6 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
     }
 
     const market_id = new PublicKey(data.tokenMarketID);
-
     const tokenAccountRawInfos_LP = await getWalletTokenAccount(
         connection,
         deployerPrivateKey.publicKey
@@ -214,9 +210,6 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
         }
     }
 
-
-
-
     let lastNonZeroBalanceIndex = -1;
 
     // Find the last non-zero balance wallet
@@ -237,7 +230,19 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
         const buyerWallet = getKeypairFromBs58(BuyerWallets[i])!;
         const inputTokenAmount = new TokenAmount(DEFAULT_TOKEN.WSOL, buyAmount[i])
         const minAmountOut = new TokenAmount(TOKEN_TYPE, parseBigNumberish(ONE))
-        const swap_ix = await build_swap_instructions({ Liquidity, connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }, buyerWallet.publicKey);
+        const { innerTransactions } = await Liquidity.makeSwapInstructionSimple({
+            connection,
+            poolKeys,
+            userKeys: {
+                tokenAccounts: tokenAccountRawInfos_Swap[i],
+                owner: buyerWallet.publicKey,
+            },
+            amountIn: inputTokenAmount,
+            amountOut: minAmountOut,
+            fixedSide: "in",
+            makeTxVersion: TxVersion.V0,
+        })
+
 
         if (i === lastNonZeroBalanceIndex) {
             const tipIx = SystemProgram.transfer({
@@ -246,14 +251,14 @@ export async function CreatePoolSwap(connection: Connection, data: JitoPoolData,
                 lamports: Number(data.TransactionTip) * LAMPORTS_PER_SOL
             });
 
-            swap_ix[0].instructions.push(tipIx);
+            innerTransactions[0].instructions.push(tipIx);
         }
 
         const buyerTxn = await buildSimpleTransaction({
             connection,
             makeTxVersion: TxVersion.V0,
             payer: buyerWallet.publicKey,
-            innerTransactions: swap_ix,
+            innerTransactions: innerTransactions,
             addLookupTableInfo: addLookupTableInfo,
         });
 

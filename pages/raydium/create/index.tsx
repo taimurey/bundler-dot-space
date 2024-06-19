@@ -23,6 +23,7 @@ import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
 import Papa from 'papaparse';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { BalanceType } from '../../volumebot';
+import { getKeypairFromBs58 } from '../../../components/PumpBundler/misc';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -130,32 +131,34 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
-    const handleloadMintmetadata = async (e: any) => {
-        e.preventDefault();
+    const [fistLoad, setFirstLoad] = useState(true);
+    // const handleloadMintmetadata = async (e: any) => {
+    React.useEffect(() => {
+        if (fistLoad) {
+            setFirstLoad(false);
+            return;
+        }
         if (!formData.tokenMintAddress) {
             toast.error('No mint address provided');
             return;
         }
-        const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: (new PublicKey(formData.tokenMintAddress)) });
+        const fetchData = async () => {
+            const MintMetadata = await new Metaplex(connection).nfts().findByMint({ mintAddress: new PublicKey(formData.tokenMintAddress) });
 
-        const decimals = MintMetadata.mint.decimals;
-        const supply = MintMetadata.mint.supply.basisPoints;
-        console.log(MintMetadata, "mint metadata")
-        console.log(decimals, "decimals")
-        console.log(supply, "supply")
+            const decimals = MintMetadata.mint.decimals;
+            const supply = MintMetadata.mint.supply.basisPoints;
+            console.log(MintMetadata, "mint metadata");
+            console.log(decimals, "decimals");
+            console.log(supply, "supply");
 
-        setFormData(prevState => ({
-            ...prevState,
-            tokenDecimals: decimals.toString(),
-            totalSupply: supply.toString(10),
-        }));
-    }
-
-
-
-
-
-
+            setFormData(prevState => ({
+                ...prevState,
+                tokenDecimals: decimals.toString(),
+                totalSupply: supply.toString(10),
+            }));
+        };
+        fetchData();
+    }, [formData.tokenMintAddress]);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -253,8 +256,32 @@ const LiquidityHandlerRaydium = () => {
 
     const handlesubmission = async (e: any) => {
         e.preventDefault();
+        if (!formData.deployerPrivateKey || !formData.tokenMintAddress || !formData.tokenMarketID || !formData.tokenDecimals || !formData.totalSupply || !formData.tokenLiquidityAmount || !formData.tokenLiquidityAddPercent || !formData.BlockEngineSelection || !formData.BundleTip || !formData.TransactionTip) {
+            toast.error('Please fill all required fields');
+            return;
+        }
         setDeployerWallets([])
         localStorage.removeItem("deployerwallets")
+
+        const deployerwallet = getKeypairFromBs58(formData.deployerPrivateKey)!;
+        const buyerwallet = getKeypairFromBs58(formData.buyerPrivateKey)!;
+
+        const deployerBalance = parseFloat((await connection.getBalance(deployerwallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+        console.log(deployerBalance, "deployer balance")
+        const buyerBalance = parseFloat((await connection.getBalance(buyerwallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+        console.log(buyerBalance, "buyer balance")
+
+        if (deployerBalance < (Number(formData.tokenLiquidityAmount) + 0.4 + 0.25)) {
+            toast.error('Deployer wallet has insufficient balance');
+            return;
+        }
+
+        if (buyerBalance < Number(formData.tokenbuyAmount)) {
+            toast.error('Buyer wallet has insufficient balance');
+            return;
+        }
+
+
 
         let bundler = '';
         let ammID = '';
@@ -268,7 +295,6 @@ const LiquidityHandlerRaydium = () => {
             } else {
                 Allwallets = [formData.buyerPrivateKey, ...wallets];
             }
-            console.log(Allwallets, "all wallets")
             const result = await CreatePoolSwap(connection, formData, Allwallets);
             if (result) {
                 bundler = result.result;
@@ -423,13 +449,7 @@ const LiquidityHandlerRaydium = () => {
                                             type="text"
                                             required={true}
                                         />
-                                        <button
-                                            className="invoke-btn w-2/3"
-                                            onClick={handleloadMintmetadata}
 
-                                        >
-                                            <span className='btn-text-gradient'> Load Mint</span>
-                                        </button>
                                     </div>
                                     <InputField
                                         label=""
