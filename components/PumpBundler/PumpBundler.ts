@@ -126,7 +126,7 @@ export async function PumpBundler(
         if (buyerwallets.length === 1) {
             balance = new BN(Number(pool_data.BuyertokenbuyAmount) * LAMPORTS_PER_SOL);
         } else {
-            balance = await connection.getBalance(buyerWallet.publicKey);
+            balance = (await connection.getBalance(buyerWallet.publicKey) - (0.003 * LAMPORTS_PER_SOL));
         }
 
         if (balance == 0) {
@@ -141,6 +141,7 @@ export async function PumpBundler(
             buyerWallet.publicKey,
             TokenKeypair.publicKey,
         )
+
 
         //90% of the balance + 15% of the balance
         // const devBuyQuote = new BN(balance).muln(90).divn(100).add(new BN(balance).muln(15).divn(100));

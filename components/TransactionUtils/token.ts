@@ -140,58 +140,6 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         createNewTokenTransaction.add(revokeFreeze);
     }
 
-    // if (tokenInfo.revokeMetadataUpdateAuthority) {
-    //     const revokeMetadata = createSetAuthorityInstruction(
-    //         mintKeypair.publicKey, // mint acocunt || token account
-    //         myPublicKey, // current auth
-    //         AuthorityType.AccountOwner, // authority type
-    //         null
-    //     );
-
-    //     createNewTokenTransaction.add(revokeMetadata);
-    // }
-
-    // const messageV0 = new TransactionMessage({
-    //     payerKey: myPublicKey,
-    //     recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-    //     instructions: createNewTokenTransaction.instructions,
-    // }).compileToV0Message();
-
-
-    // const transaction = new VersionedTransaction(messageV0);
-
-    // const signedTransaction = sendTransaction(transaction);
-
-
-    // try {
-    //     toast.info('Please wait, bundle acceptance may take a few seconds');
-    //     // Load the self-signed certificate
-    //     const response = await axios.post(
-    //         'https://mevarik-deployer.xyz:2891/CreateToken',
-    //         signedTransaction,
-    //         {
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //         }
-    //     );
-    //     if (response.status === 200) {
-    //         throw new Error(response.data);
-
-    //     }
-
-    // } catch (error) {
-    //     console.log('Error:', error);
-    //     if (axios.isAxiosError(error)) {
-    //         if (error.response && error.response.status === 500) {
-    //             toast.error(`${error.response.data}`);
-    //         } else {
-    //             toast.error('Error occurred: Please Fill in all the fields');
-    //         }
-    //     } else {
-    //         toast.error('An unknown error occurred');
-    //     }
-    // }
     const token = mintKeypair.publicKey.toBase58();
     const signature = await SendTransaction(
         createNewTokenTransaction,
