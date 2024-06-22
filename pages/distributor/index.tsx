@@ -149,19 +149,19 @@ const LiquidityHandlerRaydium = () => {
                                 label='Token Address'
                                 subfield={'Address of the token needs to be distributed'}
                                 value={formData.tokenMintAddress}
-                                onChange={(e) => handleChange(e, 'walletcount')}
-                                placeholder='D5bBVBQDN....TcNu3yJaeVK5W'
+                                onChange={(e) => handleChange(e, 'tokenMintAddress')}
+                                placeholder='D5b....ae'
                                 type='string'
                                 required={false}
                             />
                         </div>
                         <div className='w-full'>
                             <InputField
-                                id='walletcount'
+                                id='feePayerWallet'
                                 label='Fee Payer Wallet'
                                 subfield={'Wallet will pay for the transaction gas fees'}
                                 value={formData.feePayerWallet}
-                                onChange={(e) => handleChange(e, 'walletcount')}
+                                onChange={(e) => handleChange(e, 'feePayerWallet')}
                                 placeholder='D5bBVBQDN....TcNu3yJaeVK5W'
                                 type='string'
                                 required={false}
