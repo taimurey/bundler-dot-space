@@ -92,7 +92,7 @@ body {
 }
 
 .btn-text-gradient {
-  @apply bg-gradient-to-r from-[#5cf3ac] to-[#f0b661] bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#3cf19d] to-[#089fb3] bg-clip-text text-transparent;
 }
 
 .solape__connect-btn {

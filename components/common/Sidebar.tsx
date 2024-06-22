@@ -17,6 +17,7 @@ import LiquidityIcon from '../icons/LiquidityIcon';
 import CashInflowIcon from "../icons/cashInflowIcon";
 import SwapIcon from "../icons/SwapIcon";
 import PillIcon from "../icons/PillIcon";
+import MultiSenderIcon from "../icons/MultiSendIcon";
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     css?: TwStyle[] | undefined;
 }
@@ -214,6 +215,13 @@ const Sidebar: FC = () => {
             description: 'Generate volume on Raydium',
             icon: <CashInflowIcon />,
         },
+        {
+            href: '/distributor',
+            isActive: router.pathname === '/distributor',
+            title: 'Token Distributor',
+            description: 'Send tokens to multiple wallets',
+            icon: <MultiSenderIcon />,
+        },
     ];
 
     const isMintingLabPage = router.pathname.includes('/mintinglab');
@@ -232,6 +240,7 @@ const Sidebar: FC = () => {
     const pumpFunLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/pumpfun/') && !link.href.includes('volumebot'));
 
     const volumeBotLink = filteredLinks.filter(link => link.href.includes('/volumebot'));
+    const distributorLink = filteredLinks.filter(link => link.href.includes('/distributor'));
 
     // Filter other links excluding Raydium and PumpFun links
     const otherLinks = filteredLinks.filter(link => !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/') && !link.href.includes('/volumebot'));
@@ -265,8 +274,6 @@ const Sidebar: FC = () => {
                             </div>
                         </div>
                     )}
-
-
                     <div className="flex  flex-col gap-2 h-full p-2">
                         {!isMintingLabPage && (
                             <div className="accordion-item cursor-pointer select-none">
@@ -340,6 +347,17 @@ const Sidebar: FC = () => {
                                 icon={link.icon}
                             />
                         ))}
+                        {distributorLink.map((link, index) => (
+                            <SidebarSublinks
+                                key={index}
+                                href={link.href}
+                                isActive={link.isActive}
+                                title={link.title}
+                                description={link.description}
+                                icon={link.icon}
+                            />
+                        ))}
+
                     </div>
                 </div>
             </div >
