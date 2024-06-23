@@ -7,7 +7,7 @@ import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
 import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { OutputField } from '../../components/FieldComponents/OutputField';
@@ -24,6 +24,8 @@ import { ApibundleSend } from '../../components/DistributeTokens/bundler';
 import { PumpVolumeGenerator } from '../../components/PumpBundler/volumeGenerator';
 import { useMyContext } from '../../contexts/Maincontext';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
+import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
+import { truncate } from '../../components/common/Allprofiles';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -136,14 +138,21 @@ const LiquidityHandlerRaydium = () => {
     React.useEffect(() => {
         const fetchBalances = async () => {
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([value]) => {
-                    const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
-                    const balance = await connection.getBalance(keypair.publicKey);
-
-                    return { balance, publicKey: keypair.publicKey.toString() };
+                Object.entries(wallets).map(async ([key, value]) => {
+                    try {
+                        console.log(key);
+                        const keypair = getKeypairFromBs58(value)!;
+                        const balance = await connection.getBalance(keypair.publicKey);
+                        return { balance, publicKey: keypair.publicKey.toString() };
+                    } catch (error) {
+                        console.error("Error decoding or fetching balance for wallet:", value, error);
+                        return null; // Return null or some other placeholder to indicate failure
+                    }
                 })
             );
-            setBalances(balances);
+            // Filter out any null values resulting from errors
+            const validBalances = balances.filter(balance => balance !== null);
+            setBalances(validBalances.map((balance: any) => ({ balance: balance.balance, publicKey: balance.publicKey })));
         };
 
         fetchBalances();
@@ -159,6 +168,7 @@ const LiquidityHandlerRaydium = () => {
             complete: function (results) {
                 //skip the first row
                 const wallets = results.data.slice(1).map(row => row[1]);
+                wallets.shift();
                 wallets.forEach((element: string) => {
                     if (element === '' || element === 'wallet') {
                         return;
@@ -181,29 +191,24 @@ const LiquidityHandlerRaydium = () => {
 
     const walletsfunder = async (e: any) => {
         e.preventDefault();
-        if (wallets.length === 0 || formData.tokenbuyAmount === '' || formData.solfundingwallet === ''
-        ) {
+        // Ensure wallets is always treated as an array
+        const walletsArray = Array.isArray(wallets) ? wallets : [];
+
+        if (walletsArray.length === 0 || formData.tokenbuyAmount === '' || formData.solfundingwallet === '') {
             toast.error('Please upload a csv file with wallets');
             return;
         }
-        const csvwallets = wallets;
 
-        const randomAmount = distributeRandomly(Number(formData.tokenbuyAmount), csvwallets.length, 0.01, 10);
-        toast.info(`Distributing ${formData.tokenbuyAmount} sol to ${csvwallets.length} wallets`);
-        const keypairs = csvwallets.map(wallet => Keypair.fromSecretKey(base58.decode(wallet)));
+        const randomAmount = distributeRandomly(Number(formData.tokenbuyAmount) * LAMPORTS_PER_SOL, walletsArray.length, (0.0001 * LAMPORTS_PER_SOL), (2 * LAMPORTS_PER_SOL));
+        toast.info(`Distributing ${formData.tokenbuyAmount} sol to ${walletsArray.length} wallets`);
+        const keypairs = walletsArray.map(wallet => Keypair.fromSecretKey(base58.decode(wallet)));
         const solbundle = await solDistribution(connection, Keypair.fromSecretKey(base58.decode(formData.solfundingwallet)), keypairs, randomAmount, Number(formData.BundleTip));
 
         const EncodedbundledTxns = solbundle.map(txn => base58.encode(txn.serialize()));
 
-        const bundledata = {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "sendBundle",
-            params: [EncodedbundledTxns]
-        };
 
         try {
-            const response = await ApibundleSend(bundledata, formData.BlockEngineSelection);
+            const response = await ApibundleSend(EncodedbundledTxns, formData.BlockEngineSelection);
             const bundleId = response.result;
             toast(
                 () => (
@@ -463,7 +468,7 @@ const LiquidityHandlerRaydium = () => {
                                             key={index}
                                             className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base text-[12px] h-[40px] max-w-[300px]"
                                         >
-                                            {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{publicKey}</span>
+                                            {index + 1}: <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncate(publicKey, 5, 6)}</span>
                                             <br />
                                             Balance: {balance}
                                         </p>

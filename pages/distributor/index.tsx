@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import Allprofiles from '../../components/common/Allprofiles';
 import Papa from 'papaparse';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
+import { tokenMultisender } from '../../components/tokenDistributor/tokenMultisender';
+import { useConnection } from '@solana/wallet-adapter-react';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -23,6 +25,7 @@ export type BalanceType = {
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
+    const { connection } = useConnection();
     const [formData, setFormData] = useState<{
         tokenMintAddress: string;
         feePayerWallet: string;
@@ -128,8 +131,16 @@ const LiquidityHandlerRaydium = () => {
             toast.error('Please upload a csv file with wallets and provide a token mint address');
             return;
         }
+        toast.info('Distributing Tokens...');
 
+        try {
+            const data = await tokenMultisender(connection, formData);
 
+            toast.info(`Transaction sent, Data: ${data}`)
+            console.log(data);
+        } catch (error) {
+            toast.error('Error in distributing tokens');
+        }
 
     }
 

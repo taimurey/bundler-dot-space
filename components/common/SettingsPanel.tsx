@@ -105,7 +105,7 @@ const SettingsPanel = () => {
       <div className="md:hidden border-b border-neutral-700 pb-3 space-y-2 flex-col flex ">
         <AppHeader />/
       </div>
-      <div className="mb-4 ">
+      <div className="mb-4 relative z-50">
         <div className="space-y-1.5">
           <h3 className="text-transparent bg-clip-text serum-gradient text-custom-green text-xs">
             Connection

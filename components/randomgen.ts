@@ -1,5 +1,3 @@
-import { randomInt } from 'crypto';
-
 export function distributeRandomly(total: number, iterations: number, minValue: number, maxValue: number): number[] {
     console.log(`Total: ${total}, Iterations: ${iterations}`);
     if (total < iterations) {
@@ -14,17 +12,13 @@ export function distributeRandomly(total: number, iterations: number, minValue: 
     indices.sort(() => Math.random() - 0.5);
 
     for (const index of indices) {
-        // Determine the maximum amount that can be added to the current iteration
-        const minPerIteration = Math.floor(total / iterations);
-        const maxPerIteration = total - (iterations - 1) * minPerIteration;
-        const maxAddition = Math.min(remaining, maxPerIteration);
 
         // Generate a random amount to add within the allowed range
         let amountToAdd;
         if (index === indices[indices.length - 1]) {
             amountToAdd = remaining;
         } else {
-            amountToAdd = Math.min(randomInt(minValue, maxValue + 1), maxAddition);
+            amountToAdd = getRandomInt(minValue, maxValue);
         }
 
         // Update the amounts and remaining total
@@ -38,4 +32,10 @@ export function distributeRandomly(total: number, iterations: number, minValue: 
     }
 
     return amounts;
+}
+
+function getRandomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }

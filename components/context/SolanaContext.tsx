@@ -55,11 +55,11 @@ export const CLUSTERS: SolanaCluster[] = [
   //  network: "testnet",
   //  endpoint: clusterApiUrl("testnet"),
   //},
-  // {
-  //   label: "Devnet",
-  //   network: "devnet",
-  //   endpoint: clusterApiUrl("devnet"),
-  // },
+  {
+    label: "Devnet",
+    network: "devnet",
+    endpoint: process.env.NEXT_PUBLIC_DEVNET_URL ? process.env.NEXT_PUBLIC_DEVNET_URL : (() => { throw new Error("NEXT_PUBLIC_DEVNET_URL is not set") })()
+  },
   {
     label: "Custom RPC",
     network: "custom",
