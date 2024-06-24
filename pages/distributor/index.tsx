@@ -38,8 +38,8 @@ const LiquidityHandlerRaydium = () => {
         TransactionTip: string;
         BlockEngineSelection: string;
     }>({
-        tokenMintAddress: 'EFHvVutpr37wVgaebkE42nYHwk891AUdMcgxphZw8mGg',
-        feePayerWallet: 'aCHLyUWVvhE9VacB98y2ZFpw5Qu76g1WrQReeLEYe6sB15VAgJERbeY8rDA8vE75A6AXHZav1d2ruWA9h3njHuj',
+        tokenMintAddress: '',
+        feePayerWallet: '',
         SendingWallets: [],
         RecievingWallets: [],
         BundleTip: '0.01',
