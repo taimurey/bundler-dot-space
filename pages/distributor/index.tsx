@@ -13,6 +13,7 @@ import Papa from 'papaparse';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 import { tokenMultisender } from '../../components/tokenDistributor/tokenMultisender';
 import { useConnection } from '@solana/wallet-adapter-react';
+import { Keypair } from '@solana/web3.js';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -26,6 +27,8 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
     const { connection } = useConnection();
+
+    const [generateCount, setGenerateCount] = useState('');
     const [formData, setFormData] = useState<{
         tokenMintAddress: string;
         feePayerWallet: string;
@@ -34,7 +37,15 @@ const LiquidityHandlerRaydium = () => {
         BundleTip: string;
         TransactionTip: string;
         BlockEngineSelection: string;
-    }>({ tokenMintAddress: '', feePayerWallet: '', SendingWallets: [], RecievingWallets: [], BundleTip: '0.01', TransactionTip: '0.00001', BlockEngineSelection: BlockEngineLocation[2] });
+    }>({
+        tokenMintAddress: 'EFHvVutpr37wVgaebkE42nYHwk891AUdMcgxphZw8mGg',
+        feePayerWallet: 'aCHLyUWVvhE9VacB98y2ZFpw5Qu76g1WrQReeLEYe6sB15VAgJERbeY8rDA8vE75A6AXHZav1d2ruWA9h3njHuj',
+        SendingWallets: [],
+        RecievingWallets: [],
+        BundleTip: '0.01',
+        TransactionTip: '0.00001',
+        BlockEngineSelection: BlockEngineLocation[2]
+    });
 
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
@@ -54,20 +65,27 @@ const LiquidityHandlerRaydium = () => {
         }));
     };
 
-    // React.useEffect(() => {
-    //     const fetchBalances = async () => {
-    //         const balances = await Promise.all(
-    //             Object.entries(wallets).map(async ([value]) => {
-    //                 const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
-    //                 const balance = await connection.getBalance(keypair.publicKey);
-
-    //                 return { balance, publicKey: keypair.publicKey.toString() };
-    //             })
-    //         );
-    //         setBalances(balances);
-    //     };
-    //     fetchBalances();
-    // }, [formData.SendingWallets, formData.RecievingWallets]);
+    const generatewallets = () => {
+        const wallets = [];
+        for (let i = 0; i < Number(generateCount); i++) {
+            const keypair = Keypair.generate();
+            wallets.push({
+                id: i,
+                wallet: keypair.publicKey.toBase58(),
+            });
+        }
+        //write to a csv file using papaparse
+        const csv = Papa.unparse(wallets);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'wallets.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
 
     const handleSendingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -123,7 +141,7 @@ const LiquidityHandlerRaydium = () => {
 
 
 
-    const volumeBot = async (
+    const distributeTokens = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         e.preventDefault();
@@ -139,7 +157,7 @@ const LiquidityHandlerRaydium = () => {
             toast.info(`Transaction sent, Data: ${data}`)
             console.log(data);
         } catch (error) {
-            toast.error('Error in distributing tokens');
+            toast.error(`Error: ${error}`);
         }
 
     }
@@ -185,6 +203,7 @@ const LiquidityHandlerRaydium = () => {
                                     Upload tokens <span className='text-lime-500 font-bold'>Sending</span> Wallets
                                     <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file )</span>
                                 </label>
+
                                 <InputField
                                     id='walletsNumbers'
                                     placeholder='27'
@@ -194,20 +213,42 @@ const LiquidityHandlerRaydium = () => {
                                     type="file"
                                     onChange={handleSendingWallets}
                                 />
-                                <div className='mt-5'>
-                                    <label className='font-normal'>
-                                        Upload tokens <span className='text-red-500 font-bold'>Receiving</span> Wallets
-                                        <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file )</span>
-                                    </label>
-                                    <InputField
-                                        id='walletsNumbers'
-                                        placeholder='27'
-                                        label=''
-                                        subfield='csv file'
-                                        required={true}
-                                        type="file"
-                                        onChange={handleRecievingWallets}
-                                    />
+                                <div className='border-dashed border p-4 rounded-lg mt-5'>
+                                    <div className='mt-5'>
+                                        <label className='font-normal'>
+                                            Upload tokens <span className='text-red-500 font-bold'>Receiving</span> Wallets
+                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file )</span>
+                                        </label>
+                                        <InputField
+                                            id='walletsNumbers'
+                                            placeholder='27'
+                                            label=''
+                                            subfield='csv file'
+                                            required={true}
+                                            type="file"
+                                            onChange={handleRecievingWallets}
+                                        />
+                                    </div>
+                                    <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
+                                        <div className='w-4/5'>
+                                            <InputField
+                                                id='walletcount'
+                                                label='Wallet Count'
+                                                subfield={'Generate Wallets and download in CSV format -- Optional'}
+                                                value={generateCount.toString()}
+                                                onChange={(e) => setGenerateCount(e.target.value)}
+                                                placeholder='40...'
+                                                type='string'
+                                                required={false}
+                                            />
+                                        </div>
+                                        <button
+                                            className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
+                                            onClick={generatewallets}
+                                        >
+                                            Generate Recieving Wallets
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
@@ -259,7 +300,7 @@ const LiquidityHandlerRaydium = () => {
                             <div className='justify-center'>
                                 <button
                                     className="btn-text-gradient btn-normal w-full mt-5"
-                                    onClick={volumeBot}
+                                    onClick={distributeTokens}
                                 >
                                     Distribute Tokens
                                 </button>

@@ -94,7 +94,6 @@ const LiquidityHandlerRaydium = () => {
                 ...prevState,
                 Wallet2: wallet.publicKey.toString(),
             }));
-
             // Add new wallet to setsideWallets
             setdeployerwallets(prevProfiles => [...prevProfiles, {
                 id: prevProfiles.length,
@@ -102,14 +101,11 @@ const LiquidityHandlerRaydium = () => {
                 wallet: base58.encode(wallet.secretKey), // Use JSON.stringify instead of toString
                 color: randomColor(),
             }]);
-
             setFormData(prevState => ({
                 ...prevState,
                 solfundingwallet: value,
             }));
         }
-
-
     };
 
     //generate wallets and write them to a csv file
