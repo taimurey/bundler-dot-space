@@ -222,7 +222,7 @@ const LiquidityHandlerRaydium = () => {
                             <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Wallet Details</h3>
                             <div className='border-dashed border p-4 rounded-lg'>
                                 <label className='font-normal'>
-                                    Upload tokens <span className='text-lime-500 font-bold'>Sending</span> Wallet
+                                    Input tokens <span className='text-lime-500 font-bold'>Sending</span> Wallet
                                     <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( Private Key )</span>
                                 </label>
 
