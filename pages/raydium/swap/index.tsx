@@ -11,7 +11,7 @@ import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { useMyContext } from '../../../contexts/Maincontext';
-import Allprofiles from '../../../components/common/Allprofiles';
+import WalletsDrawer from '../../../components/common/Allprofiles';
 
 
 const ZERO = new BN(0)
@@ -196,7 +196,7 @@ const Swap = () => {
                 </div>
             </form>
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div>
     );

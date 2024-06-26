@@ -18,12 +18,13 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
-import Allprofiles, { truncate } from '../../../components/common/Allprofiles';
+import { truncate } from '../../../components/common/Allprofiles';
 import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
 import Papa from 'papaparse';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { BalanceType } from '../../volumebot';
 import { getKeypairFromBs58 } from '../../../components/PumpBundler/misc';
+import WalletsDrawer from '../../../components/common/Allprofiles';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -640,7 +641,7 @@ const LiquidityHandlerRaydium = () => {
                 </div>
             </form >
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div >
     );

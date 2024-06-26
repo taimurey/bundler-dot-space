@@ -8,8 +8,8 @@ import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
 import { toast } from 'react-toastify';
-import Allprofiles from '../../../components/common/Allprofiles';
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
+import WalletsDrawer from '../../../components/common/Allprofiles';
 // import { commentBomb } from '../../../components/PumpBundler/Bomber/comment-bomb';
 
 const ZERO = new BN(0)
@@ -187,7 +187,7 @@ const VolumeCommentBomb = () => {
                 </div>
             </form >
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div >
     );

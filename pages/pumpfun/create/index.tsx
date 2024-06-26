@@ -18,7 +18,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
-import Allprofiles from '../../../components/common/Allprofiles';
 import { NFTStorage } from 'nft.storage';
 import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedInputfield';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
@@ -31,7 +30,7 @@ import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
-import { truncate } from "../../../components/common/Allprofiles";
+import WalletsDrawer, { truncate } from "../../../components/common/Allprofiles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface WorkerResult {
@@ -859,7 +858,7 @@ const LiquidityHandlerRaydium = () => {
                 </div>
             </form >
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div >
     );

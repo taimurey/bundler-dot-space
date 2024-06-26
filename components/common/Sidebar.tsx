@@ -371,7 +371,8 @@ const Sidebar: FC = () => {
                                 />
                             ))}
                         </div>
-                    </div>)}
+                    </div>
+                )}
             </div >
         </>
     )

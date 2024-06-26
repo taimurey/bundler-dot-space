@@ -162,6 +162,8 @@ export async function tokenMultisender(
     }
 
     console.log(await response.text());
+
+    return response;
 }
 
 

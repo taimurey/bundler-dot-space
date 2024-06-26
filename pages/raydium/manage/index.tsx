@@ -20,10 +20,10 @@ import { addLookupTableInfo, makeTxVersion } from '../../../components/removeLiq
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
 import { toast } from "react-toastify";
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import Allprofiles from '../../../components/common/Allprofiles';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import base58 from 'bs58';
 import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
+import WalletsDrawer from '../../../components/common/Allprofiles';
 
 
 
@@ -426,7 +426,7 @@ const RaydiumLiquidityRemover = () => {
                 </div>
             </form>
             <div className='absolute -top-[95px] right-0 min-h-screen '>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div>
     );

@@ -14,7 +14,6 @@ import { OutputField } from '../../components/FieldComponents/OutputField';
 import { useSolana } from '../../components/context';
 import { toast } from 'react-toastify';
 import { BundleToast } from '../../components/common/Toasts/TransactionToast';
-import Allprofiles from '../../components/common/Allprofiles';
 import Papa from 'papaparse';
 import { randomColor } from '../raydium/create';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
@@ -25,7 +24,7 @@ import { PumpVolumeGenerator } from '../../components/PumpBundler/volumeGenerato
 import { useMyContext } from '../../contexts/Maincontext';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
-import { truncate } from '../../components/common/Allprofiles';
+import WalletsDrawer, { truncate } from '../../components/common/Allprofiles';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -497,7 +496,7 @@ const LiquidityHandlerRaydium = () => {
                 </div>
             </form >
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div >
     );
