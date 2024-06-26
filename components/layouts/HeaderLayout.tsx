@@ -3,6 +3,7 @@ import { FC, ReactNode } from "react";
 import Header from "../common/Header";
 import React from 'react';
 import Sidebar from "../common/Sidebar";
+import { useRouter } from "next/router";
 
 type HeaderLayoutProps = {
   title?: string;
@@ -10,6 +11,9 @@ type HeaderLayoutProps = {
 };
 
 export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
+  const router = useRouter();
+
+  const displaySidebar = router.pathname !== "/" ? "hidden md:flex min-w-[300px] h-full bg-[#0d1117] border-gray-700" : "h-full";
 
   return (
     <>
@@ -20,7 +24,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
         <div className="w-full mx-auto">
           <Header />
           <div className="flex justify-start items-start h-full w-full">
-            <div className="hidden md:flex min-w-[300px] h-full bg-[#0d1117] border-gray-700">
+            <div className={displaySidebar}>
               <Sidebar />
             </div>
             <div className="px-4 py-10 mx-auto space-y-6 w-full h-full">

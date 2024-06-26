@@ -253,6 +253,7 @@ const Sidebar: FC = () => {
     const otherLinks = filteredLinks.filter(link => !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/') && !link.href.includes('/volumebot'));
     const showAllPortfolios = router.pathname.includes('/');
     const { isProfilesActive, setisProfilesActive } = useMyContext();
+
     return (
         <>
             <div className=" min-h-screen h-full flex bg-[#0c1118]">
@@ -268,108 +269,109 @@ const Sidebar: FC = () => {
                         />
                     ))}
                 </div>
-                <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
-                    {showAllPortfolios && (
-                        <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
+                {(router.pathname !== '/' &&
+                    <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
+                        {showAllPortfolios && (
+                            <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
                          text-white/50 hover:text-white fill-current font-extralight 
                            border-b-2 border-transparent transition-height duration-200 
                            ease-in-out cursor-pointer bg-[#1a1a1a] gap-3"
-                            onClick={() => setisProfilesActive(!isProfilesActive)}>
-                            <div className="bg-[#333333] px-3 py-3  rounded-full">
-                                <VirusIcon color="#37db9c" /></div>
-                            <div className="flex flex-col">
-                                <p className="font-bold text-white/80 ">Wallets</p>
+                                onClick={() => setisProfilesActive(!isProfilesActive)}>
+                                <div className="bg-[#333333] px-3 py-3  rounded-full">
+                                    <VirusIcon color="#37db9c" /></div>
+                                <div className="flex flex-col">
+                                    <p className="font-bold text-white/80 ">Wallets</p>
+                                </div>
+                                <div className="font-bold">
+                                    {'➤'}
+                                </div>
                             </div>
-                            <div className="font-bold">
-                                {'➤'}
-                            </div>
+                        )}
+                        <div className="flex  flex-col gap-2 h-full p-2">
+                            {!isMintingLabPage && (
+                                <div className="accordion-item cursor-pointer select-none">
+                                    <div className="accordion-title flex items-center " onClick={toggleRaydium}>
+                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                        >
+                                            <h2>Raydium</h2>
+                                            <span className={`ease-in-out duration-300 cursor-pointer ml-2 ${isRaydiumOpen ? 'rotate-90' : 'rotate-0'}`}
+                                            >➤</span>
+                                        </div>
+                                    </div>
+                                    {isRaydiumOpen && (
+                                        <div className="accordion-content">
+                                            {raydiumLinks.map((link, index) => (
+                                                <SidebarSublinks
+                                                    key={index}
+                                                    href={link.href}
+                                                    isActive={link.isActive}
+                                                    title={link.title}
+                                                    description={link.description}
+                                                    icon={link.icon}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {!isMintingLabPage && (
+                                <div className="accordion-item cursor-pointer">
+                                    <div className="accordion-title flex items-center " onClick={togglePumpFun}>
+                                        <div className="flex justify-start items-center select-none gap-4 w-full bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                        >
+                                            <h2>PumpFun</h2>
+                                            <span className={`ease-in-out duration-300 cursor-pointer  ${isPumpFunOpen ? 'rotate-90' : 'rotate-0'}`}
+                                            >➤</span>
+                                        </div>
+                                    </div>
+                                    {isPumpFunOpen && (
+                                        <div className="accordion-content">
+                                            {pumpFunLinks.map((link, index) => (
+                                                <SidebarSublinks
+                                                    key={index}
+                                                    href={link.href}
+                                                    isActive={link.isActive}
+                                                    title={link.title}
+                                                    description={link.description}
+                                                    icon={link.icon}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {isMintingLabPage && otherLinks.map((link, index) => (
+                                <SidebarSublinks
+                                    key={index}
+                                    href={link.href}
+                                    isActive={link.isActive}
+                                    title={link.title}
+                                    description={link.description}
+                                    icon={link.icon}
+                                />
+                            ))}
+                            {distributorLink.map((link, index) => (
+                                <SidebarSublinks
+                                    key={index}
+                                    href={link.href}
+                                    isActive={link.isActive}
+                                    title={link.title}
+                                    description={link.description}
+                                    icon={link.icon}
+                                />
+                            ))}
+                            {volumeBotLink.map((link, index) => (
+                                <SidebarSublinks
+                                    key={index}
+                                    href={link.href}
+                                    isActive={link.isActive}
+                                    title={link.title}
+                                    description={link.description}
+                                    icon={link.icon}
+                                />
+                            ))}
                         </div>
-                    )}
-                    <div className="flex  flex-col gap-2 h-full p-2">
-                        {!isMintingLabPage && (
-                            <div className="accordion-item cursor-pointer select-none">
-                                <div className="accordion-title flex items-center " onClick={toggleRaydium}>
-                                    <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                    >
-                                        <h2>Raydium</h2>
-                                        <span className={`ease-in-out duration-300 cursor-pointer ml-2 ${isRaydiumOpen ? 'rotate-90' : 'rotate-0'}`}
-                                        >➤</span>
-                                    </div>
-                                </div>
-                                {isRaydiumOpen && (
-                                    <div className="accordion-content">
-                                        {raydiumLinks.map((link, index) => (
-                                            <SidebarSublinks
-                                                key={index}
-                                                href={link.href}
-                                                isActive={link.isActive}
-                                                title={link.title}
-                                                description={link.description}
-                                                icon={link.icon}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {!isMintingLabPage && (
-                            <div className="accordion-item cursor-pointer">
-                                <div className="accordion-title flex items-center " onClick={togglePumpFun}>
-                                    <div className="flex justify-start items-center select-none gap-4 w-full bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                    >
-                                        <h2>PumpFun</h2>
-                                        <span className={`ease-in-out duration-300 cursor-pointer  ${isPumpFunOpen ? 'rotate-90' : 'rotate-0'}`}
-                                        >➤</span>
-                                    </div>
-                                </div>
-                                {isPumpFunOpen && (
-                                    <div className="accordion-content">
-                                        {pumpFunLinks.map((link, index) => (
-                                            <SidebarSublinks
-                                                key={index}
-                                                href={link.href}
-                                                isActive={link.isActive}
-                                                title={link.title}
-                                                description={link.description}
-                                                icon={link.icon}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {isMintingLabPage && otherLinks.map((link, index) => (
-                            <SidebarSublinks
-                                key={index}
-                                href={link.href}
-                                isActive={link.isActive}
-                                title={link.title}
-                                description={link.description}
-                                icon={link.icon}
-                            />
-                        ))}
-                        {distributorLink.map((link, index) => (
-                            <SidebarSublinks
-                                key={index}
-                                href={link.href}
-                                isActive={link.isActive}
-                                title={link.title}
-                                description={link.description}
-                                icon={link.icon}
-                            />
-                        ))}
-                        {volumeBotLink.map((link, index) => (
-                            <SidebarSublinks
-                                key={index}
-                                href={link.href}
-                                isActive={link.isActive}
-                                title={link.title}
-                                description={link.description}
-                                icon={link.icon}
-                            />
-                        ))}
-                    </div>
-                </div>
+                    </div>)}
             </div >
         </>
     )

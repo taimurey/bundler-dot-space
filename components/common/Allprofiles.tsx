@@ -24,7 +24,6 @@ export const truncate = (str: string, startChars: number, endChars: number) => {
 // const Allprofiles: React.FC = (Active: boolean) => {
 const WalletsDrawer: React.FC = () => {
     const { isProfilesActive, setisProfilesActive, DeployerWallets, setDeployerWallets, activeWallet, setActiveWallet } = useMyContext();
-    const [open, setOpen] = useState(true);
     const [isEditable, setIsEditable] = useState<number | null>(null);
 
     const clearWallet = () => {

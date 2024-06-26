@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import { getSearchLayout } from "../components/layouts/SearchLayout";
 import { ReactNode } from "react";
 // import Clock from "../components/icons/Clock";
 // import TickIcon from "../components/icons/TickIcon";
@@ -9,6 +8,7 @@ import Link from "next/link";
 import MevLabLogo from "../components/icons/JupiterLogo";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faTelegram, faDiscord, } from '@fortawesome/free-brands-svg-icons';
+import { getHeaderLayout } from "../components/layouts/HeaderLayout";
 
 
 function animateValue(id: string, start: number, end: number, duration: number) {
@@ -271,6 +271,6 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
 };
 
 
-Home.getLayout = (page: ReactNode) => getSearchLayout(page, "Home");
+Home.getLayout = (page: ReactNode) => getHeaderLayout(page, "Home");
 
 export default Home;

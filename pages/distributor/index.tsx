@@ -8,14 +8,12 @@ import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
 import { toast } from 'react-toastify';
-import Allprofiles from '../../components/common/Allprofiles';
 import Papa from 'papaparse';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 import { tokenMultisender } from '../../components/tokenDistributor/tokenMultisender';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
-import SidebarDrawer from '../../components/common/Drawer';
 import WalletsDrawer from '../../components/common/Allprofiles';
 
 const ZERO = new BN(0)
