@@ -139,7 +139,7 @@ const Sidebar: FC = () => {
         },
         {
             id: 1,
-            href: '/mintinglab/tokencreate',
+            href: '/mintinglab/create-spl',
             icon: <SwapIcon width="20" height="20" />,
         },
         {
@@ -152,8 +152,8 @@ const Sidebar: FC = () => {
 
     const sublinks = [
         {
-            href: '/mintinglab/tokencreate',
-            isActive: router.pathname === '/mintinglab/tokencreate',
+            href: '/mintinglab/create-spl',
+            isActive: router.pathname === '/mintinglab/create-spl',
             title: 'Token Program',
             description: 'Mint SPL Tokens',
             icon: <TokenIcon />,

@@ -38,44 +38,44 @@ const HeaderLink = ({
 
   const linkStyle = icon ?
     `flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-4 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
-    `flex items-center justify-center font-[Roboto] text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4`;
+    `flex items-center justify-center font-[Roboto] h-[40px] my-[10px] px-4 mb-2 ${!icon ? 'bg-gray-500/30 rounded-2xl ' : ''}`;
 
   return (
     <Link href={href} passHref>
       <a
-        className={linkStyle}
+        className={`${linkStyle} ${isActive && !icon ? 'neon-text' : 'text-slate-200/60 duration-200 ease-in-out hover:text-white'}`}
         {...linkProps}
         onClick={() => {
           setActive(index);
         }}
       >
-        {icon && <span className="flex items-center w-5">{icon}</span>}
-        <span className={` whitespace-nowrap relative ${isActive && !icon ? 'border-[#ffac40]' : ''}`}>
+        {icon && <span className="flex items-center w-5 mr-2">{icon}</span>}
+        <span className={`whitespace-nowrap relative`}>
           {title}
-          {isActive && !icon && <span className="absolute -bottom-5 left-0 w-full h-[3px]  bg-[#ffac40]"></span>}
+          {isActive && icon && <span className="absolute -bottom-5 left-0 w-full h-[3px] bg-[#ffac40]"></span>}
         </span>
-
       </a>
-
     </Link>
   );
 };
 
 const HeaderLinks = () => {
   const router = useRouter();
-  // const [active, setActive] = useState(router.pathname.startsWith('/raydium') ? 2 : 1);
   const [active, setActive] = useState<number>(getActiveLink(router.pathname));
 
   useEffect(() => {
-    // setActive(router.pathname.startsWith('/raydium') ? 2 : 1);
     setActive(getActiveLink(router.pathname));
-
   }, [router.pathname]);
+
   function getActiveLink(pathname: string): number {
-    if (pathname === '/swap') return 1; // Home link
-    if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 0; // Minting Lab link
-    if (pathname.startsWith('/raydium')) return 2; // Liquidity link
-    return -1; // None of the above
+    switch (pathname) {
+      case '/pumpfun/create':
+        return 0;
+      case '/mintinglab/create-spl':
+        return 1;
+      default:
+        return 0;
+    }
   }
 
   const headerLinks = [
@@ -83,6 +83,11 @@ const HeaderLinks = () => {
       id: 0,
       href: '/pumpfun/create',
       title: 'Bundler Lab',
+    },
+    {
+      id: 1,
+      href: '/mintinglab/create-spl',
+      title: 'Minting Lab',
       icon: <SwapIcon width="20" height="20" />,
     }
   ];
@@ -94,6 +99,7 @@ const HeaderLinks = () => {
           key={index}
           href={link.href}
           title={link.title}
+          icon={link.icon}
           index={index}
           active={active}
           setActive={setActive}

@@ -86,8 +86,8 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
             <div className="flex justify-center items-center w-full bg-[#0d1117]  border-b border-gray-700">
                 {router.pathname != "/" && <div className="grid grid-cols-4 gap-8 place-items-center">
                     <HeaderLink
-                        href="/mintinglab/tokencreate"
-                        isActive={router.pathname === "/mintinglab/tokencreate"}
+                        href="/mintinglab/create-spl"
+                        isActive={router.pathname === "/mintinglab/create-spl"}
                         title="Create Token"
                         description="Mint SPL Tokens"
                         icon={<TokenIcon />}
