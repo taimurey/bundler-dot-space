@@ -219,11 +219,11 @@ const LiquidityHandlerRaydium = () => {
                             />
                         </div>
                         <div className='flex flex-col gap-2' id="tokeninfo">
-                            <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Generate Volume</h3>
+                            <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Wallet Details</h3>
                             <div className='border-dashed border p-4 rounded-lg'>
                                 <label className='font-normal'>
                                     Upload tokens <span className='text-lime-500 font-bold'>Sending</span> Wallets
-                                    <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file )</span>
+                                    <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( Private Key )</span>
                                 </label>
 
                                 <InputField
@@ -240,7 +240,7 @@ const LiquidityHandlerRaydium = () => {
                                     <div className='mt-5'>
                                         <label className='font-normal'>
                                             Upload tokens <span className='text-red-500 font-bold'>Receiving</span> Wallets
-                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file )</span>
+                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file - maximum 30 wallet pubkeys )</span>
                                         </label>
                                         <InputField
                                             id='walletsNumbers'
@@ -260,7 +260,7 @@ const LiquidityHandlerRaydium = () => {
                                                 subfield={'Generate Wallets and download in CSV format -- Optional'}
                                                 value={generateCount.toString()}
                                                 onChange={(e) => setGenerateCount(e.target.value)}
-                                                placeholder='40...'
+                                                placeholder='30...'
                                                 type='string'
                                                 required={false}
                                             />
