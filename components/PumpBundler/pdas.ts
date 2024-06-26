@@ -24,3 +24,4 @@ export function getMetadataPda(mint: PublicKey) {
     )
     return metadataPda
 }
+

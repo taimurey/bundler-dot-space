@@ -13,7 +13,8 @@ import Papa from 'papaparse';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 import { tokenMultisender } from '../../components/tokenDistributor/tokenMultisender';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -32,7 +33,7 @@ const LiquidityHandlerRaydium = () => {
     const [formData, setFormData] = useState<{
         tokenMintAddress: string;
         feePayerWallet: string;
-        SendingWallets: string[];
+        SendingWallet: string;
         RecievingWallets: string[];
         BundleTip: string;
         TransactionTip: string;
@@ -40,7 +41,7 @@ const LiquidityHandlerRaydium = () => {
     }>({
         tokenMintAddress: '',
         feePayerWallet: '',
-        SendingWallets: [],
+        SendingWallet: '',
         RecievingWallets: [],
         BundleTip: '0.01',
         TransactionTip: '0.00001',
@@ -87,30 +88,30 @@ const LiquidityHandlerRaydium = () => {
         document.body.removeChild(a);
     }
 
-    const handleSendingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files) {
-            return;
-        }
-        const file = event.target.files[0];
+    // const handleSendingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (!event.target.files) {
+    //         return;
+    //     }
+    //     const file = event.target.files[0];
 
-        Papa.parse<string[]>(file, {
-            complete: function (results) {
-                //skip the first row
-                const wallets = results.data.slice(1).map(row => row[1]);
-                wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet') {
-                        return;
-                    }
+    //     Papa.parse<string[]>(file, {
+    //         complete: function (results) {
+    //             //skip the first row
+    //             const wallets = results.data.slice(1).map(row => row[1]);
+    //             wallets.forEach((element: string) => {
+    //                 if (element === '' || element === 'wallet') {
+    //                     return;
+    //                 }
 
-                });
-                toast.success('Wallets Loaded Successfully')
-                setFormData(prevState => ({
-                    ...prevState,
-                    SendingWallets: wallets,
-                }));
-            }
-        });
-    }
+    //             });
+    //             toast.success('Wallets Loaded Successfully')
+    //             setFormData(prevState => ({
+    //                 ...prevState,
+    //                 SendingWallets: wallets,
+    //             }));
+    //         }
+    //     });
+    // }
 
     const handleRecievingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
@@ -139,13 +140,34 @@ const LiquidityHandlerRaydium = () => {
         });
     }
 
+    const [feePayerBalance, setFeePayerBalance] = React.useState<number | null>(null);
+
+    React.useEffect(() => {
+        const fetchBalance = async () => {
+            if (formData.feePayerWallet) {
+                try {
+                    const keypair = getKeypairFromBs58(formData.feePayerWallet);
+                    if (keypair) {
+                        const balance = await connection.getBalance(keypair.publicKey);
+                        setFeePayerBalance(Number((balance / LAMPORTS_PER_SOL).toFixed(2)));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch balance:", error);
+                    setFeePayerBalance(null); // Reset or handle error
+                }
+            }
+        };
+
+        fetchBalance();
+    }, [formData.feePayerWallet, connection]);
+
 
 
     const distributeTokens = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         e.preventDefault();
-        if (formData.tokenMintAddress === '' || formData.feePayerWallet === '' || formData.SendingWallets.length === 0 || formData.RecievingWallets.length === 0) {
+        if (formData.tokenMintAddress === '' || formData.feePayerWallet === '' || formData.RecievingWallets.length === 0) {
             toast.error('Please upload a csv file with wallets and provide a token mint address');
             return;
         }
@@ -188,7 +210,7 @@ const LiquidityHandlerRaydium = () => {
                             <InputField
                                 id='feePayerWallet'
                                 label='Fee Payer Wallet'
-                                subfield={'Wallet will pay for the transaction gas fees'}
+                                subfield={`Fee payer -- Balance: ${feePayerBalance} SOL`}
                                 value={formData.feePayerWallet}
                                 onChange={(e) => handleChange(e, 'feePayerWallet')}
                                 placeholder='D5bBVBQDN....TcNu3yJaeVK5W'
@@ -205,13 +227,14 @@ const LiquidityHandlerRaydium = () => {
                                 </label>
 
                                 <InputField
-                                    id='walletsNumbers'
-                                    placeholder='27'
+                                    id='sendingWallets'
                                     label=''
-                                    subfield='csv file'
-                                    required={true}
-                                    type="file"
-                                    onChange={handleSendingWallets}
+                                    subfield={`Fee payer -- Balance: ${feePayerBalance} SOL`}
+                                    value={formData.SendingWallet}
+                                    onChange={(e) => handleChange(e, 'SendingWallet')}
+                                    placeholder='D5bBVBQDN....TcNu3yJaeVK5W'
+                                    type='string'
+                                    required={false}
                                 />
                                 <div className='border-dashed border p-4 rounded-lg mt-5'>
                                     <div className='mt-5'>
