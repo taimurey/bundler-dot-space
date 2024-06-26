@@ -15,6 +15,8 @@ import { tokenMultisender } from '../../components/tokenDistributor/tokenMultise
 import { useConnection } from '@solana/wallet-adapter-react';
 import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
+import SidebarDrawer from '../../components/common/Drawer';
+import WalletsDrawer from '../../components/common/Allprofiles';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -334,7 +336,7 @@ const LiquidityHandlerRaydium = () => {
                 </div>
             </form >
             <div className='absolute -top-[70px] right-0 h-screen'>
-                <Allprofiles />
+                <WalletsDrawer />
             </div>
         </div >
     );

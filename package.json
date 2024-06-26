@@ -13,7 +13,7 @@
     "@emotion/react": "^11.11.3",
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@headlessui/react": "^1.6.5",
+    "@headlessui/react": "^2.1.1",
     "@heroicons/react": "^2.0.12",
     "@metaplex-foundation/mpl-token-metadata": "^2.5.2",
     "@metaplex/js": "^4.12.0",

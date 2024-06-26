@@ -113,7 +113,7 @@ const HeaderLink = ({
 const Sidebar: FC = () => {
     const router = useRouter();
     const [isRaydiumOpen, setIsRaydiumOpen] = useState<boolean>(false);
-    const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(true);
+    const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(false);
 
     const toggleRaydium = () => setIsRaydiumOpen(!isRaydiumOpen);
     const togglePumpFun = () => setIsPumpFunOpen(!isPumpFunOpen);
@@ -122,8 +122,15 @@ const Sidebar: FC = () => {
 
     useEffect(() => {
         setActive(getActiveLink(router.pathname));
-
+        if (router.pathname.includes('/pumpfun')) {
+            setIsRaydiumOpen(false);
+            setIsPumpFunOpen(true);
+        } else if (router.pathname.includes('/raydium')) {
+            setIsRaydiumOpen(true);
+            setIsPumpFunOpen(false);
+        }
     }, [router.pathname]);
+
     function getActiveLink(pathname: string): number {
         if (pathname === '/') return 0;
         if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1;
@@ -209,18 +216,18 @@ const Sidebar: FC = () => {
             icon: <ManageIcon />,
         },
         {
-            href: '/volumebot',
-            isActive: router.pathname === '/volumebot',
-            title: 'Volume Generator',
-            description: 'Generate volume on Raydium',
-            icon: <CashInflowIcon />,
-        },
-        {
             href: '/distributor',
             isActive: router.pathname === '/distributor',
             title: 'Token Distributor',
             description: 'Send tokens to multiple wallets',
             icon: <MultiSenderIcon />,
+        },
+        {
+            href: '/volumebot',
+            isActive: router.pathname === '/volumebot',
+            title: 'Volume Generator',
+            description: 'Generate volume on Raydium',
+            icon: <CashInflowIcon />,
         },
     ];
 
@@ -263,7 +270,11 @@ const Sidebar: FC = () => {
                 </div>
                 <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
                     {showAllPortfolios && (
-                        <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center  text-white/50 hover:text-white fill-current font-extralight   border-b-2 border-transparent transition-height duration-200 ease-in-out cursor-pointer bg-[#1a1a1a] gap-3" onClick={() => setisProfilesActive(!isProfilesActive)}>
+                        <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
+                         text-white/50 hover:text-white fill-current font-extralight 
+                           border-b-2 border-transparent transition-height duration-200 
+                           ease-in-out cursor-pointer bg-[#1a1a1a] gap-3"
+                            onClick={() => setisProfilesActive(!isProfilesActive)}>
                             <div className="bg-[#333333] px-3 py-3  rounded-full">
                                 <VirusIcon color="#37db9c" /></div>
                             <div className="flex flex-col">
@@ -337,16 +348,6 @@ const Sidebar: FC = () => {
                                 icon={link.icon}
                             />
                         ))}
-                        {volumeBotLink.map((link, index) => (
-                            <SidebarSublinks
-                                key={index}
-                                href={link.href}
-                                isActive={link.isActive}
-                                title={link.title}
-                                description={link.description}
-                                icon={link.icon}
-                            />
-                        ))}
                         {distributorLink.map((link, index) => (
                             <SidebarSublinks
                                 key={index}
@@ -357,7 +358,16 @@ const Sidebar: FC = () => {
                                 icon={link.icon}
                             />
                         ))}
-
+                        {volumeBotLink.map((link, index) => (
+                            <SidebarSublinks
+                                key={index}
+                                href={link.href}
+                                isActive={link.isActive}
+                                title={link.title}
+                                description={link.description}
+                                icon={link.icon}
+                            />
+                        ))}
                     </div>
                 </div>
             </div >
