@@ -44,12 +44,12 @@ const SidebarSublinks = ({
 
     return (
         <div
-            className={`flex justify-start text-white/50 duration-300 ease-in-out  fill-current font-extralight px-6 border-b-2 border-transparent transition-height cursor-pointer 
+            className={`flex justify-start text-white/50 duration-300 ease-in-out hover:text-white fill-current font-extralight px-6 border-b-2 border-transparent transition-height cursor-pointer 
             ${isActive && `!text-[#baf775] duration-300 ease-in-out`}`}
             onClick={handleClick}
         >
-            <div className="flex justify-start items-center gap-4 hover:text-white text-white/50">
-                <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl `}>
+            <div className="flex justify-start items-center gap-4">
+                <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
                     {icon}
                 </div>
                 <div className={`flex flex-col transition-opacity ease-in-out`}>
