@@ -122,12 +122,12 @@ const Home = () => {
       <div className="flex flex-col gap-12 justify-start  lg:justify-center lg:items-center  w-full h-full lg:flex-row my-12 max-h-[1000px]">
 
 
-        <div className="max-w-[350px] lg:max-w-[700px] flex flex-col gap-6 h-full">
-          <p className={`text-[42px] lg:text-[126px]  leading-[126px] text-center font-[HeliukBrave]  uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="max-w-[350px] w-full mx-auto md:max-w-[500px] lg:max-w-[700px] flex flex-col gap-6 h-full justify-center items-center">
+          <p className={`text-[56px] md:text-[80px] lg:text-[126px] leading-[50px] md:leading-[80px]  lg:leading-[126px] text-center font-[HeliukBrave]  uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             Bundler for the
             <span className="text-[#f5ac41] mx-4 relative">Apes & Degens</span>
           </p>
-          <p className={`text-[42px] lg:text-[25px] leading-[126px] text-center font-bold transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <p className={`text-[56px] md:text-[80px] lg:text-[126px] leading-[50px] md:leading-[80px]  lg:leading-[126px] text-center font-bold transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <br />
             <h1 className="font-normal font-heliukBrave text-[50px] tracking-wide uppercase bg-gradient-to-br from-[#6df374] to-[#505050] bg-clip-text text-transparent animate-typing">
               for traders, by THE traders
@@ -135,7 +135,7 @@ const Home = () => {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-1 max-w-[90vw] mx-auto sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
+      <div className="grid grid-cols-1  max-w-[90vw] mx-auto sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
         {/* Counting Statistics */}
         <div className="flex justify-center items-center flex-col">
           <p id="stat1" className="font-semibold text-[25px]">0</p>
@@ -151,9 +151,9 @@ const Home = () => {
           </p>
         </div>
       </div>
-      <div className="p-20">
-        <p className={`text-[42px] lg:text-[72px] leading-[126px] text-start px-* 
-         font-[HeliukBrave] `}>
+      <div className="lg:p-8">
+        <p className={`text-[42px] lg:text-[72px] leading-[126px] text-center lg:text-start px-* 
+         font-[HeliukBrave]  `}>
           FEATURES
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 ">
@@ -169,8 +169,8 @@ const Home = () => {
       <div className="p-20">
         <div>
           <div className=" flex justify-center items-center h-screen">
-            <div className="font-normal font-heliukBrave text-[90px] tracking-wide uppercase bg-gradient-to-br from-[#f3986d] to-[#b3c420] bg-clip-text text-transparent animate-typing">
-              <h1>WHAT ARE YOU WAITING FOR?</h1>
+            <div className="font-normal font-heliukBrave text-[56px] md:text-[80px]  leading-[60px] md:leading-[80px]  lg:leading-[126px] lg:text-[90px] tracking-wide uppercase bg-gradient-to-br from-[#f3986d] to-[#b3c420] bg-clip-text text-transparent animate-typing">
+              <h1 className="text-center">WHAT ARE YOU WAITING FOR?</h1>
               <h1 className="flex justify-center items-center text-[#ffffff]">Get STARTED</h1>
             </div>
           </div>
@@ -259,7 +259,7 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
 
         </div>
       </div>
-      <p className="text-[#d0d1d3] text-[14px] text-center bg-[#02040a] py-4 w-full">
+      <p className="text-[#d0d1d3] text-[14px] text-center  bg-[#02040a] py-4 w-full">
         © 2024 Bundler. All Rights Reserved.
       </p>
     </div>
