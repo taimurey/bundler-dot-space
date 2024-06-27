@@ -118,7 +118,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex flex-col   relative ">
+    <div className="flex flex-col   relative -mb-[100px] -mx-4 ">
       <div className="flex flex-col gap-12 justify-start  lg:justify-center lg:items-center  w-full h-full lg:flex-row my-12 max-h-[1000px]">
 
 
