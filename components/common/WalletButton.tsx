@@ -42,7 +42,7 @@ const WalletButton: FC = () => {
             }
             : () => setVisible(!visible)
         }
-        className="solape__connect-btn font-mono"
+        className="solape__connect-btn font-mono select-none"
       >
         <div className="md:block hidden py-2 px-4 text-sm text-white group-hover:text-slate-300">
           {wallet.connected && wallet.publicKey

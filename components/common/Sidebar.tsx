@@ -291,7 +291,7 @@ const Sidebar: FC = () => {
                     ))}
                 </div>
                 {(router.pathname !== '/' &&
-                    <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col">
+                    <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col select-none">
                         {showAllPortfolios && (
                             <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
                          text-white/50 hover:text-white fill-current font-extralight 

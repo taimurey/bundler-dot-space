@@ -41,10 +41,10 @@ const AppHeader: React.FC = () => {
             </button>
 
             <Link href="/">
-              <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer">
+              <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer select-none">
                 <MevLabLogo />
                 <span className="text-[29px] font-normal text-center font-[kanit-medium] ml-1 mt-1">Bundler
-                  <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
+                  <span className='font-bold font-sans  ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
                 </span>
               </h1>
             </Link>

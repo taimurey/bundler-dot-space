@@ -70,7 +70,9 @@ const WalletsDrawer: React.FC = () => {
             >
                 <div>
                     <p className='px-1 font-bold'>Deployer Wallets</p>
-                    <p className='p-2 font-light text-sm  border-[#f5ac41] border-b'>Use Wallets for Selling Features</p>
+                    <p className='p-2 font-light text-sm  border-[#f5ac41] border-b'>Use Wallets for Selling Features
+                        <span className='font-bold font-sans  ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
+                    </p>
                     <div className='flex flex-col gap-4 py-4'>
                         {DeployerWallets?.map((item: Profile, index: number) => (
                             <div
@@ -83,9 +85,11 @@ const WalletsDrawer: React.FC = () => {
                                 </div>
                                 <div className='flex flex-col justify-start items-start'>
                                     <p className='text-[#bababb] text-sm'>{truncate(item.name, 7, 8)}</p>
-                                    <p className={`text-[#96989c] hover:text-white rounded-md bg-[#202429] hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out overflow-hidden min-h-[25px]
-                   ${isEditable === index
-                                            ? 'hover:text-white rounded-xl bg-black hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out' : ''} w-32`} contentEditable={isEditable === index} onBlur={event => handleBlur(index, 'wallet', event)}>{truncate(item.wallet, 5, 5)}</p>
+                                    <p className={`text-[#96989c] hover:text-white rounded-md bg-[#202429] hover:border-[#00ffdd] 
+                                    flex justify-center items-center border border-[#535353] duration-200 
+                                    ease-in-out overflow-hidden min-h-[25px] 
+                                    ${isEditable === index ? 'hover:text-white rounded-xl bg-black hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] duration-200 ease-in-out' : ''} w-32`}
+                                        contentEditable={isEditable === index} onBlur={event => handleBlur(index, 'wallet', event)}>{truncate(item.wallet, 5, 5)}</p>
 
                                 </div>
                             </div>
@@ -93,7 +97,7 @@ const WalletsDrawer: React.FC = () => {
                     </div>
                 </div>
                 {DeployerWallets.length > 0 &&
-                    <div className='invoke-btn btn-text-gradient mb-16' onClick={clearWallet}>
+                    <div className='invoke-btn btn-text-gradient cursor-pointer' onClick={clearWallet}>
                         Clear wallets
                     </div>
                 }
