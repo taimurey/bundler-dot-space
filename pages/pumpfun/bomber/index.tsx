@@ -9,7 +9,7 @@ import {
 } from '@raydium-io/raydium-sdk';
 import { toast } from 'react-toastify';
 import { BlockEngineLocation, InputField } from '../../../components/FieldComponents/InputField';
-import WalletsDrawer from '../../../components/common/Allprofiles';
+import WalletsDrawer from '../../../components/common/SideBarDrawer';
 // import { commentBomb } from '../../../components/PumpBundler/Bomber/comment-bomb';
 
 const ZERO = new BN(0)

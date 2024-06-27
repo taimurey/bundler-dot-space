@@ -18,13 +18,13 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
-import { truncate } from '../../../components/common/Allprofiles';
+import { truncate } from '../../../components/common/SideBarDrawer';
 import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
 import Papa from 'papaparse';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { BalanceType } from '../../volumebot';
 import { getKeypairFromBs58 } from '../../../components/PumpBundler/misc';
-import WalletsDrawer from '../../../components/common/Allprofiles';
+import WalletsDrawer from '../../../components/common/SideBarDrawer';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO

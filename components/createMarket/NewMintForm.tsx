@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FormState, UseFormRegister, UseFormSetValue } from "react-hook-form";
-import { CreateMarketFormValues } from "../../pages/market/create";
+import { CreateMarketFormValues } from "../../pages/mintinglab/openbook/create";
 import { validatePubkey } from "../../utils/pubkey";
 
 type NewMintFormProps = {

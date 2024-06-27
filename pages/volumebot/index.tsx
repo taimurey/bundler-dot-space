@@ -24,7 +24,7 @@ import { PumpVolumeGenerator } from '../../components/PumpBundler/volumeGenerato
 import { useMyContext } from '../../contexts/Maincontext';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
-import WalletsDrawer, { truncate } from '../../components/common/Allprofiles';
+import WalletsDrawer, { truncate } from '../../components/common/SideBarDrawer';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO

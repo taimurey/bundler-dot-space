@@ -30,7 +30,7 @@ import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
-import WalletsDrawer, { truncate } from "../../../components/common/Allprofiles";
+import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface WorkerResult {
@@ -296,30 +296,24 @@ const LiquidityHandlerRaydium = () => {
             "symbol": formData.symbol,
             "image": uploadedImageUrl,
             "creator": {
-                "name": "MEVARIK LABS(Minters Mania)",
-                "site": "https://mevarik.com"
+                "name": "Bundler Space",
+                "site": "https://bundler.space"
             }
         };
-
         // Conditionally add description if it exists
         if (formData.tokenDescription) {
             TokenMetadata.description = formData.tokenDescription;
         }
 
-        // Conditionally add extensions if any of them exist
-        const extensions = {
-            "website": formData.websiteUrl,
-            "twitter": formData.twitterUrl,
-            "telegram": formData.telegramUrl,
-        };
-
-        for (const [key, value] of Object.entries(extensions)) {
-            if (value) {
-                if (!TokenMetadata.extensions) {
-                    TokenMetadata.extensions = {};
-                }
-                TokenMetadata.extensions[key] = value;
-            }
+        // Directly add website, twitter, and telegram if they exist
+        if (formData.websiteUrl) {
+            TokenMetadata.website = formData.websiteUrl;
+        }
+        if (formData.twitterUrl) {
+            TokenMetadata.twitter = formData.twitterUrl;
+        }
+        if (formData.telegramUrl) {
+            TokenMetadata.telegram = formData.telegramUrl;
         }
 
         setDeployerWallets(setsideWallets)

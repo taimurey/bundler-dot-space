@@ -17,7 +17,7 @@ import { BundleToast } from '../../../components/common/Toasts/TransactionToast'
 import Papa from 'papaparse';
 import { BalanceType } from '../../volumebot';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import WalletsDrawer, { truncate } from "../../../components/common/Allprofiles";
+import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { PumpSeller } from "../../../components/PumpBundler/PumpSeller";
 
 const ZERO = new BN(0)

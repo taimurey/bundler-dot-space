@@ -14,7 +14,7 @@ import { tokenMultisender } from '../../components/tokenDistributor/tokenMultise
 import { useConnection } from '@solana/wallet-adapter-react';
 import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
-import WalletsDrawer from '../../components/common/Allprofiles';
+import WalletsDrawer from '../../components/common/SideBarDrawer';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO

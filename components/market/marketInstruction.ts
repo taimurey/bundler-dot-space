@@ -10,7 +10,7 @@ import { connection, PROGRAMIDS } from "../removeLiquidity/config"
 // import { Transaction } from "jito-ts/dist/gen/geyser/confirmed_block"
 import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base"
 import base58 from "bs58"
-import { CreateMarketFormValues } from "../../pages/market/create"
+import { CreateMarketFormValues } from "../../pages/mintinglab/openbook/create"
 
 async function makeCreateMarketInstructionSimple<T extends TxVersion>({
     connection,

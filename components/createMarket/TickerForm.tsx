@@ -1,5 +1,6 @@
 import { UseFormRegister } from "react-hook-form";
-import { CreateMarketFormValues } from "../../pages/market/create";
+import { CreateMarketFormValues } from "../../pages/mintinglab/openbook/create";
+
 
 type TickerFormProps = {
   register: UseFormRegister<CreateMarketFormValues>;

@@ -177,96 +177,92 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="z-40 w-full p-2 border-b border-[#a19f9f] ">
-        <div
-          className="flex flex-col lg:flex-row gap-4 relative w-full justify-between
+      <div
+        className="flex flex-col lg:flex-row gap-4 relative w-full justify-between
 items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  "
-        >
-          <Link href="/" className="w-full">
-            <h1 className="flex items-center justify-center text-lg font-semibold text-white cursor-pointer">
-              <MevLabLogo />
+      >
+        <Link href="/" className="w-full">
+          <h1 className="flex items-center justify-center text-lg font-semibold text-white cursor-pointer">
+            <MevLabLogo />
 
-              <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
-            </h1>
-          </Link>
+            <span className='font-bold font-[heliukBrave] ml-1 text-4xl text-yellow-500'>.</span>
+          </h1>
+        </Link>
 
-          <ul className="flex justify-center items-center   w-full  -mb-[12px] lg:gap-4  z-40     ">
-            {pages?.map((item, index) => {
-              return (
-                <>
-                  <Link href={item?.url} passHref>
-                    <a >
-                      <li
-                        key={index}
-                        className={` p-2 relative    group text-[12px] lg:text-[14px]   cursor-pointer  hover:text-[#f5ac40] transition-all duration-500 ease-in-out 
+        <ul className="flex justify-center items-center   w-full  -mb-[12px] lg:gap-4  z-40     ">
+          {pages?.map((item, index) => {
+            return (
+              <>
+                <Link href={item?.url} passHref>
+                  <a >
+                    <li
+                      key={index}
+                      className={` p-2 relative    group text-[12px] lg:text-[14px]   cursor-pointer  hover:text-[#f5ac40] transition-all duration-500 ease-in-out 
                         `}
-                      >
-                        <div className="relative group z-40 ">
-                          <div className="flex justify-center items-center   ">
-                            <p
-                              className=" tracking-wide whitespace-nowrap text-[#d0d1d3] "
-                            // onClick={() => setActivePage(item.name)}
-                            >
-                              {item.name}
-                            </p>
-
-                          </div>
+                    >
+                      <div className="relative group z-40 ">
+                        <div className="flex justify-center items-center   ">
+                          <p
+                            className=" tracking-wide whitespace-nowrap text-[#d0d1d3] "
+                          // onClick={() => setActivePage(item.name)}
+                          >
+                            {item.name}
+                          </p>
 
                         </div>
-                      </li>
-                    </a>
-                  </Link >
-                </>
-              );
-            })}
-          </ul>
-          <div className="z-50 ">
-            <ul className="wrapper flex  ">
 
-              <a
-                href="https://www.telegram.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <li className="icon telegram">
-                  <span className="tooltip">Telegram</span>
-                  <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white  text-black text-[12px] rounded-full p-[3px]" />
-                </li>
-              </a>
-              <a
-                href="https://www.twiiter.com
+                      </div>
+                    </li>
+                  </a>
+                </Link >
+              </>
+            );
+          })}
+        </ul>
+        <div className="z-50">
+          <ul className="wrapper flex  ">
+
+            <a
+              href="https://www.telegram.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <li className="icon telegram">
+                <span className="tooltip">Telegram</span>
+                <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white  text-black text-[12px] rounded-full p-[3px]" />
+              </li>
+            </a>
+            <a
+              href="https://www.twiiter.com
 "rel="noreferrer"
-                target="_blank"
-              >
-                <li className="icon twitter ">
-                  <span className="tooltip ">
-                    Twitter
-                  </span>
-                  <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                </li>
-              </a>
-              <a
-                href="https://www.discord.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <li className="icon discord">
-                  <span className="tooltip">Discord</span>
-                  <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+              target="_blank"
+            >
+              <li className="icon twitter ">
+                <span className="tooltip ">
+                  Twitter
+                </span>
+                <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+              </li>
+            </a>
+            <a
+              href="https://www.discord.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <li className="icon discord">
+                <span className="tooltip">Discord</span>
+                <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
 
-                </li>
-              </a>
-            </ul>
+              </li>
+            </a>
+          </ul>
 
-          </div>
         </div>
       </div>
-      <div className="bg-[#02040a] px-4 py-8">
-        <p className="text-[#d0d1d3] text-[14px] text-center ">
-          © 2024 Bundler. All Rights Reserved.
-        </p>
-      </div>
-    </div >
+      <p className="text-[#d0d1d3] text-[14px] text-center bg-[#02040a] py-4 w-full">
+        © 2024 Bundler. All Rights Reserved.
+      </p>
+    </div>
   );
 };
 

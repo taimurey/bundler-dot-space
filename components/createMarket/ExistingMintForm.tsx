@@ -1,5 +1,5 @@
 import { FormState, UseFormRegister } from "react-hook-form";
-import { CreateMarketFormValues } from "../../pages/market/create";
+import { CreateMarketFormValues } from "../../pages/mintinglab/openbook/create";
 import { validatePubkey } from "../../utils/pubkey";
 
 type ExistingMintFormProps = {

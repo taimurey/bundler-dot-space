@@ -23,7 +23,7 @@ import { BlockEngineLocation, InputField } from '../../../components/FieldCompon
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
 import base58 from 'bs58';
 import { ApibundleSend } from '../../../components/DistributeTokens/bundler';
-import WalletsDrawer from '../../../components/common/Allprofiles';
+import WalletsDrawer from '../../../components/common/SideBarDrawer';
 
 
 

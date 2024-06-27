@@ -11,7 +11,7 @@ import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '../../../components/FieldComponents/InputField';
 import { useMyContext } from '../../../contexts/Maincontext';
-import WalletsDrawer from '../../../components/common/Allprofiles';
+import WalletsDrawer from '../../../components/common/SideBarDrawer';
 
 
 const ZERO = new BN(0)

@@ -69,12 +69,14 @@ const HeaderLinks = () => {
 
   function getActiveLink(pathname: string): number {
     switch (pathname) {
+      case '/':
+        return -1;
       case '/pumpfun/create':
         return 0;
       case '/mintinglab/create-spl':
         return 1;
       default:
-        return 0;
+        return -1;
     }
   }
 

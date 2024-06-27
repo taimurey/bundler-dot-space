@@ -37,9 +37,9 @@ const SidebarSublinks = ({
 }) => {
     const router = useRouter();
     const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        event.preventDefault(); // Prevent default behavior
-        event.stopPropagation(); // Prevent event propagation
-        router.push(href); // Redirect to the specified href on click
+        event.preventDefault();
+        event.stopPropagation();
+        router.push(href);
     };
 
     return (
@@ -114,9 +114,15 @@ const Sidebar: FC = () => {
     const router = useRouter();
     const [isRaydiumOpen, setIsRaydiumOpen] = useState<boolean>(false);
     const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(false);
+    const [CreateTokenOpen, setCreateTokenOpen] = useState<boolean>(false);
+    const [MarketOpen, setMarketOpen] = useState<boolean>(false);
+    const [TokenManagerOpen, setTokenManagerOpen] = useState<boolean>(false);
 
     const toggleRaydium = () => setIsRaydiumOpen(!isRaydiumOpen);
     const togglePumpFun = () => setIsPumpFunOpen(!isPumpFunOpen);
+    const toggleCreateToken = () => setCreateTokenOpen(!CreateTokenOpen);
+    const toggleMarket = () => setMarketOpen(!MarketOpen);
+    const toggleTokenManager = () => setTokenManagerOpen(!TokenManagerOpen);
 
     const [active, setActive] = useState<number>(getActiveLink(router.pathname));
 
@@ -128,12 +134,25 @@ const Sidebar: FC = () => {
         } else if (router.pathname.includes('/raydium')) {
             setIsRaydiumOpen(true);
             setIsPumpFunOpen(false);
+        } else if (router.pathname.includes('/mintinglab/create-spl')) {
+            setCreateTokenOpen(true);
+            setMarketOpen(false);
+            setTokenManagerOpen(false);
+        } else if (router.pathname.includes('/mintinglab/openbook/create')) {
+            setMarketOpen(true);
+            setCreateTokenOpen(false);
+            setTokenManagerOpen(false);
+        } else if (router.pathname.includes('/mintinglab/tokenmanager')) {
+            setTokenManagerOpen(true);
+            setCreateTokenOpen(false);
+            setMarketOpen(false);
         }
+
     }, [router.pathname]);
 
     function getActiveLink(pathname: string): number {
         if (pathname === '/') return 0;
-        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/market') || pathname.startsWith('/dashboard')) return 1;
+        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/dashboard')) return 1;
         if (pathname.startsWith('')) return 2;
         return -1;
     }
@@ -166,8 +185,8 @@ const Sidebar: FC = () => {
             icon: <TokenIcon />,
         },
         {
-            href: '/market/create',
-            isActive: router.pathname === '/market/create',
+            href: '/mintinglab/openbook/create',
+            isActive: router.pathname === '/mintinglab/openbook/create',
             title: 'Create OpenBook',
             description: 'Openbook Market Creation',
             icon: <MarketIcon />,
@@ -249,8 +268,10 @@ const Sidebar: FC = () => {
     const volumeBotLink = filteredLinks.filter(link => link.href.includes('/volumebot'));
     const distributorLink = filteredLinks.filter(link => link.href.includes('/distributor'));
 
-    // Filter other links excluding Raydium and PumpFun links
-    const otherLinks = filteredLinks.filter(link => !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/') && !link.href.includes('/volumebot'));
+    const CreatetokenLink = filteredLinks.filter(link => link.href.includes('/mintinglab/create-spl'));
+    const MarketLink = filteredLinks.filter(link => link.href.includes('/mintinglab/openbook/create'));
+    const TokenManagerLink = filteredLinks.filter(link => link.href.includes('/mintinglab/tokenmanager'));
+
     const showAllPortfolios = router.pathname.includes('/');
     const { isProfilesActive, setisProfilesActive } = useMyContext();
 
@@ -340,7 +361,85 @@ const Sidebar: FC = () => {
                                     )}
                                 </div>
                             )}
-                            {isMintingLabPage && otherLinks.map((link, index) => (
+                            {isMintingLabPage && (
+                                <div className="accordion-item cursor-pointer">
+                                    <div className="accordion-title flex items-center " onClick={toggleCreateToken}>
+                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                        >
+                                            <h2>Create Token</h2>
+                                            <span className={`ease-in-out duration-300 cursor-pointer  ${CreateTokenOpen ? 'rotate-90' : 'rotate-0'}`}
+                                            >➤</span>
+                                        </div>
+                                    </div>
+                                    {CreateTokenOpen && (
+                                        <div className="accordion-content">
+                                            {CreatetokenLink.map((link, index) => (
+                                                <SidebarSublinks
+                                                    key={index}
+                                                    href={link.href}
+                                                    isActive={link.isActive}
+                                                    title={link.title}
+                                                    description={link.description}
+                                                    icon={link.icon}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {isMintingLabPage && (
+                                <div className="accordion-item cursor-pointer">
+                                    <div className="accordion-title flex items-center " onClick={toggleMarket}>
+                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                        >
+                                            <h2>Create Market</h2>
+                                            <span className={`ease-in-out duration-300 cursor-pointer  ${MarketOpen ? 'rotate-90' : 'rotate-0'}`}
+                                            >➤</span>
+                                        </div>
+                                    </div>
+                                    {MarketOpen && (
+                                        <div className="accordion-content">
+                                            {MarketLink.map((link, index) => (
+                                                <SidebarSublinks
+                                                    key={index}
+                                                    href={link.href}
+                                                    isActive={link.isActive}
+                                                    title={link.title}
+                                                    description={link.description}
+                                                    icon={link.icon}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {isMintingLabPage && (
+                                <div className="accordion-item cursor-pointer">
+                                    <div className="accordion-title flex items-center " onClick={toggleTokenManager}>
+                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
+                                        >
+                                            <h2>Token Utils</h2>
+                                            <span className={`ease-in-out duration-300 cursor-pointer  ${TokenManagerOpen ? 'rotate-90' : 'rotate-0'}`}
+                                            >➤</span>
+                                        </div>
+                                    </div>
+                                    {TokenManagerOpen && (
+                                        <div className="accordion-content">
+                                            {TokenManagerLink.map((link, index) => (
+                                                <SidebarSublinks
+                                                    key={index}
+                                                    href={link.href}
+                                                    isActive={link.isActive}
+                                                    title={link.title}
+                                                    description={link.description}
+                                                    icon={link.icon}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {!isMintingLabPage && distributorLink.map((link, index) => (
                                 <SidebarSublinks
                                     key={index}
                                     href={link.href}
@@ -350,17 +449,7 @@ const Sidebar: FC = () => {
                                     icon={link.icon}
                                 />
                             ))}
-                            {distributorLink.map((link, index) => (
-                                <SidebarSublinks
-                                    key={index}
-                                    href={link.href}
-                                    isActive={link.isActive}
-                                    title={link.title}
-                                    description={link.description}
-                                    icon={link.icon}
-                                />
-                            ))}
-                            {volumeBotLink.map((link, index) => (
+                            {!isMintingLabPage && volumeBotLink.map((link, index) => (
                                 <SidebarSublinks
                                     key={index}
                                     href={link.href}

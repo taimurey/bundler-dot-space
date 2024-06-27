@@ -27,28 +27,26 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { BundleToast } from "../../../components/common/Toasts/TransactionToast";
-import AdvancedOptionsForm from "../../../components/createMarket/AdvancedOptionsForm";
-import CreateMintOption from "../../../components/createMarket/CreateMintOption";
-import ExistingMintForm from "../../../components/createMarket/ExistingMintForm";
-import NewMintForm from "../../../components/createMarket/NewMintForm";
-import TickerForm from "../../../components/createMarket/TickerForm";
-import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
-import { useSerum } from "../../../components/context";
-import { tokenAtomicsToPrettyDecimal } from "../../../utils/numerical";
+import AdvancedOptionsForm from "../../../../components/createMarket/AdvancedOptionsForm";
+import CreateMintOption from "../../../../components/createMarket/CreateMintOption";
+import ExistingMintForm from "../../../../components/createMarket/ExistingMintForm";
+import NewMintForm from "../../../../components/createMarket/NewMintForm";
+import TickerForm from "../../../../components/createMarket/TickerForm";
+import { getHeaderLayout } from "../../../../components/layouts/HeaderLayout";
+import { useSerum } from "../../../../components/context";
+import { tokenAtomicsToPrettyDecimal } from "../../../../utils/numerical";
 import {
   EVENT_QUEUE_LENGTH,
   getVaultOwnerAndNonce,
   ORDERBOOK_LENGTH,
   REQUEST_QUEUE_LENGTH,
-} from "../../../utils/serum";
+} from "../../../../utils/serum";
 import {
   signTransactions,
   TransactionWithSigners,
-} from "../../../utils/transaction";
-import useSerumMarketAccountSizes from "../../../utils/hooks/useSerumMarketAccountSizes";
-import useRentExemption from "../../../utils/hooks/useRentExemption";
-import axios from "axios";
+} from "../../../../utils/transaction";
+import useSerumMarketAccountSizes from "../../../../utils/hooks/useSerumMarketAccountSizes";
+import useRentExemption from "../../../../utils/hooks/useRentExemption";
 import base58 from "bs58";
 
 // const TRANSACTION_MESSAGES = [
@@ -456,108 +454,26 @@ const CreateMarket = () => {
 
       const encodedTransactions = signedTransactions.map(txn => base58.encode(txn.serialize()));
 
-      console.log(encodedTransactions);
-      // Now you can send the encoded transactions
-      const bundleid = await sendBundle(encodedTransactions);
-
-      const status = await getBundleStatus(bundleid);
-
-      toast(
-        () => (
-          <BundleToast
-            txSig={bundleid}
-            message={status}
-          />
-        ),
-        { autoClose: 5000 }
-      )
 
 
-      // // looping creates weird indexing issue with transactionMessages
-      // await sendSignedTransaction({
-      //   signedTransaction: signedTransactions[0],
-      //   connection,
-      //   skipPreflight: false,
-      //   successCallback: async (txSig) => {
-      //     toast(
-      //       () => (
-      //         <TransactionToast
-      //           txSig={txSig}
-      //           message={
-      //             signedTransactions.length > 2
-      //               ? TRANSACTION_MESSAGES[0].successMessage
-      //               : TRANSACTION_MESSAGES[1].successMessage
-      //           }
-      //         />
-      //       ),
-      //       { autoClose: 5000 }
-      //     );
-      //   },
-      //   sendingCallback: async () => {
-      //     toast.info(
-      //       signedTransactions.length > 2
-      //         ? TRANSACTION_MESSAGES[0].sendingMessage
-      //         : TRANSACTION_MESSAGES[1].sendingMessage,
-      //       {
-      //         autoClose: 2000,
-      //       }
-      //     );
-      //   },
-      // });
-      // await sendSignedTransaction({
-      //   signedTransaction: signedTransactions[1],
-      //   connection,
-      //   skipPreflight: false,
-      //   successCallback: async (txSig) => {
-      //     toast(
-      //       () => (
-      //         <TransactionToast
-      //           txSig={txSig}
-      //           message={
-      //             signedTransactions.length > 2
-      //               ? TRANSACTION_MESSAGES[1].successMessage
-      //               : TRANSACTION_MESSAGES[2].successMessage
-      //           }
-      //         />
-      //       ),
-      //       { autoClose: 5000 }
-      //     );
-      //   },
-      //   sendingCallback: async () => {
-      //     toast.info(
-      //       signedTransactions.length > 2
-      //         ? TRANSACTION_MESSAGES[1].sendingMessage
-      //         : TRANSACTION_MESSAGES[2].sendingMessage,
-      //       {
-      //         autoClose: 2000,
-      //       }
-      //     );
-      //   },
-      // });
+      const response = await fetch('https://mevarik-deployer.xyz:8080/bundlesend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ blockengine: `https://ny.mainnet.block-engine.jito.wtf`, txns: encodedTransactions })
+      });
 
-      // if (signedTransactions.length > 2) {
-      //   await sendSignedTransaction({
-      //     signedTransaction: signedTransactions[2],
-      //     connection,
-      //     skipPreflight: false,
-      //     successCallback: async (txSig) => {
-      //       toast(
-      //         () => (
-      //           <TransactionToast
-      //             txSig={txSig}
-      //             message={TRANSACTION_MESSAGES[2].successMessage}
-      //           />
-      //         ),
-      //         { autoClose: 5000 }
-      //       );
-      //     },
-      //     sendingCallback: async () => {
-      //       toast.info(TRANSACTION_MESSAGES[2].sendingMessage, {
-      //         autoClose: 2000,
-      //       });
-      //     },
-      //   });
-      // }
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
+      }
+
+      const result = await response.json();
+
+      toast.info(`Bundle ID: ${result}`)
+
+
 
       router.push({
         pathname: `${marketAccounts.market.publicKey.toBase58()}`,
@@ -715,55 +631,3 @@ CreateMarket.getLayout = (page: ReactNode) =>
   getHeaderLayout(page, "Create Market");
 
 export default CreateMarket;
-
-
-async function sendBundle(signedTransactions: string[]) {
-  const data = {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'sendBundle',
-    params: [signedTransactions],
-  };
-
-  try {
-    const response = await axios.post('https://mainnet.block-engine.jito.wtf/api/v1/bundles', data, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log(response.data);
-    return response.data.result;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function getBundleStatus(bundleId: string) {
-  const data = {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'getBundleStatuses',
-    params: [[bundleId]],
-  };
-
-  try {
-    const response = await axios.post('https://mainnet.block-engine.jito.wtf/api/v1/bundles', data, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Check if the response has the expected structure
-    if (response.data.result && response.data.result.value && response.data.result.value.length > 0) {
-      // Return the confirmation status
-      return response.data.result.value[0].confirmation_status;
-    } else {
-      console.error('Unexpected response structure:', response.data);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-
-  return null;
-}
