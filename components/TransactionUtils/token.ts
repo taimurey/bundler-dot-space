@@ -24,7 +24,6 @@ import {
 }
     from "@metaplex-foundation/mpl-token-metadata";
 import { tokenData } from "../removeLiquidity/config";
-import { NFTStorage } from "nft.storage";
 import { SendTransaction } from "./SendTransaction";
 
 
@@ -154,43 +153,22 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
 }
 
 export async function uploadMetaData(metadata: any) {
-    const endpoint = new URL('https://api.nft.storage');
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        throw new Error('NEXT_PUBLIC_NFT_STORAGE_TOKEN is not defined');
-    }
-    const storage = new NFTStorage({ endpoint, token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
-    // Store image
-    // const data = await fs.promises.readFile('./image.png')
-    //const cid1 = await storage.storeBlob(new Blob([data]))
-    // const imageUrl = `https://${cid1}.ipfs.nftstorage.link`
-    // const status1 = await storage.status(cid1)
-    // if (status1.pin.status != 'pinned'){
-    //     console.log("Could not upload image, Status: ",status1.pin.status)
-    //     return;
-    // }
-    // console.log('Image Upload status: ',status1.pin.status)
-
-    // console.log("Image url: ",imageUrl)
-    // metaDataforToken.image = imageUrl
+    console.log("Uploading metadata", metadata);
+    const response = await fetch('https://mevarik-deployer.xyz:8080/upload-json', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        // Send the array of numbers instead of Uint8Array
+        body: JSON.stringify(metadata)
+    });
 
 
-    // store as a json file
-    const jsonString = JSON.stringify(metadata, null, 2);
-    const file = new File([jsonString], "metadata.json", { type: "application/json" });
+    const responseText = await response.text();
 
-    const cid = await storage.storeBlob(file)
-    const status = await storage.status(cid)
+    // Convert the IPFS URL to a HTTP URL
+    const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
 
-    // if (status1.pin.status != 'pinned') {
-    //     console.log("Could not upload Metadata, Status: ", status1.pin.status)
-    //     return;
-    // }
-
-    console.log('MetaData Upload status: ', status.pin.status)
-    const metadata_url = `https://${cid}.ipfs.nftstorage.link`
-    console.log('Metadata URI: ', metadata_url)
-
-
-    return metadata_url
+    return httpUrl;
 
 }

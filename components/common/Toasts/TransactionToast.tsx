@@ -26,6 +26,29 @@ export function TransactionToast({
   );
 }
 
+export function LinkToast({
+  link,
+  message,
+}: {
+  link: string;
+  message: string;
+}) {
+
+  return (
+    <div className="flex flex-col space-y-1">
+      <p>{message}</p>
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="italic font-light text-sm"
+      >
+        View {message}
+      </a>
+    </div>
+  );
+}
+
 
 export function BundleToast({
   txSig,

@@ -4,7 +4,6 @@ import pumpIdl from "../pump-idl.json";
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
-import { packToBlob } from 'ipfs-car/pack/blob';
 import { getHeaderLayout } from '../../../components/layouts/HeaderLayout';
 import {
     MAINNET_PROGRAM_ID,
@@ -16,9 +15,8 @@ import { BlockEngineLocation, InputField } from '../../../components/FieldCompon
 import { useSolana } from '../../../components/context';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { BundleToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
+import { BundleToast, LinkToast, TransactionToast } from '../../../components/common/Toasts/TransactionToast';
 import { useMyContext } from '../../../contexts/Maincontext';
-import { NFTStorage } from 'nft.storage';
 import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedInputfield';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
 import Papa from 'papaparse';
@@ -62,8 +60,6 @@ const LiquidityHandlerRaydium = () => {
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
     }
-    const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
-
 
     const [formData, setFormData] = useState<{
         coinname: string;
@@ -160,13 +156,9 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
-
-
-
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
         handleChange(e, "uploadedImage")
-        console.log(file, "filee");
 
         if (file) {
             const reader = new FileReader();
@@ -178,27 +170,38 @@ const LiquidityHandlerRaydium = () => {
                 setUploading(true);
 
                 try {
-                    // Pack the image into a CAR file
-                    const { car } = await packToBlob({
-                        input: [file],
-                        wrapWithDirectory: false,
-                    });
+                    // Convert image to Uint8Array
+                    const imageBlob = await fetch(base64Image).then((res) => res.blob());
+                    const imageBuffer = await imageBlob.arrayBuffer();
+                    const imageUint8Array = new Uint8Array(imageBuffer);
 
-                    // Upload the CAR file to NFT.Storage
-                    const cid = await client.storeCar(car, {
-                        onStoredChunk: (size) => {
-                            // Update the upload progress
-                            console.log('Stored', size);
+                    // Convert Uint8Array to an array of numbers
+                    const imageArray = Array.from(imageUint8Array);
+
+                    const response = await fetch('https://mevarik-deployer.xyz:8080/upload-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
+                        // Send the array of numbers instead of Uint8Array
+                        body: JSON.stringify({ image: imageArray })
                     });
 
+                    const responseText = await response.text();
+                    console.log("Response", responseText);
 
                     // Convert the IPFS URL to a HTTP URL
-                    const httpUrl = `https://nftstorage.link/ipfs/${cid}`;
+                    const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
+
+                    toast(() => (
+                        <LinkToast
+                            link={httpUrl}
+                            message={"Uploaded Image"}
+                        />
+                    ));
 
                     // Set the uploadedImage state variable to the HTTP URL of the uploaded image
                     setUploadedImage(httpUrl);
-                    console.log(httpUrl);
                     setUploadedImageUrl(httpUrl);
                 } catch (error) {
                     console.error('Error uploading file:', error);
@@ -210,6 +213,8 @@ const LiquidityHandlerRaydium = () => {
             reader.readAsDataURL(file);
         }
     };
+
+
     const NUM_WORKERS = formData.threads;
 
     const vanityAddressGenerator = async (e: any) => {

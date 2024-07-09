@@ -6,11 +6,9 @@ import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../../components/context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
-import { NFTStorage } from 'nft.storage';
-import { packToBlob } from 'ipfs-car/pack/blob';
 import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
 import { createToken } from "../../../../components/TransactionUtils/token";
-import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
+import { LinkToast, TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
 import ImageUploadIcon from "../../../../components/icons/imageuploadIcon";
 
 const CreateToken: FC = () => {
@@ -45,9 +43,7 @@ const CreateToken: FC = () => {
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
     }
-    const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN });
     const [uploading, setUploading] = useState(false);
-    const [percentComplete, setPercentComplete] = useState(0);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [creatingToken, setCreatingToken] = useState(false);
 
@@ -67,10 +63,10 @@ const CreateToken: FC = () => {
             }));
         }
     };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
         handleChange(e, "uploadedImage")
-        console.log(file, "filee");
 
         if (file) {
             const reader = new FileReader();
@@ -82,32 +78,38 @@ const CreateToken: FC = () => {
                 setUploading(true);
 
                 try {
-                    // Pack the image into a CAR file
-                    const { car } = await packToBlob({
-                        input: [file],
-                        wrapWithDirectory: false,
-                    });
+                    // Convert image to Uint8Array
+                    const imageBlob = await fetch(base64Image).then((res) => res.blob());
+                    const imageBuffer = await imageBlob.arrayBuffer();
+                    const imageUint8Array = new Uint8Array(imageBuffer);
 
-                    // Upload the CAR file to NFT.Storage
-                    const cid = await client.storeCar(car, {
-                        onStoredChunk: (size) => {
-                            // Update the upload progress
-                            console.log(percentComplete, "percentComplete")  // added this because i think percent complete state may be use latter so to avoid error.
-                            setPercentComplete((prevPercentComplete) => prevPercentComplete + size);
+                    // Convert Uint8Array to an array of numbers
+                    const imageArray = Array.from(imageUint8Array);
+
+                    const response = await fetch('https://mevarik-deployer.xyz:8080/upload-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
+                        // Send the array of numbers instead of Uint8Array
+                        body: JSON.stringify({ image: imageArray })
                     });
 
-                    console.log('Uploaded a file to NFT.Storage!');
-                    console.log('File available at', cid);
-                    console.log(cid)
+                    const responseText = await response.text();
+                    console.log("Response", responseText);
 
                     // Convert the IPFS URL to a HTTP URL
-                    const httpUrl = `https://nftstorage.link/ipfs/${cid}`;
+                    const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
+
+                    toast(() => (
+                        <LinkToast
+                            link={httpUrl}
+                            message={"Uploaded Image"}
+                        />
+                    ));
 
                     // Set the uploadedImage state variable to the HTTP URL of the uploaded image
                     setUploadedImage(httpUrl);
-                    console.log(httpUrl, "ASCsdcasdcs");
-                    console.log(httpUrl);
                     setUploadedImageUrl(httpUrl);
                 } catch (error) {
                     console.error('Error uploading file:', error);
@@ -138,31 +140,24 @@ const CreateToken: FC = () => {
             "symbol": formData.tokenSymbol,
             "image": uploadedImageUrl,
             "creator": {
-                "name": "MEVARIK LABS(Minters Mania)",
-                "site": "https://mevarik.com"
+                "name": "Bundler Space",
+                "site": "https://bundler.space"
             }
         };
-
         // Conditionally add description if it exists
         if (formData.tokenDescription) {
             TokenMetadata.description = formData.tokenDescription;
         }
 
-        // Conditionally add extensions if any of them exist
-        const extensions = {
-            "website": formData.websiteUrl,
-            "twitter": formData.twitterUrl,
-            "telegram": formData.telegramUrl,
-            "discord": formData.discordUrl
-        };
-
-        for (const [key, value] of Object.entries(extensions)) {
-            if (value) {
-                if (!TokenMetadata.extensions) {
-                    TokenMetadata.extensions = {};
-                }
-                TokenMetadata.extensions[key] = value;
-            }
+        // Directly add website, twitter, and telegram if they exist
+        if (formData.websiteUrl) {
+            TokenMetadata.website = formData.websiteUrl;
+        }
+        if (formData.twitterUrl) {
+            TokenMetadata.twitter = formData.twitterUrl;
+        }
+        if (formData.telegramUrl) {
+            TokenMetadata.telegram = formData.telegramUrl;
         }
 
         console.log(TokenMetadata, "TokenMetadata")
