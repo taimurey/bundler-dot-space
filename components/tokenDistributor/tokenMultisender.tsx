@@ -39,7 +39,7 @@ export async function tokenMultisender(
 
 
 
-    const randomamount = distributeRandomly(Number(tokenBalance.value.amount), FormData.RecievingWallets.length, (0.0001 * LAMPORTS_PER_SOL), (100 * LAMPORTS_PER_SOL));
+    const randomamount = distributeRandomly(Number(tokenBalance.value.amount), FormData.RecievingWallets.length, (0.0001 * LAMPORTS_PER_SOL), (1000000000 * LAMPORTS_PER_SOL));
 
     //sum of all amounts
     console.log(randomamount.reduce((a, b) => a + b, 0));
