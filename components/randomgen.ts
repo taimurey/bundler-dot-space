@@ -7,28 +7,28 @@ export function distributeRandomly(total: number, iterations: number, minValue: 
     const amounts = Array(iterations).fill(0);
     let remaining = total;
 
-    // Create a list of indices and shuffle it
-    const indices = Array.from({ length: iterations }, (_, i) => i);
-    indices.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < iterations; i++) {
+        // Calculate the average of the remaining total over the remaining iterations
+        const averageRemaining = remaining / (iterations - i);
 
-    for (const index of indices) {
+        // Adjust max value based on the average to ensure more uniform distribution
+        const adjustedMaxValue = Math.min(maxValue, averageRemaining * 2);
 
-        // Generate a random amount to add within the allowed range
+        // Ensure the min value is not greater than the adjusted max value
+        const adjustedMinValue = Math.min(minValue, adjustedMaxValue);
+
         let amountToAdd;
-        if (index === indices[indices.length - 1]) {
+        if (i === iterations - 1) {
+            // Assign the remaining total to the last iteration
             amountToAdd = remaining;
         } else {
-            amountToAdd = getRandomInt(minValue, maxValue);
+            // Generate a random amount within the adjusted range
+            amountToAdd = getRandomInt(adjustedMinValue, adjustedMaxValue);
         }
 
         // Update the amounts and remaining total
-        amounts[index] += amountToAdd;
+        amounts[i] += amountToAdd;
         remaining -= amountToAdd;
-
-        // If there's no remaining amount, break the loop
-        if (remaining === 0) {
-            break;
-        }
     }
 
     return amounts;
