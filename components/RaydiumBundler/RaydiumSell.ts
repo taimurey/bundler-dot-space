@@ -7,7 +7,6 @@ import base58 from "bs58";
 import { getWalletTokenAccount } from "./get_balance";
 import { getKeypairFromBs58, getRandomElement } from "../PumpBundler/misc";
 import { addLookupTableInfo, DEFAULT_TOKEN } from "../removeLiquidity/config";
-import { BN } from "bn.js";
 import { tipAccounts } from "../PumpBundler/constants";
 
 export async function RaydiumBundlerSeller(
