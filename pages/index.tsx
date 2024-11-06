@@ -118,24 +118,20 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex flex-col   relative -mb-[100px] -mx-4 ">
-      <div className="flex flex-col gap-12 justify-start  lg:justify-center lg:items-center  w-full h-full lg:flex-row my-12 max-h-[1000px]">
-
-
+    <div className="flex flex-col   relative -mb-[100px] -mx-4">
+      <div className="flex flex-col gap-12 justify-start lg:justify-center lg:items-center w-full h-full lg:flex-row my-12 max-h-[1000px]">
         <div className="max-w-[350px] w-full mx-auto md:max-w-[500px] lg:max-w-[700px] flex flex-col gap-6 h-full justify-center items-center">
-          <p className={`text-[56px] md:text-[80px] lg:text-[126px] leading-[50px] md:leading-[80px]  lg:leading-[126px] text-center font-[HeliukBrave]  uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <p className={`text-[56px] md:text-[80px] lg:text-[126px] leading-[50px] md:leading-[80px] lg:leading-[126px] select-none text-center font-[HeliukBrave] uppercase transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             Bundler for the
             <span className="text-[#f5ac41] mx-4 relative">Apes & Degens</span>
           </p>
-          <p className={`text-[56px] md:text-[80px] lg:text-[126px] leading-[50px] md:leading-[80px]  lg:leading-[126px] text-center font-bold transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-            <br />
-            <h1 className="font-normal font-heliukBrave text-[50px] tracking-wide uppercase bg-gradient-to-br from-[#6df374] to-[#505050] bg-clip-text text-transparent animate-typing">
-              for traders, by THE traders
-            </h1>
-          </p>
+
+          <h1 className={`font-normal font-heliukBrave text-[50px] tracking-wide uppercase select-none bg-gradient-to-br from-[#6df374] to-[#505050] bg-clip-text text-transparent animate-typing transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+            for traders, by THE traders
+          </h1>
         </div>
       </div>
-      <div className="grid grid-cols-1  max-w-[90vw] mx-auto sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
+      <div className="grid grid-cols-1  max-w-[90vw] mx-auto select-none sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-6  justify-around items-center  w-full h-full  my-8  bg-[#0e1117] shadow-lg shadow-gray/5 rounded-xl p-8 border border-[#232221]">
         {/* Counting Statistics */}
         <div className="flex justify-center items-center flex-col">
           <p id="stat1" className="font-semibold text-[25px]">0</p>
@@ -190,34 +186,20 @@ items-center lg:justify-between lg:items-center px-4 pb-4 pt-8  md:py-4   z-20  
         </Link>
 
         <ul className="flex justify-center items-center   w-full  -mb-[12px] lg:gap-4  z-40     ">
-          {pages?.map((item, index) => {
-            return (
-              <>
-                <Link href={item?.url} passHref>
-                  <a >
-                    <li
-                      key={index}
-                      className={` p-2 relative    group text-[12px] lg:text-[14px]   cursor-pointer  hover:text-[#f5ac40] transition-all duration-500 ease-in-out 
-                        `}
-                    >
-                      <div className="relative group z-40 ">
-                        <div className="flex justify-center items-center   ">
-                          <p
-                            className=" tracking-wide whitespace-nowrap text-[#d0d1d3] "
-                          // onClick={() => setActivePage(item.name)}
-                          >
-                            {item.name}
-                          </p>
-
-                        </div>
-
-                      </div>
-                    </li>
-                  </a>
-                </Link >
-              </>
-            );
-          })}
+          {pages?.map((item) => (
+            <li
+              key={item.name}
+              className={`p-2 relative group text-[12px] lg:text-[14px] cursor-pointer hover:text-[#f5ac40] transition-all duration-500 ease-in-out`}
+            >
+              <Link href={item?.url} className="relative group z-40">
+                <div className="flex justify-center items-center">
+                  <p className="tracking-wide whitespace-nowrap text-[#d0d1d3]">
+                    {item.name}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
         </ul>
         <div className="z-50">
           <ul className="wrapper flex  ">
