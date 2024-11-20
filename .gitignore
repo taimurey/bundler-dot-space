@@ -37,3 +37,5 @@ yarn-error.log*
 # serum-dev-tools
 /dev-tools
 /test-ledger
+
+backend_server/target

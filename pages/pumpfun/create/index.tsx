@@ -621,7 +621,7 @@ const LiquidityHandlerRaydium = () => {
                                             subfield='name'
                                             value={formData.coinname}
                                             onChange={(e) => handleChange(e, 'coinname')}
-                                            placeholder="Floki..."
+                                            placeholder="Coin Name"
                                             type="text"
                                             required={true}
                                         />
@@ -631,7 +631,7 @@ const LiquidityHandlerRaydium = () => {
                                             id="tokenMarketID"
                                             value={formData.symbol}
                                             onChange={(e) => handleChange(e, 'symbol')}
-                                            placeholder="FLOKI..."
+                                            placeholder="Coin Symbol"
                                             type="text"
                                             required={true}
                                         />
