@@ -24,9 +24,7 @@ enum SolanaTransaction {
 pub async fn bundler_sender(
     bundle: web::Json<BundleData>,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let connection = RpcClient::new(
-        "https://mainnet.helius-rpc.com/?api-key=16ef3f61-7567-47d9-9c44-edec13422455".to_string(),
-    );
+    let connection = RpcClient::new("".to_string());
     let transactions: Vec<_> = bundle
         .txns
         .iter()
