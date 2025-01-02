@@ -1,6 +1,6 @@
-# Arcane Openbook Explorer 🛠️🦍
+# Bundler Space 🛠️🦍
 
-A explorer dashboard to search for various markets deployed on a [Openbook DEX](https://github.com/openbook-dex/program) program.
+Web to bundle the Solana Raydium AMM and PumpFun launches.
 
 ## Getting Started
 
