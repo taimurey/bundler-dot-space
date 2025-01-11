@@ -292,7 +292,7 @@ const Sidebar: FC = () => {
                 </div>
                 {(router.pathname !== '/' &&
                     <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col select-none">
-                        {showAllPortfolios && (
+                        {showAllPortfolios && !router.pathname.startsWith('/mintinglab') &&
                             <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
                          text-white/50 hover:text-white fill-current font-extralight 
                            border-b-2 border-transparent transition-height duration-200 
@@ -300,6 +300,7 @@ const Sidebar: FC = () => {
                                 onClick={() => setisProfilesActive(!isProfilesActive)}>
                                 <div className="bg-[#333333] px-3 py-3  rounded-full">
                                     <VirusIcon color="#37db9c" /></div>
+
                                 <div className="flex flex-col">
                                     <p className="font-bold text-white/80 ">Wallets</p>
                                 </div>
@@ -307,7 +308,7 @@ const Sidebar: FC = () => {
                                     {'➤'}
                                 </div>
                             </div>
-                        )}
+                        }
                         <div className="flex  flex-col gap-2 h-full p-2">
                             {!isMintingLabPage && (
                                 <div className="accordion-item cursor-pointer select-none">

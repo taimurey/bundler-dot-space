@@ -276,11 +276,11 @@ const LiquidityHandlerRaydium = () => {
                                             type="file"
                                             onChange={handleFileUpload}
                                         />
-                                        <button
+                                        {/* <button
                                             className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
                                             onClick={() => DownloadSample()}>
                                             Download Sample
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </div>
 

@@ -30,10 +30,23 @@ import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
 import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import WalletInput from "./wallet-input";
 
 interface WorkerResult {
     secretKey: Uint8Array;
     publicKey: string;
+}
+
+interface TokenMetadata {
+    name: string;
+    symbol: string;
+    description: string;
+    image: string;
+    show_name: boolean;
+    createdOn: string;
+    website?: string;
+    twitter?: string;
+    telegram?: string;
 }
 
 const ZERO = new BN(0)
@@ -110,7 +123,10 @@ const LiquidityHandlerRaydium = () => {
     }
 
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        field: string
+    ) => {
         const { value } = e.target;
         setFormData(prevState => ({
             ...prevState,
@@ -291,67 +307,50 @@ const LiquidityHandlerRaydium = () => {
         });
     }
 
-    const handlesubmission = async (e: any) => {
+    const handleSubmission = async (e: React.FormEvent) => {
         e.preventDefault();
-        setDeployerWallets([])
-        localStorage.removeItem("deployerwallets")
+        setDeployerWallets([]);
+        localStorage.removeItem("deployerwallets");
 
-        const TokenMetadata: any = {
-            "name": formData.coinname,
-            "symbol": formData.symbol,
-            "image": uploadedImageUrl,
-            "creator": {
-                "name": "Bundler Space",
-                "site": "https://bundler.space"
-            }
+        const tokenMetadata: TokenMetadata = {
+            name: formData.coinname,
+            symbol: formData.symbol,
+            description: formData.tokenDescription || '',
+            image: uploadedImageUrl,
+            show_name: true,
+            createdOn: new Date().toISOString(),
+            ...(formData.websiteUrl && { website: formData.websiteUrl }),
+            ...(formData.twitterUrl && { twitter: formData.twitterUrl }),
+            ...(formData.telegramUrl && { telegram: formData.telegramUrl })
         };
-        // Conditionally add description if it exists
-        if (formData.tokenDescription) {
-            TokenMetadata.description = formData.tokenDescription;
-        }
 
-        // Directly add website, twitter, and telegram if they exist
-        if (formData.websiteUrl) {
-            TokenMetadata.website = formData.websiteUrl;
-        }
-        if (formData.twitterUrl) {
-            TokenMetadata.twitter = formData.twitterUrl;
-        }
-        if (formData.telegramUrl) {
-            TokenMetadata.telegram = formData.telegramUrl;
-        }
-
-        setDeployerWallets(setsideWallets)
-        localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
+        setDeployerWallets(setsideWallets);
+        localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
         toast.info('Please wait, bundle acceptance may take a few seconds');
 
-        const TokenKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.tokenKeypair)));
+        const tokenKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.tokenKeypair)));
+
         let bundler = '';
         try {
-            bundler = await PumpBundler(connection, formData, TokenKeypair, TokenMetadata);
+            bundler = await PumpBundler(connection, formData, tokenKeypair, tokenMetadata);
 
             toast(
                 () => (
-                    <BundleToast
-                        txSig={bundler}
-                        message={'Bundle ID:'}
-                    />
+                    <BundleToast txSig={bundler} message={'Bundle ID:'} />
                 ),
                 { autoClose: 5000 }
             );
+
             toast(
                 () => (
-                    <TransactionToast
-                        txSig={TokenKeypair.publicKey.toString()}
-                        message={'Mint:'}
-                    />
+                    <TransactionToast txSig={tokenKeypair.publicKey.toString()} message={'Mint:'} />
                 ),
                 { autoClose: 5000 }
             );
         } catch (error) {
             console.log('Error:', error);
             if (axios.isAxiosError(error)) {
-                if (error.response && error.response.status === 500) {
+                if (error.response?.status === 500) {
                     toast.error(`${error.response.data}`);
                 } else {
                     toast.error('Unknown error occurred');
@@ -360,9 +359,8 @@ const LiquidityHandlerRaydium = () => {
                 const errorMessage = error.message;
                 const jsonStart = errorMessage.indexOf('{');
                 if (jsonStart !== -1) {
-                    const errorJsonStr = errorMessage.slice(jsonStart);
                     try {
-                        const errorData = JSON.parse(errorJsonStr);
+                        const errorData = JSON.parse(errorMessage.slice(jsonStart));
                         toast.error(errorData.error);
                     } catch (e) {
                         toast.error(errorMessage);
@@ -374,7 +372,7 @@ const LiquidityHandlerRaydium = () => {
                 toast.error('An unknown error occurred');
             }
         }
-    }
+    };
 
     const DownloadSample = () => {
         const file = ("/sample_wallets.csv")
@@ -581,35 +579,43 @@ const LiquidityHandlerRaydium = () => {
                                         <InputField
                                             id='buyerPrivateKey'
                                             label='Buyer Private Key'
-                                            subfield='Ghost Bundler'
+                                            subfield='first buy - 1 wallet'
                                             value={formData.buyerPrivateKey}
                                             onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                            placeholder='ghost bundler - buyer private key'
+                                            placeholder='buyer private key'
                                             type='password'
                                             required={true}
                                         />
                                     </div>)}
-                                <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
+                                <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
                                     {Mode === 5 && (
-                                        <div>
-                                            <InputField
-                                                id='walletsNumbers'
-                                                placeholder='27'
-                                                label='Upload Wallets'
-                                                subfield='csv file - Max 4'
-                                                required={true}
-                                                type="file"
-                                                onChange={handleFileUpload}
-                                            />
-                                        </div>
+                                        <WalletInput
+                                            Mode={Mode}
+                                            maxWallets={4}
+                                            onChange={(walletData) => {
+                                                setFormData(prevState => ({
+                                                    ...prevState,
+                                                    buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                    buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                                }));
+                                            }}
+                                            onWalletsUpdate={(walletData) => {
+                                                // Log the complete wallet data with amounts
+                                                console.log('Updated wallet data:', walletData.map(entry => ({
+                                                    wallet: entry.wallet,
+                                                    solAmount: entry.solAmount,
+                                                    lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                                })));
+                                            }}
+                                        />
                                     )}
-                                    {Mode === 5 && (
+                                    {/* {Mode === 5 && (
                                         <button
                                             className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
                                             onClick={() => DownloadSample()}>
                                             Download Sample
                                         </button>
-                                    )}
+                                    )} */}
                                 </div>
 
                                 <div className='flex flex-col gap-2' id="tokeninfo">
@@ -636,16 +642,15 @@ const LiquidityHandlerRaydium = () => {
                                             required={true}
                                         />
                                     </div>
-                                    <InputField
-                                        id="tokendescription"
-                                        label="Description"
-                                        subfield='bla bla bla...'
+                                    <textarea
+                                        name=""
+                                        id="tokenDescription"
                                         value={formData.tokenDescription}
+                                        rows={2}
+                                        className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
                                         onChange={(e) => handleChange(e, 'tokenDescription')}
-                                        placeholder="..."
-                                        type="text"
-                                        required={false}
-                                    />
+                                        placeholder="Enter description...">
+                                    </textarea>
 
                                     <div className="w-full pt-6">
                                         <div className="flex">
@@ -714,16 +719,6 @@ const LiquidityHandlerRaydium = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <InputField
-                                        id="DevtokenbuyAmount"
-                                        label={`Dev Buy Amount`}
-                                        subfield={`${formData.DevtokenbuyAmount} Supply: ${devMaxSolPercentage}%`}
-                                        value={formData.DevtokenbuyAmount}
-                                        onChange={(e) => handleChange(e, 'DevtokenbuyAmount')}
-                                        placeholder="First Buy Amount"
-                                        type="number"
-                                        required={true}
-                                    />
                                     {Mode === 1 && (
                                         <div className='flex justify-end items-end gap-2'>
                                             <InputField
@@ -790,7 +785,7 @@ const LiquidityHandlerRaydium = () => {
                                             disabled={uploading}
                                             type="submit"
                                             id="formbutton"
-                                            onClick={handlesubmission}
+                                            onClick={handleSubmission}
 
                                         >
                                             <span className="btn-text-gradient font-bold">

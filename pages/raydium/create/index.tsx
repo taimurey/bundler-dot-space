@@ -406,10 +406,10 @@ const LiquidityHandlerRaydium = () => {
                                                 <InputField
                                                     id='buyerPrivateKey'
                                                     label='Buyer Private Key'
-                                                    subfield='Ghost Bundler'
+                                                    subfield='first buy - 1 wallet'
                                                     value={formData.buyerPrivateKey}
                                                     onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                                    placeholder='ghost bundler - buyer private key'
+                                                    placeholder='buyer private key'
                                                     type='password'
                                                     required={true}
                                                 />

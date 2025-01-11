@@ -276,9 +276,15 @@ const CreateToken: FC = () => {
                             </div>
                             <div className="">
                                 <label className="font-normal mt-5 text-white "> Description</label>
-                                <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={3} className="  mt-1 px-4  py-1  bg-[#202020]/20   sm:text-md block w-full p-4 rounded-md  border  border-[#404040]  text-white  focus:outline-none   text-[13px] placeholder-[#dbd7d7d4]"
+                                <textarea
+                                    name=""
+                                    id="tokenDescription"
+                                    value={formData.tokenDescription}
+                                    rows={5}
+                                    className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
                                     onChange={(e) => handleChange(e, 'tokenDescription')}
-                                    placeholder="Enter description..."></textarea>
+                                    placeholder="Enter description...">
+                                </textarea>
                             </div>
 
                             <div className="flex gap-4 w-full">

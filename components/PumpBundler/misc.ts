@@ -132,7 +132,7 @@ export function extractAddressFromUrl(url: string): string | null {
 export async function checkkBalanceValidity(totalSol: number, wallets: bundleWalletEntry[], ghostBundlerBalance: number, devBalance: number) {
     //first check for balances
     if (((totalSol - wallets[0].sol) >= (ghostBundlerBalance / LAMPORTS_PER_SOL))) {
-        console.log(chalk.red.bold('Not enough sol in ghost bundler wallet.'));
+        console.log(chalk.red.bold('Not enough sol in buyer wallet.'));
         await sleep(3000);
         process.exit(1);
     }
