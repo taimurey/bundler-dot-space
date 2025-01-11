@@ -32,6 +32,7 @@ type BN = typeof ZERO
 export type BalanceType = {
     balance: number;
     publicKey: string;
+    tokenAmount?: string;
 };
 
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;

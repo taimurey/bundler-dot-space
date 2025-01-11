@@ -1,23 +1,19 @@
-'use client';
-
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '../../components/layouts/HeaderLayout';
-import {
-    MAINNET_PROGRAM_ID,
-} from '@raydium-io/raydium-sdk';
+import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk';
 import { toast } from 'react-toastify';
-import Papa from 'papaparse';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
-import { tokenMultisender } from '../../components/tokenDistributor/tokenMultisender';
+import { distributetokens } from '../../components/tokenDistributor/distribute-tokens';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
 import WalletsDrawer from '../../components/common/SideBarDrawer';
+import WalletAddressInput, { WalletEntry } from './wallet-address-input';
 
-const ZERO = new BN(0)
-type BN = typeof ZERO
+const ZERO = new BN(0);
+type BN = typeof ZERO;
 
 export type BalanceType = {
     balance: number;
@@ -29,7 +25,6 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 const LiquidityHandlerRaydium = () => {
     const { connection } = useConnection();
 
-    const [generateCount, setGenerateCount] = useState('');
     const [formData, setFormData] = useState<{
         tokenMintAddress: string;
         feePayerWallet: string;
@@ -45,9 +40,10 @@ const LiquidityHandlerRaydium = () => {
         RecievingWallets: [],
         BundleTip: '0.01',
         TransactionTip: '0.00001',
-        BlockEngineSelection: BlockEngineLocation[2]
+        BlockEngineSelection: BlockEngineLocation[2],
     });
 
+    const [wallets, setWallets] = useState<WalletEntry[]>([]);
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
         const { value } = e.target;
@@ -55,8 +51,7 @@ const LiquidityHandlerRaydium = () => {
             ...prevState,
             [field]: value,
         }));
-    }
-
+    };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
@@ -65,80 +60,6 @@ const LiquidityHandlerRaydium = () => {
             [field]: value,
         }));
     };
-
-    const generatewallets = () => {
-        const wallets = [];
-        for (let i = 0; i < Number(generateCount); i++) {
-            const keypair = Keypair.generate();
-            wallets.push({
-                id: i,
-                wallet: keypair.publicKey.toBase58(),
-            });
-        }
-        //write to a csv file using papaparse
-        const csv = Papa.unparse(wallets);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'wallets.csv');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-    // const handleSendingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     if (!event.target.files) {
-    //         return;
-    //     }
-    //     const file = event.target.files[0];
-
-    //     Papa.parse<string[]>(file, {
-    //         complete: function (results) {
-    //             //skip the first row
-    //             const wallets = results.data.slice(1).map(row => row[1]);
-    //             wallets.forEach((element: string) => {
-    //                 if (element === '' || element === 'wallet') {
-    //                     return;
-    //                 }
-
-    //             });
-    //             toast.success('Wallets Loaded Successfully')
-    //             setFormData(prevState => ({
-    //                 ...prevState,
-    //                 SendingWallets: wallets,
-    //             }));
-    //         }
-    //     });
-    // }
-
-    const handleRecievingWallets = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files) {
-            return;
-        }
-        const file = event.target.files[0];
-
-        Papa.parse<string[]>(file, {
-            complete: function (results) {
-                //skip the first row
-                const wallets = results.data.slice(1).map(row => row[1]);
-                wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet') {
-                        return;
-                    }
-
-
-                });
-                toast.success('Wallets Loaded Successfully')
-
-                setFormData(prevState => ({
-                    ...prevState,
-                    RecievingWallets: wallets,
-                }));
-            }
-        });
-    }
 
     const [feePayerBalance, setFeePayerBalance] = React.useState<number | null>(null);
 
@@ -161,44 +82,58 @@ const LiquidityHandlerRaydium = () => {
         fetchBalance();
     }, [formData.feePayerWallet, connection]);
 
-
-
-    const distributeTokens = async (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-    ) => {
+    const handleSubmission = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        if (formData.tokenMintAddress === '' || formData.feePayerWallet === '' || formData.RecievingWallets.length === 0) {
-            toast.error('Please upload a csv file with wallets and provide a token mint address');
+
+        // Validate form inputs
+        if (formData.tokenMintAddress === '' || formData.feePayerWallet === '' || wallets.length === 0) {
+            toast.error('Please upload a CSV file with wallets and provide a token mint address');
             return;
         }
-        toast.info('Distributing Tokens...');
+
+        // Show loading toast
+        toast.info('Distributing Tokens...', { autoClose: false });
 
         try {
-            const data = await tokenMultisender(connection, formData);
+            // Call the tokenMultisender function
+            const result = await toast.promise(
+                distributetokens(connection, {
+                    ...formData,
+                    RecievingWallets: wallets.map(wallet => wallet.wallet),
+                }),
+                {
+                    success: 'Tokens distributed successfully!',
+                    error: 'Error distributing tokens. Please try again.', // Static error message
+                }
+            );
 
-            toast.info(`Transaction sent, Data: ${data}`)
-            console.log(data);
+            // Log the result for debugging
+            console.log('Token distribution result:', result);
+
+            // Show success toast
+            toast.success('Tokens distributed successfully!');
         } catch (error) {
-            toast.error(`Error: ${error}`);
-        }
+            // Log the error for debugging
+            console.error('Error during token distribution:', error);
 
-    }
+            // Show error toast with dynamic error message
+            toast.error(`Error distributing tokens: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
 
     return (
-        <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative">
+        <div className="mb-8 mx-8 flex mt-8 justify-center items-center relative">
             <form>
                 <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
                     <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                         <div>
                             <p className='font-bold text-[25px]'>Token Distributor</p>
-                            <p className=' text-[12px] text-[#96989c] '>Distribte tokens to multiple wallets at once.
-                            </p>
+                            <p className='text-[12px] text-[#96989c]'>Distribute tokens to multiple wallets at once.</p>
                         </div>
                         <div className='w-full'>
                             <InputField
                                 id='tokenAddress'
                                 label='Token Address'
-                                subfield={'Address of the token needs to be distributed'}
                                 value={formData.tokenMintAddress}
                                 onChange={(e) => handleChange(e, 'tokenMintAddress')}
                                 placeholder='D5b....ae'
@@ -206,7 +141,7 @@ const LiquidityHandlerRaydium = () => {
                                 required={false}
                             />
                         </div>
-                        <div className='w-full'>
+                        {/* <div className='w-full'>
                             <InputField
                                 id='feePayerWallet'
                                 label='Fee Payer Wallet'
@@ -217,12 +152,12 @@ const LiquidityHandlerRaydium = () => {
                                 type='string'
                                 required={false}
                             />
-                        </div>
+                        </div> */}
                         <div className='flex flex-col gap-2' id="tokeninfo">
                             <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Wallet Details</h3>
                             <div className='border-dashed border p-4 rounded-lg'>
                                 <label className='font-normal'>
-                                    Input tokens <span className='text-lime-500 font-bold'>Sending</span> Wallet
+                                    <span className='text-lime-500 font-bold'>Sending</span> Wallet
                                     <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( Private Key )</span>
                                 </label>
 
@@ -236,46 +171,22 @@ const LiquidityHandlerRaydium = () => {
                                     type='string'
                                     required={false}
                                 />
-                                <div className='border-dashed border p-4 rounded-lg mt-5'>
-                                    <div className='mt-5'>
-                                        <label className='font-normal'>
-                                            Upload tokens <span className='text-red-500 font-bold'>Receiving</span> Wallets
-                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">( csv file - maximum 30 wallet pubkeys )</span>
-                                        </label>
-                                        <InputField
-                                            id='walletsNumbers'
-                                            placeholder='27'
-                                            label=''
-                                            subfield='csv file'
-                                            required={true}
-                                            type="file"
-                                            onChange={handleRecievingWallets}
-                                        />
-                                    </div>
-                                    <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
-                                        <div className='w-4/5'>
-                                            <InputField
-                                                id='walletcount'
-                                                label='Wallet Count'
-                                                subfield={'Generate Wallets and download in CSV format -- Optional'}
-                                                value={generateCount.toString()}
-                                                onChange={(e) => setGenerateCount(e.target.value)}
-                                                placeholder='30...'
-                                                type='string'
-                                                required={false}
-                                            />
-                                        </div>
-                                        <button
-                                            className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                                            onClick={generatewallets}
-                                        >
-                                            Generate Recieving Wallets
-                                        </button>
-                                    </div>
+                                <div className=' rounded-lg mt-5'>
+                                    <WalletAddressInput
+                                        Mode={1}
+                                        wallets={wallets}
+                                        setWallets={setWallets}
+                                        maxWallets={30}
+                                        onChange={(wallets) => {
+                                            setFormData(prevState => ({
+                                                ...prevState,
+                                                RecievingWallets: wallets.map(wallet => wallet.wallet),
+                                            }));
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
-
                                 <div className="w-full">
                                     <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
                                         Transaction Parameter Settings
@@ -286,7 +197,7 @@ const LiquidityHandlerRaydium = () => {
                                             value={formData.BlockEngineSelection}
                                             onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
                                             required={true}
-                                            className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                            className="block w-full px-4 rounded-md text-base border border-[#404040] text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
                                         >
                                             <option value="" disabled>
                                                 Block Engine Location(Closest to you)
@@ -323,23 +234,22 @@ const LiquidityHandlerRaydium = () => {
                             <div className='justify-center'>
                                 <button
                                     className="btn-text-gradient btn-normal w-full mt-5"
-                                    onClick={distributeTokens}
+                                    onClick={handleSubmission}
                                 >
                                     Distribute Tokens
                                 </button>
                             </div>
                         </div>
                     </div>
-
                 </div>
-            </form >
+            </form>
             <div className='absolute -top-[70px] right-0 h-screen'>
                 <WalletsDrawer />
             </div>
-        </div >
+        </div>
     );
-}
+};
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Volume Generator");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Tokens Distributor");
 
 export default LiquidityHandlerRaydium;

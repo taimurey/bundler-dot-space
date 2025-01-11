@@ -4,10 +4,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { Keypair } from '@solana/web3.js';
-import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { PublicKey, Keypair } from '@solana/web3.js';
 import { toast } from 'react-toastify';
 import { Input } from '@/components/ui/input';
+import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 
 interface WalletInputProps {
     Mode: number;
@@ -29,15 +29,16 @@ interface ParseResult {
     errors: any[];
 }
 
-const WalletInput: React.FC<WalletInputProps> = ({
-    Mode,
+const WalletAddressInput: React.FC<WalletInputProps> = ({
     maxWallets = 4,
     wallets,
     setWallets,
     onChange,
-    onWalletsUpdate
+    onWalletsUpdate,
 }) => {
     const [error, setError] = useState<string>('');
+    const [generateCount, setGenerateCount] = useState<string>(''); // Local state for the number of wallets to generate
+
     const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) {
@@ -48,8 +49,8 @@ const WalletInput: React.FC<WalletInputProps> = ({
         Papa.parse<string[]>(file, {
             complete: function (results: ParseResult) {
                 const walletData = results.data.slice(1).map(row => ({
-                    wallet: row[1],
-                    solAmount: '0'
+                    wallet: row[1], // Assuming the wallet address is in the second column
+                    solAmount: ''
                 }));
 
                 const walletSet: WalletEntry[] = [];
@@ -58,10 +59,11 @@ const WalletInput: React.FC<WalletInputProps> = ({
                         return;
                     }
                     try {
-                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(element.wallet)));
+                        // Validate the wallet address
+                        new PublicKey(element.wallet);
                         walletSet.push(element);
                     } catch (err) {
-                        toast.error(`Invalid wallet private key: ${element.wallet}`);
+                        toast.error(`Invalid wallet address: ${element.wallet}`);
                     }
                 });
 
@@ -94,15 +96,54 @@ const WalletInput: React.FC<WalletInputProps> = ({
         setError('');
     };
 
-    const DownloadSample = () => {
-        const file = ("/sample_wallets.csv")
-        const link = document.createElement('a');
-        link.href = file;
-        link.download = 'sample_wallets.csv';
-        link.click();
+    const generateWallets = () => {
+        const count = Number(generateCount);
+        if (isNaN(count) || count <= 0) {
+            toast.error('Please enter a valid number of wallets to generate');
+            return;
+        }
 
-    }
+        const walletsWithPrivateKeys = [];
+        const walletsWithAddresses = [];
 
+        for (let i = 0; i < count; i++) {
+            const keypair = Keypair.generate();
+            walletsWithPrivateKeys.push({
+                id: i,
+                privateKey: bs58.encode(keypair.secretKey),
+            });
+            walletsWithAddresses.push({
+                id: i,
+                address: keypair.publicKey.toBase58(),
+            });
+        }
+
+        // Generate CSV for private keys
+        const privateKeysCsv = Papa.unparse(walletsWithPrivateKeys);
+        const privateKeysBlob = new Blob([privateKeysCsv], { type: 'text/csv' });
+        const privateKeysUrl = URL.createObjectURL(privateKeysBlob);
+        const privateKeysLink = document.createElement('a');
+        privateKeysLink.setAttribute('hidden', '');
+        privateKeysLink.setAttribute('href', privateKeysUrl);
+        privateKeysLink.setAttribute('download', 'private_keys.csv');
+        document.body.appendChild(privateKeysLink);
+        privateKeysLink.click();
+        document.body.removeChild(privateKeysLink);
+
+        // Generate CSV for token addresses
+        const addressesCsv = Papa.unparse(walletsWithAddresses);
+        const addressesBlob = new Blob([addressesCsv], { type: 'text/csv' });
+        const addressesUrl = URL.createObjectURL(addressesBlob);
+        const addressesLink = document.createElement('a');
+        addressesLink.setAttribute('hidden', '');
+        addressesLink.setAttribute('href', addressesUrl);
+        addressesLink.setAttribute('download', 'token_addresses.csv');
+        document.body.appendChild(addressesLink);
+        addressesLink.click();
+        document.body.removeChild(addressesLink);
+
+        toast.success('Wallets generated and files downloaded successfully');
+    };
 
     const handleWalletChange = (index: number, value: string) => {
         const newWallets = [...wallets];
@@ -138,7 +179,7 @@ const WalletInput: React.FC<WalletInputProps> = ({
     const validateWallet = (wallet: string): boolean => {
         try {
             if (wallet) {
-                Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallet)));
+                new PublicKey(wallet); // Validate the wallet address
                 return true;
             }
             return false;
@@ -147,12 +188,27 @@ const WalletInput: React.FC<WalletInputProps> = ({
         }
     };
 
-
     return (
         <div className="space-y-4 w-full border border-zinc-400 border-dashed rounded-xl p-2">
-            {Mode > 1 && (
-                <div className="flex flex-row gap-2 justify-end w-full rounded-md shadow-sm">
+            <div className="flex flex-col gap-2 justify-end w-full rounded-md shadow-sm">
+                <div className='flex gap-2 mb-4'>
 
+                    <Input
+                        type="number"
+                        value={generateCount}
+                        onChange={(e) => setGenerateCount(e.target.value)}
+                        placeholder="Number of wallets to generate"
+                    />
+                    <Button
+                        type="button"
+                        className='flex p-2 border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
+                        onClick={generateWallets}
+                    >
+                        Generate Receiving Wallets
+                    </Button>
+                </div>
+                <h1 className='text-yellow-400'>Input Wallet addresses file here</h1>
+                <div className='flex gap-2'>
                     <div className="flex-1">
                         <div className="relative">
                             <Input
@@ -161,18 +217,12 @@ const WalletInput: React.FC<WalletInputProps> = ({
                                 onChange={handleFileUpload}
                                 className="file:mr-4 cursor-pointer file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 placeholder:text-gray-400"
                             />
-
                         </div>
                         <p className="mt-1 text-sm text-gray-500">CSV file - Max {maxWallets} wallets</p>
+
                     </div>
-                    {Mode > 1 && (
-                        <Button
-                            className='flex p-2 border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                            onClick={() => DownloadSample()}>
-                            Download Sample
-                        </Button>
-                    )}
                     <Button
+                        type="button" // Add this to prevent form submission
                         onClick={handleManualAdd}
                         disabled={wallets.length >= maxWallets}
                         variant="outline"
@@ -182,7 +232,7 @@ const WalletInput: React.FC<WalletInputProps> = ({
                         (or) Add Wallets Manually
                     </Button>
                 </div>
-            )}
+            </div>
 
             {error && (
                 <Alert variant="destructive">
@@ -196,7 +246,7 @@ const WalletInput: React.FC<WalletInputProps> = ({
                         <thead>
                             <tr>
                                 <th className="px-4 py-2 text-left text-base text-white font-semibold">Wallets</th>
-                                <th className="px-4 py-2 text-left text-base text-white font-semibold">SOL Amount</th>
+                                <th className="px-4 py-2 text-left text-base text-white font-semibold">Token Amount</th>
                                 <th className="px-4 py-2 w-20"></th>
                             </tr>
                         </thead>
@@ -207,7 +257,7 @@ const WalletInput: React.FC<WalletInputProps> = ({
                                         <Input
                                             value={wallet.wallet}
                                             onChange={(e) => handleWalletChange(index, e.target.value)}
-                                            placeholder="Enter wallet private key"
+                                            placeholder="Enter wallet address"
                                             className={`w-full ${!validateWallet(wallet.wallet) && wallet.wallet ? 'border-red-500 bg-zinc-900' : 'bg-zinc-900'}`}
                                         />
                                     </td>
@@ -217,18 +267,17 @@ const WalletInput: React.FC<WalletInputProps> = ({
                                                 type="number"
                                                 value={wallet.solAmount}
                                                 onChange={(e) => handleSolAmountChange(index, e.target.value)}
+                                                disabled
                                                 placeholder="0.0"
                                                 className="w-full bg-zinc-900"
                                                 min="0"
                                                 step="0.000000001"
                                             />
-                                            <div className="absolute right-3 top-1 text-sm text-gray-400">
-                                                SOL
-                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-4 py-2">
                                         <Button
+                                            type="button" // Add this to prevent form submission
                                             variant="outline"
                                             size="sm"
                                             onClick={() => handleRemoveWallet(index)}
@@ -247,4 +296,4 @@ const WalletInput: React.FC<WalletInputProps> = ({
     );
 };
 
-export default WalletInput;
+export default WalletAddressInput;

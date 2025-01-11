@@ -26,9 +26,10 @@ import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
-import WalletsDrawer from "../../../components/common/SideBarDrawer";
+import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import WalletInput from "./wallet-input";
+import WalletInput, { WalletEntry } from "./wallet-input";
+import { BalanceType } from "@/pages/distributor";
 
 interface WorkerResult {
     secretKey: Uint8Array;
@@ -60,7 +61,8 @@ const LiquidityHandlerRaydium = () => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [Mode, setMode] = useState(1);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-    // const [wallets, setWallets] = useState<string[]>([]);
+    const [wallets, setWallets] = useState<WalletEntry[]>([]);
+    const [balances, setBalances] = useState<BalanceType[]>([]);
     // const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
@@ -332,58 +334,48 @@ const LiquidityHandlerRaydium = () => {
         }
     };
 
-    const DownloadSample = () => {
-        const file = ("/sample_wallets.csv")
-        const link = document.createElement('a');
-        link.href = file;
-        link.download = 'sample_wallets.csv';
-        link.click();
 
-    }
+    React.useEffect(() => {
+        const fetchBalances = async () => {
+            let allBalances: BalanceType[] = [];
 
-    // React.useEffect(() => {
-    //     const fetchBalances = async () => {
-    //         let allBalances: BalanceType[] = [];
+            if (formData.deployerPrivateKey) {
+                const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
+            }
 
-    //         if (formData.deployerPrivateKey) {
-    //             const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
-    //             const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-    //             allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
-    //         }
+            if (formData.buyerPrivateKey) {
+                const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
+                const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
+            }
 
-    //         if (formData.buyerPrivateKey) {
-    //             const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
-    //             const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-    //             allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
-    //         }
+            const balances = await Promise.all(
+                wallets.map(async (wallet) => {
+                    try {
+                        console.log('wallet:', wallet.wallet);
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
+                        const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+                        return { balance, publicKey: keypair.publicKey.toString() };
+                    } catch (error) {
+                        toast.error(`Error fetching balance: ${error}`);
+                        return { balance: 0, publicKey: 'Invalid' };
+                    }
+                })
+            );
 
-    //         const balances = await Promise.all(
-    //             Object.entries(wallets).map(async ([key, value]) => {
-    //                 try {
-    //                     console.log('value:', key);
-    //                     const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
-    //                     const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-    //                     return { balance, publicKey: keypair.publicKey.toString() };
+            setFormData(prevState => ({
+                ...prevState,
+                buyerextraWallets: wallets.map(wallet => wallet.wallet),
+            }));
 
-    //                 }
-    //                 catch (error) {
-    //                     toast.error(`Error fetching balance: ${error}`);
-    //                     return { balance: 0, publicKey: 'Invalid' };
-    //                 }
-    //             })
-    //         );
+            allBalances = [...allBalances, ...balances];
+            setBalances(allBalances);
+        };
 
-    //         setFormData(prevState => ({
-    //             ...prevState,
-    //             buyerextraWallets: wallets,
-    //         }));
-
-    //         allBalances = [...allBalances, ...balances];
-    //         setBalances(allBalances);
-    //     };
-
-    //     fetchBalances();
-    // }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
+        fetchBalances();
+    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
 
     // React.useEffect(() => {
     //     const amountsCalculation = async () => {
@@ -443,7 +435,7 @@ const LiquidityHandlerRaydium = () => {
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
                             <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
-                                    <p className='font-bold text-[25px]'>Pump.Fun Bundle</p>
+                                    <p className='font-bold text-[25px]'>Bundle Mode</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a pumpfun token and ghost wallet buys in one go</p>
                                 </div>
                                 <div className='w-full'>
@@ -528,7 +520,7 @@ const LiquidityHandlerRaydium = () => {
                                     subfield='Coin Funder and First Buyer'
                                     value={formData.deployerPrivateKey}
                                     onChange={(e) => handleChange(e, 'deployerPrivateKey')}
-                                    placeholder="deployer private key - coin maker + dev buy"
+                                    placeholder="deployer private key - coin maker"
                                     type="password"
                                     required={true}
                                 />
@@ -548,6 +540,8 @@ const LiquidityHandlerRaydium = () => {
                                 <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
                                     {Mode === 5 && (
                                         <WalletInput
+                                            wallets={wallets}
+                                            setWallets={setWallets}
                                             Mode={Mode}
                                             maxWallets={4}
                                             onChange={(walletData) => {
@@ -568,13 +562,7 @@ const LiquidityHandlerRaydium = () => {
                                         />
                                     )}
                                 </div>
-                                {Mode === 5 && (
-                                    <button
-                                        className='p-2 bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                                        onClick={() => DownloadSample()}>
-                                        Download Sample
-                                    </button>
-                                )}
+
                                 <div className='flex flex-col gap-2' id="tokeninfo">
                                     <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Coin Metadata</h3>
                                     <div className='flex justify-center items-center gap-2'>
@@ -769,7 +757,7 @@ const LiquidityHandlerRaydium = () => {
                                             Wallets:
                                         </label>
                                         <br />
-                                        {/* <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
+                                        <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
                                             {balances.map(({ balance, publicKey }, index) => (
                                                 <a
                                                     key={index}
@@ -788,7 +776,7 @@ const LiquidityHandlerRaydium = () => {
                                                     </p>
                                                 </a>
                                             ))}
-                                        </div> */}
+                                        </div>
                                     </div>
                                     {/* <OutputField
                                         id="totalmintaddress"
@@ -815,7 +803,7 @@ const LiquidityHandlerRaydium = () => {
     );
 }
 
-const modeOptions = [
+export const modeOptions = [
     { value: 1, label: "Wallet Mode" },
     { value: 5, label: "Wallet Mode" },
 ];
@@ -823,6 +811,6 @@ const modeOptions = [
 
 
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "PumpDotFun");
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Pumpfun Bundler");
 
 export default LiquidityHandlerRaydium;

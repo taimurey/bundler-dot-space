@@ -183,7 +183,7 @@ export async function PumpBundler(
 
     //send to local server port 2891'
     //send to local server port 2891'
-    const response = await fetch('https://mevarik-deployer.xyz:8080/bundlesend', {
+    const response = await fetch('https://mevarik-deployer.xyz:8080/send-bundle', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
