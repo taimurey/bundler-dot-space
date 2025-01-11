@@ -10,7 +10,7 @@ import { PublicKey } from "@metaplex-foundation/js";
 import { BN } from "bn.js";
 import { getKeypairFromBs58, getRandomElement } from "./misc";
 import base58 from "bs58";
-import { WalletEntry } from "@/pages/pumpfun/create/wallet-input";
+import { WalletEntry } from "@/components/PumpBundler/wallet-input";
 
 
 export async function PumpSeller(

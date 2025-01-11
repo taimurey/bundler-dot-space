@@ -28,7 +28,7 @@ import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
 import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import WalletInput, { WalletEntry } from "./wallet-input";
+import WalletInput, { WalletEntry } from "../../../components/PumpBundler/wallet-input";
 import { BalanceType } from "@/pages/distributor";
 
 interface WorkerResult {

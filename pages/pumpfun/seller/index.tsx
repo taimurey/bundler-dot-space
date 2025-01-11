@@ -17,7 +17,7 @@ import { BundleToast } from '../../../components/common/Toasts/TransactionToast'
 import { BalanceType } from '../../volumebot';
 import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { PumpSeller } from "../../../components/PumpBundler/PumpSeller";
-import WalletInput, { WalletEntry } from '../create/wallet-input';
+import WalletInput, { WalletEntry } from '../../../components/PumpBundler/wallet-input';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token-2';
 import { PublicKey } from '@metaplex-foundation/js';
 

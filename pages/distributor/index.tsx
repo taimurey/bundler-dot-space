@@ -10,7 +10,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
 import WalletsDrawer from '../../components/common/SideBarDrawer';
-import WalletAddressInput, { WalletEntry } from './wallet-address-input';
+import WalletAddressInput, { WalletEntry } from '../../components/PumpBundler/wallet-address-input';
 
 const ZERO = new BN(0);
 type BN = typeof ZERO;
