@@ -20,11 +20,10 @@ import { BundleToast, TransactionToast } from '../../../components/common/Toasts
 import { useMyContext } from '../../../contexts/Maincontext';
 import { truncate } from '../../../components/common/SideBarDrawer';
 import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
-import Papa from 'papaparse';
-import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { BalanceType } from '../../volumebot';
 import { getKeypairFromBs58 } from '../../../components/PumpBundler/misc';
 import WalletsDrawer from '../../../components/common/SideBarDrawer';
+import WalletInput, { WalletEntry } from '@/components/PumpBundler/wallet-input';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -34,7 +33,7 @@ export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
     const connection = new Connection(cluster.endpoint);
-    const [wallets, setWallets] = useState<string[]>([]);
+    const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [Mode, setMode] = useState(1);
 
@@ -161,45 +160,6 @@ const LiquidityHandlerRaydium = () => {
         fetchData();
     }, [formData.tokenMintAddress]);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files) {
-            toast.error('No file selected');
-            return;
-        }
-        const file = event.target.files[0];
-
-        Papa.parse<string[]>(file, {
-            complete: function (results) {
-                //skip the first row
-                const wallets = results.data.slice(1).map(row => row[1]);
-
-                const walletset: string[] = [];
-                wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet' || element === undefined) {
-                        return;
-                    }
-                    try {
-                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(element)));
-                        walletset.push(element);
-                    } catch (err) {
-                        toast.error(`Invalid wallet address: ${element}`);
-                    }
-                });
-                if (walletset.length > 0) {
-                    toast.success('Wallets Loaded Successfully')
-                    setWallets(walletset);
-                    setFormData(prevState => ({
-                        ...prevState,
-                        Wallets: walletset,
-                    }));
-                }
-            },
-            error: function (err) {
-                toast.error(`An error occurred while parsing the file: ${err.message}`);
-            }
-        });
-    }
-
     React.useEffect(() => {
         const fetchBalances = async () => {
             let allBalances: BalanceType[] = [];
@@ -219,15 +179,13 @@ const LiquidityHandlerRaydium = () => {
             }
 
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([key, value]) => {
+                wallets.map(async (wallet) => {
                     try {
-                        console.log('value:', key);
-                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
+                        console.log('wallet:', wallet.wallet);
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
                         const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
                         return { balance, publicKey: keypair.publicKey.toString() };
-
-                    }
-                    catch (error) {
+                    } catch (error) {
                         toast.error(`Error fetching balance: ${error}`);
                         return { balance: 0, publicKey: 'Invalid' };
                     }
@@ -236,7 +194,7 @@ const LiquidityHandlerRaydium = () => {
 
             setFormData(prevState => ({
                 ...prevState,
-                buyerextraWallets: wallets,
+                buyerextraWallets: wallets.map(wallet => wallet.wallet),
             }));
 
             allBalances = [...allBalances, ...balances];
@@ -246,62 +204,82 @@ const LiquidityHandlerRaydium = () => {
         fetchBalances();
     }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
 
-    const DownloadSample = () => {
-        const file = ("/sample_wallets.csv")
-        const link = document.createElement('a');
-        link.href = file;
-        link.download = 'sample_wallets.csv';
-        link.click();
-
-    }
-
-    const handlesubmission = async (e: any) => {
+    const handlesubmission = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.deployerPrivateKey || !formData.tokenMintAddress || !formData.tokenMarketID || !formData.tokenDecimals || !formData.totalSupply || !formData.tokenLiquidityAmount || !formData.tokenLiquidityAddPercent || !formData.BlockEngineSelection || !formData.BundleTip || !formData.TransactionTip) {
+
+        // Validate required fields
+        if (
+            !formData.deployerPrivateKey ||
+            !formData.tokenMintAddress ||
+            !formData.tokenMarketID ||
+            !formData.tokenDecimals ||
+            !formData.totalSupply ||
+            !formData.tokenLiquidityAmount ||
+            !formData.tokenLiquidityAddPercent ||
+            !formData.BlockEngineSelection ||
+            !formData.BundleTip ||
+            !formData.TransactionTip
+        ) {
             toast.error('Please fill all required fields');
             return;
         }
-        setDeployerWallets([])
-        localStorage.removeItem("deployerwallets")
 
+        // Clear deployer wallets from state and localStorage
+        setDeployerWallets([]);
+        localStorage.removeItem("deployerwallets");
+
+        // Get keypairs for deployer and buyer wallets
         const deployerwallet = getKeypairFromBs58(formData.deployerPrivateKey)!;
         const buyerwallet = getKeypairFromBs58(formData.buyerPrivateKey)!;
 
+        // Fetch balances for deployer and buyer wallets
         const deployerBalance = parseFloat((await connection.getBalance(deployerwallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-        console.log(deployerBalance, "deployer balance")
+        console.log(deployerBalance, "deployer balance");
         const buyerBalance = parseFloat((await connection.getBalance(buyerwallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-        console.log(buyerBalance, "buyer balance")
+        console.log(buyerBalance, "buyer balance");
 
+        // Validate deployer wallet balance
         if (deployerBalance < (Number(formData.tokenLiquidityAmount) + 0.4 + 0.25)) {
             toast.error('Deployer wallet has insufficient balance');
             return;
         }
 
+        // Validate buyer wallet balance
         if (buyerBalance < Number(formData.tokenbuyAmount)) {
             toast.error('Buyer wallet has insufficient balance');
             return;
         }
 
-
-
         let bundler = '';
         let ammID = '';
+
         try {
-            setDeployerWallets(setsideWallets)
-            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets))
+            // Save deployer wallets to state and localStorage
+            setDeployerWallets(setsideWallets);
+            localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
+
+            // Show loading toast
             toast.info('Please wait, bundle acceptance may take a few seconds');
+
+            // Prepare the list of wallets
             let Allwallets: string[];
             if (Mode === 5) {
-                Allwallets = wallets;
+                // Use only the wallet addresses from the wallets array
+                Allwallets = wallets.map(wallet => wallet.wallet);
             } else {
-                Allwallets = [formData.buyerPrivateKey, ...wallets];
+                // Include the buyer wallet and the wallet addresses from the wallets array
+                Allwallets = [formData.buyerPrivateKey, ...wallets.map(wallet => wallet.wallet)];
             }
+
+            // Call the CreatePoolSwap function
             const result = await CreatePoolSwap(connection, formData, Allwallets);
+
             if (result) {
                 bundler = result.result;
                 ammID = result.ammID.toString();
             }
 
+            // Show success toasts
             toast(
                 () => (
                     <BundleToast
@@ -311,6 +289,7 @@ const LiquidityHandlerRaydium = () => {
                 ),
                 { autoClose: 5000 }
             );
+
             toast(
                 () => (
                     <TransactionToast
@@ -322,13 +301,17 @@ const LiquidityHandlerRaydium = () => {
             );
         } catch (error) {
             console.log('Error:', error);
+
+            // Handle Axios errors
             if (axios.isAxiosError(error)) {
                 if (error.response && error.response.status === 500) {
                     toast.error(`${error.response.data}`);
                 } else {
                     toast.error('Unknown error occurred');
                 }
-            } else if (error instanceof Error) {
+            }
+            // Handle other errors
+            else if (error instanceof Error) {
                 const errorMessage = error.message;
                 const jsonStart = errorMessage.indexOf('{');
                 if (jsonStart !== -1) {
@@ -414,26 +397,29 @@ const LiquidityHandlerRaydium = () => {
                                                     required={true}
                                                 />
                                             </div>)}
-                                        <div className="relative rounded-md shadow-sm w-full flex gap-2 justify-end">
+                                        <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
                                             {Mode === 5 && (
-                                                <div>
-                                                    <InputField
-                                                        id='walletsNumbers'
-                                                        placeholder='27'
-                                                        label='Upload Wallets'
-                                                        subfield='csv file - Max 4'
-                                                        required={true}
-                                                        type="file"
-                                                        onChange={handleFileUpload}
-                                                    />
-                                                </div>
-                                            )}
-                                            {Mode === 5 && (
-                                                <button
-                                                    className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                                                    onClick={() => DownloadSample()}>
-                                                    Download Sample
-                                                </button>
+                                                <WalletInput
+                                                    wallets={wallets}
+                                                    setWallets={setWallets}
+                                                    Mode={Mode}
+                                                    maxWallets={4}
+                                                    onChange={(walletData) => {
+                                                        setFormData(prevState => ({
+                                                            ...prevState,
+                                                            buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                            buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                                        }));
+                                                    }}
+                                                    onWalletsUpdate={(walletData) => {
+                                                        // Log the complete wallet data with amounts
+                                                        console.log('Updated wallet data:', walletData.map(entry => ({
+                                                            wallet: entry.wallet,
+                                                            solAmount: entry.solAmount,
+                                                            lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                                        })));
+                                                    }}
+                                                />
                                             )}
                                         </div>
                                     </div>
