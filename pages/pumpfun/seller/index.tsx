@@ -159,14 +159,14 @@ const LiquidityHandlerRaydium = () => {
 
 
 
-    const DownloadSample = () => {
-        const file = ("/sample_wallets.csv")
-        const link = document.createElement('a');
-        link.href = file;
-        link.download = 'sample_wallets.csv';
-        link.click();
+    // const DownloadSample = () => {
+    //     const file = ("/sample_wallets.csv")
+    //     const link = document.createElement('a');
+    //     link.href = file;
+    //     link.download = 'sample_wallets.csv';
+    //     link.click();
 
-    }
+    // }
 
     const HandleSubmission = async (e: any) => {
         e.preventDefault();

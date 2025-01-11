@@ -1,10 +1,10 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import Papa from 'papaparse';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { toast } from 'react-toastify';
 import { Input } from '@/components/ui/input';
@@ -134,10 +134,6 @@ const WalletInput: React.FC<WalletInputProps> = ({
         }
     };
 
-    const calculateLamports = (solAmount: string): number => {
-        const amount = parseFloat(solAmount);
-        return isNaN(amount) ? 0 : amount * LAMPORTS_PER_SOL;
-    };
 
     return (
         <div className="space-y-4 w-full border border-zinc-400 border-dashed rounded-xl p-2">
@@ -151,8 +147,8 @@ const WalletInput: React.FC<WalletInputProps> = ({
                                 onChange={handleFileUpload}
                                 className="file:mr-4 cursor-pointer file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 placeholder:text-gray-400"
                             />
-                            <span className="pointer-events-none absolute inset-y-0 left-[120px] flex items-center text-sm text-gray-500">
-                                Optional
+                            <span className="pointer-events-none absolute inset-y-0 right-[120px] flex items-center text-sm text-gray-500">
+                                Optional (if you enter manually)
                             </span>
                         </div>
                         <p className="mt-1 text-sm text-gray-500">CSV file - Max {maxWallets} wallets</p>

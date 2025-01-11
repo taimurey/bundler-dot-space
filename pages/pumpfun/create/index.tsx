@@ -19,16 +19,14 @@ import { BundleToast, LinkToast, TransactionToast } from '../../../components/co
 import { useMyContext } from '../../../contexts/Maincontext';
 import { UpdatedInputField } from '../../../components/FieldComponents/UpdatedInputfield';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
-import Papa from 'papaparse';
 import { randomColor } from '../../raydium/create';
 import { PumpBundler } from '../../../components/PumpBundler/PumpBundler';
-import { BalanceType } from "../../volumebot";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { AnchorProvider, Idl, Program } from '@coral-xyz/anchor';
 import { GLOBAL_STATE, PUMP_PROGRAM_ID } from '../../../components/PumpBundler/constants';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { calculateBuyTokensAndNewReserves } from "../../../components/PumpBundler/misc";
-import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
+import WalletsDrawer from "../../../components/common/SideBarDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import WalletInput from "./wallet-input";
 
@@ -61,10 +59,9 @@ const LiquidityHandlerRaydium = () => {
     const [uploading, setUploading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [Mode, setMode] = useState(1);
-    const [balances, setBalances] = useState<BalanceType[]>([]);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-    const [wallets, setWallets] = useState<string[]>([]);
-    const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
+    // const [wallets, setWallets] = useState<string[]>([]);
+    // const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
 
@@ -263,49 +260,10 @@ const LiquidityHandlerRaydium = () => {
         } catch (error) {
             console.error('Error generating vanity address:', error);
         } finally {
-            setIsLoading(false); // Stop showing the loading SVG
+            setIsLoading(false);
         }
     }
 
-
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files) {
-            toast.error('No file selected');
-            return;
-        }
-        const file = event.target.files[0];
-
-        Papa.parse<string[]>(file, {
-            complete: function (results) {
-                //skip the first row
-                const wallets = results.data.slice(1).map(row => row[1]);
-
-                const walletset: string[] = [];
-                wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet' || element === undefined) {
-                        return;
-                    }
-                    try {
-                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(element)));
-                        walletset.push(element);
-                    } catch (err) {
-                        toast.error(`Invalid wallet address: ${element}`);
-                    }
-                });
-                if (walletset.length > 0) {
-                    toast.success('Wallets Loaded Successfully')
-                    setWallets(walletset);
-                    setFormData(prevState => ({
-                        ...prevState,
-                        Wallets: walletset,
-                    }));
-                }
-            },
-            error: function (err) {
-                toast.error(`An error occurred while parsing the file: ${err.message}`);
-            }
-        });
-    }
 
     const handleSubmission = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -383,69 +341,69 @@ const LiquidityHandlerRaydium = () => {
 
     }
 
-    React.useEffect(() => {
-        const fetchBalances = async () => {
-            let allBalances: BalanceType[] = [];
+    // React.useEffect(() => {
+    //     const fetchBalances = async () => {
+    //         let allBalances: BalanceType[] = [];
 
-            if (formData.deployerPrivateKey) {
-                const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
-                const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
-            }
+    //         if (formData.deployerPrivateKey) {
+    //             const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
+    //             const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+    //             allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
+    //         }
 
-            if (formData.buyerPrivateKey) {
-                const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
-                const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
-            }
+    //         if (formData.buyerPrivateKey) {
+    //             const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
+    //             const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+    //             allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
+    //         }
 
-            const balances = await Promise.all(
-                Object.entries(wallets).map(async ([key, value]) => {
-                    try {
-                        console.log('value:', key);
-                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
-                        const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                        return { balance, publicKey: keypair.publicKey.toString() };
+    //         const balances = await Promise.all(
+    //             Object.entries(wallets).map(async ([key, value]) => {
+    //                 try {
+    //                     console.log('value:', key);
+    //                     const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(value)));
+    //                     const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+    //                     return { balance, publicKey: keypair.publicKey.toString() };
 
-                    }
-                    catch (error) {
-                        toast.error(`Error fetching balance: ${error}`);
-                        return { balance: 0, publicKey: 'Invalid' };
-                    }
-                })
-            );
+    //                 }
+    //                 catch (error) {
+    //                     toast.error(`Error fetching balance: ${error}`);
+    //                     return { balance: 0, publicKey: 'Invalid' };
+    //                 }
+    //             })
+    //         );
 
-            setFormData(prevState => ({
-                ...prevState,
-                buyerextraWallets: wallets,
-            }));
+    //         setFormData(prevState => ({
+    //             ...prevState,
+    //             buyerextraWallets: wallets,
+    //         }));
 
-            allBalances = [...allBalances, ...balances];
-            setBalances(allBalances);
-        };
+    //         allBalances = [...allBalances, ...balances];
+    //         setBalances(allBalances);
+    //     };
 
-        fetchBalances();
-    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
+    //     fetchBalances();
+    // }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
 
-    React.useEffect(() => {
-        const amountsCalculation = async () => {
-            const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(Keypair.generate()), AnchorProvider.defaultOptions()));
+    // React.useEffect(() => {
+    //     const amountsCalculation = async () => {
+    //         const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(Keypair.generate()), AnchorProvider.defaultOptions()));
 
-            const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
-            const tempBondingCurveData = {
-                virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
-                virtualSolReserves: globalStateData.initialVirtualSolReserves,
-                realTokenReserves: globalStateData.initialRealTokenReserves,
-            }
-            const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
-            const devMaxSolPercentage = ((devBuyQuote.tokenAmount.toNumber() / 1000000) / 1000000000) * 100;
+    //         const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
+    //         const tempBondingCurveData = {
+    //             virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
+    //             virtualSolReserves: globalStateData.initialVirtualSolReserves,
+    //             realTokenReserves: globalStateData.initialRealTokenReserves,
+    //         }
+    //         const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
+    //         const devMaxSolPercentage = ((devBuyQuote.tokenAmount.toNumber() / 1000000) / 1000000000) * 100;
 
-            setDevMaxSolPercentage(devMaxSolPercentage.toFixed(2));
-        }
+    //         // setDevMaxSolPercentage(devMaxSolPercentage.toFixed(2));
+    //     }
 
-        amountsCalculation();
+    //     amountsCalculation();
 
-    }, [formData.DevtokenbuyAmount]);
+    // }, [formData.DevtokenbuyAmount]);
 
     React.useEffect(() => {
         const amountsCalculation = async () => {
@@ -609,15 +567,14 @@ const LiquidityHandlerRaydium = () => {
                                             }}
                                         />
                                     )}
-                                    {/* {Mode === 5 && (
-                                        <button
-                                            className='bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
-                                            onClick={() => DownloadSample()}>
-                                            Download Sample
-                                        </button>
-                                    )} */}
                                 </div>
-
+                                {Mode === 5 && (
+                                    <button
+                                        className='p-2 bundler-btn border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
+                                        onClick={() => DownloadSample()}>
+                                        Download Sample
+                                    </button>
+                                )}
                                 <div className='flex flex-col gap-2' id="tokeninfo">
                                     <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Coin Metadata</h3>
                                     <div className='flex justify-center items-center gap-2'>
@@ -812,7 +769,7 @@ const LiquidityHandlerRaydium = () => {
                                             Wallets:
                                         </label>
                                         <br />
-                                        <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
+                                        {/* <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
                                             {balances.map(({ balance, publicKey }, index) => (
                                                 <a
                                                     key={index}
@@ -831,7 +788,7 @@ const LiquidityHandlerRaydium = () => {
                                                     </p>
                                                 </a>
                                             ))}
-                                        </div>
+                                        </div> */}
                                     </div>
                                     {/* <OutputField
                                         id="totalmintaddress"
