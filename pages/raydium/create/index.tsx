@@ -20,7 +20,7 @@ import { BundleToast, TransactionToast } from '../../../components/common/Toasts
 import { useMyContext } from '../../../contexts/Maincontext';
 import { truncate } from '../../../components/common/SideBarDrawer';
 import { CreatePoolSwap } from '../../../components/RaydiumBundler/AmmPool';
-import { BalanceType } from '../../volumebot';
+import { BalanceType } from '../../generate-volume';
 import { getKeypairFromBs58 } from '../../../components/PumpBundler/misc';
 import WalletsDrawer from '../../../components/common/SideBarDrawer';
 import WalletInput, { WalletEntry } from '@/components/PumpBundler/wallet-input';

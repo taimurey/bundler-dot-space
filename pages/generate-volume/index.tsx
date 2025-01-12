@@ -13,18 +13,16 @@ import base58 from 'bs58';
 import { OutputField } from '../../components/FieldComponents/OutputField';
 import { useSolana } from '../../components/context';
 import { toast } from 'react-toastify';
-import { BundleToast } from '../../components/common/Toasts/TransactionToast';
 import Papa from 'papaparse';
-import { randomColor } from '../raydium/create';
+// import { randomColor } from '../raydium/create';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { distributeRandomly } from '../../components/randomgen';
-import { solDistribution } from '../../components/SolDistribution';
-import { ApibundleSend } from '../../components/DistributeTokens/bundler';
-import { PumpVolumeGenerator } from '../../components/PumpBundler/volumeGenerator';
-import { useMyContext } from '../../contexts/Maincontext';
+// import { useMyContext } from '../../contexts/Maincontext';
 import { BlockEngineLocation, InputField } from '../../components/FieldComponents/InputField';
-import { getKeypairFromBs58 } from '../../components/PumpBundler/misc';
 import WalletsDrawer, { truncate } from '../../components/common/SideBarDrawer';
+import WalletInput, { WalletEntry } from '@/components/PumpBundler/wallet-input';
+import { distributeSOL } from '@/components/tokenDistributor/distribute-sol';
+import { PublicKey } from '@metaplex-foundation/js';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -42,11 +40,11 @@ const LiquidityHandlerRaydium = () => {
     const connection = new Connection(cluster.endpoint);
     const [airdropChecked, setAirdropChecked] = useState(false);
     const [Mode, setMode] = useState(`RaydiumAMM Volume`);
-    const { setDeployerWallets } = useMyContext();
+    // const { setDeployerWallets } = useMyContext();
     const [balances, setBalances] = useState<BalanceType[]>([]);
-    const [BundleError, setBundleError] = useState(`Not Available`);
-    const [wallets, setWallets] = useState<string[]>([]);
-    const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
+    // const [BundleError, setBundleError] = useState(`Not Available`);
+    const [wallets, setWallets] = useState<WalletEntry[]>([]);
+    // const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
     // const [loop, setLoop] = useState(false);
     if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
         throw new Error('NFT_STORAGE is not defined');
@@ -57,7 +55,7 @@ const LiquidityHandlerRaydium = () => {
         tokenMintAddress: '',
         solfundingwallet: '',
         walletcount: '',
-        buyerextraWallets: [],
+        buyerextraWallets: [] as string[],
         tokenbuyAmount: '',
         websiteUrl: '',
         twitterUrl: '',
@@ -95,12 +93,12 @@ const LiquidityHandlerRaydium = () => {
                 Wallet2: wallet.publicKey.toString(),
             }));
             // Add new wallet to setsideWallets
-            setdeployerwallets(prevProfiles => [...prevProfiles, {
-                id: prevProfiles.length,
-                name: 'Deployer',
-                wallet: base58.encode(wallet.secretKey), // Use JSON.stringify instead of toString
-                color: randomColor(),
-            }]);
+            // setdeployerwallets(prevProfiles => [...prevProfiles, {
+            //     id: prevProfiles.length,
+            //     name: 'Deployer',
+            //     wallet: base58.encode(wallet.secretKey), // Use JSON.stringify instead of toString
+            //     color: randomColor(),
+            // }]);
             setFormData(prevState => ({
                 ...prevState,
                 solfundingwallet: value,
@@ -134,15 +132,15 @@ const LiquidityHandlerRaydium = () => {
     React.useEffect(() => {
         const fetchBalances = async () => {
             const balances = await Promise.all(
-                Object.entries(wallets).map(async ([key, value]) => {
+                wallets.map(async (wallet) => {
                     try {
-                        console.log(key);
-                        const keypair = getKeypairFromBs58(value)!;
-                        const balance = await connection.getBalance(keypair.publicKey);
+                        console.log('wallet:', wallet.wallet);
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
+                        const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
                         return { balance, publicKey: keypair.publicKey.toString() };
                     } catch (error) {
-                        console.error("Error decoding or fetching balance for wallet:", value, error);
-                        return null; // Return null or some other placeholder to indicate failure
+                        toast.error(`Error fetching balance: ${error}`);
+                        return { balance: 0, publicKey: 'Invalid' };
                     }
                 })
             );
@@ -154,39 +152,9 @@ const LiquidityHandlerRaydium = () => {
         fetchBalances();
     }, [wallets]);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files) {
-            return;
-        }
-        const file = event.target.files[0];
-
-        Papa.parse<string[]>(file, {
-            complete: function (results) {
-                //skip the first row
-                const wallets = results.data.slice(1).map(row => row[1]);
-                wallets.shift();
-                wallets.forEach((element: string) => {
-                    if (element === '' || element === 'wallet') {
-                        return;
-                    }
-
-                    setdeployerwallets(prevProfiles => [...prevProfiles, {
-                        id: prevProfiles.length,
-                        name: 'Buyer',
-                        wallet: element,
-                        color: randomColor(),
-                    }]);
-                });
-                toast.success('Wallets Loaded Successfully')
-                setDeployerWallets(setsideWallets)
-                localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
-                setWallets(wallets);
-            }
-        });
-    }
-
     const walletsfunder = async (e: any) => {
         e.preventDefault();
+
         // Ensure wallets is always treated as an array
         const walletsArray = Array.isArray(wallets) ? wallets : [];
 
@@ -195,84 +163,93 @@ const LiquidityHandlerRaydium = () => {
             return;
         }
 
-        const randomAmount = distributeRandomly(Number(formData.tokenbuyAmount) * LAMPORTS_PER_SOL, walletsArray.length, (0.0001 * LAMPORTS_PER_SOL), (2 * LAMPORTS_PER_SOL));
-        toast.info(`Distributing ${formData.tokenbuyAmount} sol to ${walletsArray.length} wallets`);
-        const keypairs = walletsArray.map(wallet => Keypair.fromSecretKey(base58.decode(wallet)));
-        const solbundle = await solDistribution(connection, Keypair.fromSecretKey(base58.decode(formData.solfundingwallet)), keypairs, randomAmount, Number(formData.BundleTip));
+        // Convert the total SOL amount to lamports
+        const totalSOLAmount = Number(formData.tokenbuyAmount) * LAMPORTS_PER_SOL;
 
-        const EncodedbundledTxns = solbundle.map(txn => base58.encode(txn.serialize()));
+        // Distribute SOL randomly
+        distributeRandomly(
+            totalSOLAmount,
+            walletsArray.length,
+            (0.0001 * LAMPORTS_PER_SOL), // Minimum amount per wallet (0.0001 SOL)
+            (2 * LAMPORTS_PER_SOL) // Maximum amount per wallet (2 SOL)
+        );
 
+        toast.info(`Distributing ${formData.tokenbuyAmount} SOL to ${walletsArray.length} wallets`);
 
-        try {
-            const response = await ApibundleSend(EncodedbundledTxns, formData.BlockEngineSelection);
-            const bundleId = response.result;
-            toast(
-                () => (
-                    <BundleToast
-                        txSig={bundleId}
-                        message={'Bundle ID:'}
-                    />
-                ),
-                { autoClose: 5000 }
-            );
-        } catch (error: any) {
-            toast.error(`Error sending bundle: ${error}`);
-        }
-    }
+        // Prepare the fee payer and recipient wallets
+        const feePayer = Keypair.fromSecretKey(base58.decode(formData.solfundingwallet));
+        const recipientWallets = walletsArray.map(wallet => new PublicKey(wallet));
+
+        // Call the distributeSOL function
+        await distributeSOL(
+            connection,
+            {
+                feePayerWallet: base58.encode(feePayer.secretKey),
+                SendingWallet: base58.encode(feePayer.secretKey), // Use the same wallet for sending
+                RecievingWallets: recipientWallets.map(wallet => wallet.toBase58()),
+                BundleTip: formData.BundleTip,
+                TransactionTip: '0', // Not used in this context
+                BlockEngineSelection: formData.BlockEngineSelection,
+            }
+        );
+
+    };
 
     const volumeBot = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         e.preventDefault();
-        if (formData.tokenMintAddress === '' || wallets.length === 0 || formData.solfundingwallet === '' || formData.tokenbuyAmount === '' || formData.BlockEngineSelection === '' || formData.BundleTip === '' || formData.TransactionTip === ''
 
-        ) {
-            toast.error('Please upload a csv file with wallets and provide a token mint address');
-            return;
-        }
-        // setLoop(true);
-        if (Mode === "RaydiumAMM Volume") {
-            toast.info(`Not available Yet`);
+        toast.info("Coming Soon");
+        // if (formData.tokenMintAddress === '' || wallets.length === 0 || formData.solfundingwallet === '' || formData.tokenbuyAmount === '' || formData.BlockEngineSelection === '' || formData.BundleTip === '' || formData.TransactionTip === ''
 
-            // wallets.map(async (wallet, index) => {
-            //     setCount(index);
-            //     const keypair = Keypair.fromSecretKey(base58.decode(wallet));
+        // ) {
+        //     toast.error('Please upload a csv file with wallets and provide a token mint address');
+        //     return;
+        // }
+        // // setLoop(true);
+        // if (Mode === "RaydiumAMM Volume") {
+        //     toast.info(`Not available Yet`);
 
-            //     // try {
-            //     //     const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
-            //     //     const InputTokenAmount  = new TokenAmount(new Currency(6, 'RAY', 'Raydium'), new BN(1)
-            //     //     const txn = await build_swap_instructions({  connection, poolkeys, tokenAccountRawInfos_Swap, inputTokenAmount, new BN(1) }, keypair.publicKey)
-            //     // } catch (error: any) {
-            //     //     setBundleError(error);
-            //     //     toast.error(`Error sending bundle: ${error}`);
-            //     // }
-            // })
+        //     // wallets.map(async (wallet, index) => {
+        //     //     setCount(index);
+        //     //     const keypair = Keypair.fromSecretKey(base58.decode(wallet));
+
+        //     //     // try {
+        //     //     //     const poolkeys = formatAmmKeysById(formData.tokenMintAddress);
+        //     //     //     const InputTokenAmount  = new TokenAmount(new Currency(6, 'RAY', 'Raydium'), new BN(1)
+        //     //     //     const txn = await build_swap_instructions({  connection, poolkeys, tokenAccountRawInfos_Swap, inputTokenAmount, new BN(1) }, keypair.publicKey)
+        //     //     // } catch (error: any) {
+        //     //     //     setBundleError(error);
+        //     //     //     toast.error(`Error sending bundle: ${error}`);
+        //     //     // }
+        //     // })
 
 
-        }
-        else if (Mode === "Pump.Fun Volume") {
-            toast.info(`Generating Volume on Pump.Fun`);
-            const fundingWallet = Keypair.fromSecretKey(base58.decode(formData.solfundingwallet));
-            wallets.map(async (wallet) => {
-                const keypair = Keypair.fromSecretKey(base58.decode(wallet));
+        // }
+        // else if (Mode === "Pump.Fun Volume") {
+        //     toast.info(`Generating Volume on Pump.Fun`);
+        //     const fundingWallet = Keypair.fromSecretKey(base58.decode(formData.solfundingwallet));
+        //     wallets.map(async (wallet) => {
+        //         const keypair = Keypair.fromSecretKey(base58.decode(wallet));
 
-                try {
-                    const txn = await PumpVolumeGenerator(connection, fundingWallet, keypair, formData.tokenMintAddress, formData.BlockEngineSelection, formData.BundleTip);
-                    toast(
-                        () => (
-                            <BundleToast
-                                txSig={txn}
-                                message={'Bundle ID:'}
-                            />
-                        ),
-                        { autoClose: 5000 }
-                    )
-                } catch (error: any) {
-                    setBundleError(error);
-                    toast.error(`Error sending bundle: ${error}`);
-                }
-            })
-        }
+        //         try {
+        //             const txn = await PumpVolumeGenerator(connection, fundingWallet, keypair, formData.tokenMintAddress, formData.BlockEngineSelection, formData.BundleTip);
+        //             toast(
+        //                 () => (
+        //                     <BundleToast
+        //                         txSig={txn}
+        //                         message={'Bundle ID:'}
+        //                     />
+        //                 ),
+        //                 { autoClose: 5000 }
+        //             )
+        //         } catch (error: any) {
+        //             setBundleError(error);
+        //             toast.error(`Error sending bundle: ${error}`);
+        //         }
+        //     })
+        // }
     }
 
     return (
@@ -281,7 +258,7 @@ const LiquidityHandlerRaydium = () => {
                 <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
                     <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                         <div>
-                            <p className='font-bold text-[25px]'>Raydium AMM Volume</p>
+                            <p className='font-bold text-[25px]'>{Mode}</p>
                             <p className=' text-[12px] text-[#96989c] '>Generate volume on the token using csv wallets
                             </p>
                         </div>
@@ -328,18 +305,29 @@ const LiquidityHandlerRaydium = () => {
                         </div>
                         <div className='flex flex-col gap-2' id="tokeninfo">
                             <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Generate Volume</h3>
+                            <WalletInput
+                                wallets={wallets}
+                                setWallets={setWallets}
+                                Mode={100}
+                                maxWallets={4}
+                                onChange={(walletData) => {
+                                    setFormData(prevState => ({
+                                        ...prevState,
+                                        buyerextraWallets: walletData.map(entry => entry.wallet),
+                                        buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                    }));
+                                }}
+                                onWalletsUpdate={(walletData) => {
+                                    // Log the complete wallet data with amounts
+                                    console.log('Updated wallet data:', walletData.map(entry => ({
+                                        wallet: entry.wallet,
+                                        solAmount: entry.solAmount,
+                                        lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                    })));
+                                }}
+                            />
                             <div className='flex justify-center items-center gap-2'>
-                                <div>
-                                    <InputField
-                                        id='walletsNumbers'
-                                        placeholder='27'
-                                        label='Upload Wallets'
-                                        subfield='csv file'
-                                        required={true}
-                                        type="file"
-                                        onChange={handleFileUpload}
-                                    />
-                                </div>
+
 
                                 <InputField
                                     label={Mode === "RaydiumAMM Volume" ? "Pool ID" : "Token Address"}
@@ -484,12 +472,7 @@ const LiquidityHandlerRaydium = () => {
                                 latedisplay={true}
 
                             />
-                            <OutputField
-                                id='bundleError'
-                                label='Bundle Error'
-                                value={BundleError}
-                                latedisplay={true}
-                            />
+
 
 
                         </div>

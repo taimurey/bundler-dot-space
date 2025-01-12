@@ -60,14 +60,14 @@ export async function distributetokens(
             recipient
         );
 
-        // Create transfer instruction
+        // Create transfer instruction using createTransferCheckedInstruction
         const transferInstruction = createTransferCheckedInstruction(
             tokenAccount.value[0].pubkey,
             new PublicKey(FormData.tokenMintAddress),
             ata.associatedToken,
             sendTokenWallet.publicKey,
             amount,
-            decimals,
+            decimals
         );
 
         transferInstructions.push(ata.inx, transferInstruction);

@@ -242,8 +242,8 @@ const Sidebar: FC = () => {
             icon: <MultiSenderIcon />,
         },
         {
-            href: '/volumebot',
-            isActive: router.pathname === '/volumebot',
+            href: '/generate-volume',
+            isActive: router.pathname === '/generate-volume',
             title: 'Volume Generator',
             description: 'Generate volume on Raydium',
             icon: <CashInflowIcon />,
@@ -262,10 +262,10 @@ const Sidebar: FC = () => {
         return true;
     });
 
-    const raydiumLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/raydium/') && !link.href.includes('volumebot'));
-    const pumpFunLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/pumpfun/') && !link.href.includes('volumebot'));
+    const raydiumLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/raydium/') && !link.href.includes('generate-volume'));
+    const pumpFunLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/pumpfun/') && !link.href.includes('generate-volume'));
 
-    const volumeBotLink = filteredLinks.filter(link => link.href.includes('/volumebot'));
+    const volumeBotLink = filteredLinks.filter(link => link.href.includes('/generate-volume'));
     const distributorLink = filteredLinks.filter(link => link.href.includes('/distributor'));
 
     const CreatetokenLink = filteredLinks.filter(link => link.href.includes('/mintinglab/create-spl'));

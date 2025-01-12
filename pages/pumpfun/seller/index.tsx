@@ -14,7 +14,7 @@ import { BlockEngineLocation, InputField } from '../../../components/FieldCompon
 import { useSolana } from '../../../components/context';
 import { toast } from 'react-toastify';
 import { BundleToast } from '../../../components/common/Toasts/TransactionToast';
-import { BalanceType } from '../../volumebot';
+import { BalanceType } from '../../generate-volume';
 import WalletsDrawer, { truncate } from "../../../components/common/SideBarDrawer";
 import { PumpSeller } from "../../../components/PumpBundler/PumpSeller";
 import WalletInput, { WalletEntry } from '../../../components/PumpBundler/wallet-input';
