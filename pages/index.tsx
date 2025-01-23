@@ -130,7 +130,6 @@ const Home = () => {
           `}
         </script>
       </Head>
-
       <div className="flex flex-col relative -mb-[100px]">
         <div className="flex flex-col gap-12 justify-start lg:justify-center lg:items-center w-full lg:flex-row h-screen">
           <div className="max-w-[350px] w-full mx-auto md:max-w-[500px] lg:max-w-[700px] flex flex-col gap-6 h-full justify-center items-center">
