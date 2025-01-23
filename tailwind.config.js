@@ -115,7 +115,8 @@ module.exports = {
   			typing: 'typing 2s steps(20) infinite alternate, blink .7s infinite'
   		},
   		backgroundImage: {
-  			'v2-text-gradient': 'linear-gradient(247.44deg, #C7F284 13.88%, #00BEF0 99.28%)'
+  			'v2-text-gradient': 'linear-gradient(247.44deg, #C7F284 13.88%, #00BEF0 99.28%)',
+  			
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
