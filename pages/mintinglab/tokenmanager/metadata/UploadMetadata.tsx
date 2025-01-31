@@ -1,94 +1,129 @@
 import { FC, useState, ChangeEvent } from "react";
-import { Web3Storage } from "web3.storage";
 import { ClipLoader } from "react-spinners";
 import { toast } from "react-toastify";
 
+interface LinkToastProps {
+  link: string;
+  message: string;
+}
+
+const LinkToast: FC<LinkToastProps> = ({ link, message }) => (
+  <div>
+    <p>{message}</p>
+    <a href={link} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-700">
+      {link}
+    </a>
+  </div>
+);
+
 const UploadMetadata: FC = () => {
-  const [ipfsToken, setIpfsToken] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [tokenName, setTokenName] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState("");
   const [tokenDescription, setTokenDescription] = useState("");
   const [jsonUri, setJsonUri] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
     if (file) {
       setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+        setUploading(true);
+
+        try {
+          const imageBlob = await fetch(base64Image).then((res) => res.blob());
+          const imageBuffer = await imageBlob.arrayBuffer();
+          const imageUint8Array = new Uint8Array(imageBuffer);
+          const imageArray = Array.from(imageUint8Array);
+
+          const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: imageArray })
+          });
+
+          const responseText = await response.text();
+          const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
+
+          toast(() => (
+            <LinkToast
+              link={httpUrl}
+              message="Image Uploaded Successfully"
+            />
+          ));
+
+          setUploadedImageUrl(httpUrl);
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          toast.error('Failed to upload image');
+        } finally {
+          setUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const uploadMetadata = async () => {
-    const storage = new Web3Storage({ token: ipfsToken });
     setIsLoading(true);
     try {
-      if (imageFile) {
-        const imageCid = await storage.put([imageFile]);
-        const ipfsImageUri = `https://ipfs.io/ipfs/${imageCid}/${imageFile.name}`;
-
-        const json = {
-          name: tokenName,
-          symbol: tokenSymbol,
-          description: tokenDescription,
-          image: ipfsImageUri,
-        };
-
-        const jsonBlob = new Blob([JSON.stringify(json)], {
-          type: "application/json",
-        });
-        const jsonFileName = "uri.json";
-        const jsonFile = new File([jsonBlob], jsonFileName);
-        const jsonCid = await storage.put([jsonFile]);
-        const ipfsJsonUri = `https://ipfs.io/ipfs/${jsonCid}/${jsonFileName}`;
-        setJsonUri(ipfsJsonUri);
+      if (!uploadedImageUrl) {
+        throw new Error("Please upload an image first");
       }
+
+      const json = {
+        name: tokenName,
+        symbol: tokenSymbol,
+        description: tokenDescription,
+        image: uploadedImageUrl,
+      };
+
+      const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: Array.from(new TextEncoder().encode(JSON.stringify(json)))
+        })
+      });
+
+      const responseText = await response.text();
+      const ipfsJsonUri = `https://ipfs.io/ipfs/${responseText}`;
+      setJsonUri(ipfsJsonUri);
+
+      toast(() => (
+        <LinkToast
+          link={ipfsJsonUri}
+          message="Metadata Uploaded Successfully"
+        />
+      ));
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        // handle non-Error exceptions
-        toast.error(JSON.stringify(error));
+        toast.error('Failed to upload metadata');
       }
     }
-
     setIsLoading(false);
   };
 
   return (
     <div>
-      {isLoading && (
+      {(isLoading || uploading) && (
         <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
           <ClipLoader />
         </div>
       )}
       {!jsonUri ? (
         <div>
-          <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
-            <div className="m-auto p-2">
-              <div className="text-xl font-normal">IPFS provider token</div>
-              <p>Token used to upload your data to IPFS.</p>
-              <p>Currently only Web3.Storage supported.</p>
-              <p>
-                You can get one
-                <a
-                  className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
-                  href="https://web3.storage/tokens/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {" here "}
-                </a>
-                for free.
-              </p>
-            </div>
-            <div className="m-auto p-2">
-              <input
-                className="rounded border px-4 py-2 text-xl font-normal text-gray-700 focus:border-blue-600 focus:outline-none"
-                onChange={(e) => setIpfsToken(e.target.value)}
-              />
-            </div>
-          </div>
           <div className="mt-4 sm:grid sm:grid-cols-2 sm:gap-4">
             <div className="m-auto p-2">
               <div className="text-xl font-normal">Token icon</div>
@@ -116,11 +151,15 @@ const UploadMetadata: FC = () => {
                   <input
                     type="file"
                     className="sr-only"
-                    onChange={handleImageChange}
+                    onChange={handleImageUpload}
+                    accept="image/*"
                   />
                 </label>
-                {!imageFile ? null : (
+                {imageFile && (
                   <p className="text-xs text-gray-500">{imageFile.name}</p>
+                )}
+                {uploadedImageUrl && (
+                  <img src={uploadedImageUrl} alt="Uploaded" className="mt-2 max-w-xs" />
                 )}
               </div>
             </div>
@@ -186,6 +225,5 @@ const UploadMetadata: FC = () => {
     </div>
   );
 };
-
 
 export default UploadMetadata;

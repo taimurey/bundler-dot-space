@@ -2,7 +2,7 @@ import { Metaplex, PublicKey } from "@metaplex-foundation/js";
 import { connection } from "../removeLiquidity/config";
 import { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddress } from "@solana/spl-token-2";
 import { SystemProgram, TransactionInstruction } from "@solana/web3.js";
-import { TAX_WALLET } from "../market/marketInstruction";
+import { TAX_WALLET } from "../PumpBundler/misc";
 
 export async function TokenDisperser(wallets: string[], signAllTransactions: any, fundingWallet: PublicKey, baseAddr: string) {
     const fundingata = await getAssociatedTokenAddress(

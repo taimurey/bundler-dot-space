@@ -1,10 +1,6 @@
-import { programs } from "@metaplex/js";
-const {
-  metadata: { Metadata },
-} = programs;
-
+import { Metadata, PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import useSWR from "swr";
 
 const fetcher = async ({
@@ -13,12 +9,25 @@ const fetcher = async ({
 }: {
   mint?: string;
   connection: Connection;
-}): Promise<programs.metadata.Metadata> => {
-  const metadata = await Metadata.load(
-    connection,
-    await Metadata.getPDA(mint ? mint : "")
-  );
-  return metadata;
+}): Promise<Metadata | null> => {
+  if (!mint) return null;
+
+  try {
+    const [metadataPDA] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        PROGRAM_ID.toBuffer(),
+        new PublicKey(mint).toBuffer(),
+      ],
+      PROGRAM_ID
+    );
+
+    const metadata = await Metadata.fromAccountAddress(connection, metadataPDA);
+    return metadata;
+  } catch (error) {
+    console.error("Error fetching metadata:", error);
+    return null;
+  }
 };
 
 export const useMetaplexMetadata = (mint?: string) => {
@@ -34,13 +43,10 @@ export const useMetaplexMetadata = (mint?: string) => {
     () => fetcher({ mint, connection }),
     {
       revalidateOnFocus: false,
-      // revalidateOnMount: false,
       revalidateIfStale: false,
       errorRetryCount: 1,
       onError: (err) => {
-        console.error(err);
-        // NOTE: Decided not to show snackbar for unavailable metadata.
-        // toast.error("Failed to load Token Metadata.");
+        console.error("Metadata fetch error:", err);
       },
     }
   );

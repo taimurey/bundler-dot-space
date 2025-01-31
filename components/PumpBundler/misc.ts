@@ -1,13 +1,11 @@
 
 import base58 from "bs58"
-import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, AddressLookupTableAccount, AccountInfo } from "@solana/web3.js";
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, AddressLookupTableAccount } from "@solana/web3.js";
 import { IrysOptions, irysStorage, keypairIdentity, Metaplex } from "@metaplex-foundation/js";
 import { bundleWalletEntry } from "./types";
 import fs from "fs";
 import chalk from "chalk"
-import { AccountLayout, } from "@solana/spl-token";
 import BN from "bn.js";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -186,31 +184,8 @@ export async function validateAluFileExists() {
 
 
 
+export const TAX_WALLET = new PublicKey("GeQVgDTixeGXCX3WgL2CyEofsZQUBXTzDD5Ab8Y3DjQ8")
 
-
-
-export async function getDecodedAtaEntries(wallets: bundleWalletEntry[], connection: Connection, inputtedMint: string, signers: Keypair[]) {
-    const atas = wallets.map((e, idx) => getAssociatedTokenAddressSync(new PublicKey(inputtedMint), signers[idx].publicKey,));
-
-    let ataAccountsInfo: (AccountInfo<Buffer> | null)[] | null = null;
-    while (!ataAccountsInfo) {
-        ataAccountsInfo = await connection.getMultipleAccountsInfo(atas).catch(e => { console.log(e); return null });
-    }
-
-    const decodedAtaAccountsEntries = ataAccountsInfo.map((e, idx) => {
-        if (e != null) {
-            return {
-                validSigner: signers[idx],
-                ata: atas[idx],
-                accountData: AccountLayout.decode(e.data),
-            }
-        } else {
-            return null
-        }
-    }).filter(e => e != null);
-
-    return decodedAtaAccountsEntries;
-}
 
 
 

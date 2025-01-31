@@ -4,7 +4,6 @@ import { FC, Fragment, useState } from "react";
 import SettingsPanel from "./SettingsPanel";
 import React from 'react';
 import TokenIcon from "../icons/TokenIcon";
-import MarketIcon from "../icons/MarketIcon";
 import Link from "next/link";
 import { LinkProps } from "./AppHeader/HeaderLinks";
 import FlaskIcon from "../icons/FlaskIcon";
@@ -93,15 +92,6 @@ const Dashboard: FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
                         icon={<TokenIcon />}
 
                         isExpanded={isExpanded}
-                    />
-                    <HeaderLink
-                        href="/market/create"
-                        isActive={router.pathname === "/market/create"}
-                        title="Create Market"
-                        description="Openbook Market Creation"
-                        icon={<MarketIcon />}
-                        isExpanded={isExpanded}
-
                     />
                     <HeaderLink
                         href="/raydium/create"

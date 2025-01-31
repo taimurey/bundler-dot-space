@@ -2,13 +2,13 @@ import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { generateBuyIx, generateCreatePumpTokenIx } from "./instructions";
 import pumpIdl from "./pump-idl.json";
 import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
-import { calculateBuyTokensAndNewReserves, getKeypairFromBs58, getRandomElement } from "./misc";
+import { calculateBuyTokensAndNewReserves, getKeypairFromBs58, getRandomElement, TAX_WALLET } from "./misc";
 import { GLOBAL_STATE, PUMP_PROGRAM_ID, tipAccounts } from './constants';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token-2";
 import { PublicKey } from "@metaplex-foundation/js";
 import base58 from "bs58";
-import { TAX_WALLET } from "../market/marketInstruction";
+
 import { uploadMetaData } from "../TransactionUtils/token";
 import { BN } from "bn.js";
 

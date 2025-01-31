@@ -115,13 +115,11 @@ const Sidebar: FC = () => {
     const [isRaydiumOpen, setIsRaydiumOpen] = useState<boolean>(false);
     const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(false);
     const [CreateTokenOpen, setCreateTokenOpen] = useState<boolean>(false);
-    const [MarketOpen, setMarketOpen] = useState<boolean>(false);
     const [TokenManagerOpen, setTokenManagerOpen] = useState<boolean>(false);
 
     const toggleRaydium = () => setIsRaydiumOpen(!isRaydiumOpen);
     const togglePumpFun = () => setIsPumpFunOpen(!isPumpFunOpen);
     const toggleCreateToken = () => setCreateTokenOpen(!CreateTokenOpen);
-    const toggleMarket = () => setMarketOpen(!MarketOpen);
     const toggleTokenManager = () => setTokenManagerOpen(!TokenManagerOpen);
 
     const [active, setActive] = useState<number>(getActiveLink(router.pathname));
@@ -136,16 +134,13 @@ const Sidebar: FC = () => {
             setIsPumpFunOpen(false);
         } else if (router.pathname.includes('/mintinglab/create-spl')) {
             setCreateTokenOpen(true);
-            setMarketOpen(false);
             setTokenManagerOpen(false);
         } else if (router.pathname.includes('/mintinglab/openbook/create')) {
-            setMarketOpen(true);
             setCreateTokenOpen(false);
             setTokenManagerOpen(false);
         } else if (router.pathname.includes('/mintinglab/tokenmanager')) {
             setTokenManagerOpen(true);
             setCreateTokenOpen(false);
-            setMarketOpen(false);
         }
 
     }, [router.pathname]);
@@ -269,7 +264,6 @@ const Sidebar: FC = () => {
     const distributorLink = filteredLinks.filter(link => link.href.includes('/distributor'));
 
     const CreatetokenLink = filteredLinks.filter(link => link.href.includes('/mintinglab/create-spl'));
-    const MarketLink = filteredLinks.filter(link => link.href.includes('/mintinglab/openbook/create'));
     const TokenManagerLink = filteredLinks.filter(link => link.href.includes('/mintinglab/tokenmanager'));
 
     const showAllPortfolios = router.pathname.includes('/');
@@ -375,32 +369,6 @@ const Sidebar: FC = () => {
                                     {CreateTokenOpen && (
                                         <div className="accordion-content">
                                             {CreatetokenLink.map((link, index) => (
-                                                <SidebarSublinks
-                                                    key={index}
-                                                    href={link.href}
-                                                    isActive={link.isActive}
-                                                    title={link.title}
-                                                    description={link.description}
-                                                    icon={link.icon}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {isMintingLabPage && (
-                                <div className="accordion-item cursor-pointer">
-                                    <div className="accordion-title flex items-center " onClick={toggleMarket}>
-                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                        >
-                                            <h2>Create Market</h2>
-                                            <span className={`ease-in-out duration-300 cursor-pointer  ${MarketOpen ? 'rotate-90' : 'rotate-0'}`}
-                                            >➤</span>
-                                        </div>
-                                    </div>
-                                    {MarketOpen && (
-                                        <div className="accordion-content">
-                                            {MarketLink.map((link, index) => (
                                                 <SidebarSublinks
                                                     key={index}
                                                     href={link.href}
