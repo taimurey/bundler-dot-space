@@ -17,7 +17,7 @@ import {
     createAssociatedTokenAccountInstruction,
     createMintToInstruction,
     createSetAuthorityInstruction,
-} from "@solana/spl-token-2";
+} from "@solana/spl-token";
 import {
     createCreateMetadataAccountV3Instruction,
     PROGRAM_ID,
@@ -154,7 +154,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
 
 export async function uploadMetaData(metadata: any) {
     console.log("Uploading metadata", metadata);
-    const response = await fetch('https://mevarik-deployer.xyz:8080/upload-json', {
+    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-json', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

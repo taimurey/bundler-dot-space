@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 222 17% 8%;
+    --foreground: 0 0% 100%;
+    --card: 222 13% 16%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 13% 16%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 142 65% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 13% 16%;
+    --secondary-foreground: 220 9% 65%;
+    --muted: 222 13% 16%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 222 13% 16%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 10% 20%;
+    --input: 222 13% 16%;
+    --ring: 142 65% 59%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
+    
+    /* Additional UI-specific colors */
+    --tag-bg: 222 13% 16%;
+    --tag-hover: 222 10% 20%;
+    --text-primary: 0 0% 100%;
+    --text-secondary: 220 9% 65%;
+    --input-bg: 222 13% 16%;
+    --input-border: 222 10% 20%;
+    --toggle-active: 142 65% 59%;
+    --toggle-inactive: 222 13% 16%;
+    
+    /* Keep your original color series */
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  @font-face {
+    font-family: 'Heliuk Brave';
+    src: url('/fonts/HeliukBrave.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Heliuk Regular';
+    src: url('/fonts/HeliukRegular.otf') format('opentype');
+  }
+
+  .serum-gradient {
+    @apply bg-gradient-to-t from-green-200 to-green-500;
+  }
+  
+  .focus-style {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-200 focus-visible:border-none
+  }
+  
+  .highlight-dasboard-text {
+    @apply text-amber-500
+  }
+  
+  .input {
+    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+  }
+  
+  .input-2 {
+    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+  }
+  
+  .input-label {
+    @apply text-xs text-white
+  }
+  
+  
+  .invoke-btn {
+    @apply font-bold rounded-xl py-2 hover:border-[#00ffdd] flex mt-12 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
+  }
+  
+  .btn-normal {
+    @apply font-bold rounded-xl py-2 hover:border-[#00ffdd] flex justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
+  }
+  
+  .bundler-btn {
+    @apply font-bold rounded-xl hover:border-[#00ffdd] flex mt-9 justify-center items-center border border-[#535353] text-[16px] duration-200 ease-in-out;
+  }
+  
+  .btn-text-gradient {
+    @apply bg-gradient-to-r from-[#3cf19d] to-[#089fb3] bg-clip-text text-transparent;
+  }
+}
+
+.settings__connect-btn {
+  @apply font-bold rounded-lg bg-[#2c3135] border-[#00ffdd34] border duration-300 ease-in-out;
+  isolation: isolate;
+}
+

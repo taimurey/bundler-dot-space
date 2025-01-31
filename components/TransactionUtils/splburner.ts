@@ -1,4 +1,4 @@
-import { createBurnCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token-2';
+import { createBurnCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, } from '@solana/web3.js';
 import { toast } from 'react-toastify';

@@ -1,0 +1,299 @@
+import React, { useState, ChangeEvent, SetStateAction, Dispatch } from 'react';
+import Papa from 'papaparse';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Table } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
+import { PublicKey, Keypair } from '@solana/web3.js';
+import { toast } from 'react-toastify';
+import { Input } from '@/components/ui/input';
+import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+
+interface WalletInputProps {
+    Mode: number;
+    maxWallets?: number;
+    wallets: WalletEntry[];
+    setWallets: Dispatch<SetStateAction<WalletEntry[]>>;
+    onChange?: (wallets: Array<{ wallet: string; solAmount: number }>) => void;
+    onWalletsUpdate?: (wallets: Array<{ wallet: string; solAmount: number }>) => void;
+}
+
+export interface WalletEntry {
+    wallet: string;
+    solAmount: string;
+    tokenAmount?: string;
+}
+
+interface ParseResult {
+    data: string[][];
+    errors: any[];
+}
+
+const WalletAddressInput: React.FC<WalletInputProps> = ({
+    maxWallets = 4,
+    wallets,
+    setWallets,
+    onChange,
+    onWalletsUpdate,
+}) => {
+    const [error, setError] = useState<string>('');
+    const [generateCount, setGenerateCount] = useState<string>(''); // Local state for the number of wallets to generate
+
+    const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            toast.error('No file selected');
+            return;
+        }
+
+        Papa.parse<string[]>(file, {
+            complete: function (results: ParseResult) {
+                const walletData = results.data.slice(1).map(row => ({
+                    wallet: row[1], // Assuming the wallet address is in the second column
+                    solAmount: ''
+                }));
+
+                const walletSet: WalletEntry[] = [];
+                walletData.forEach((element) => {
+                    if (element.wallet === '' || element.wallet === 'wallet' || element.wallet === undefined) {
+                        return;
+                    }
+                    try {
+                        // Validate the wallet address
+                        new PublicKey(element.wallet);
+                        walletSet.push(element);
+                    } catch (err) {
+                        toast.error(`Invalid wallet address: ${element.wallet}`);
+                    }
+                });
+
+                if (walletSet.length > maxWallets) {
+                    setError(`Only the first ${maxWallets} wallets were imported`);
+                    walletSet.splice(maxWallets);
+                }
+
+                if (walletSet.length > 0) {
+                    toast.success('Wallets Loaded Successfully');
+                    setWallets(walletSet);
+                    notifyChange(walletSet);
+                }
+            },
+            error: function (err: any) {
+                setError(`Error parsing CSV file: ${err.message}`);
+                toast.error(`An error occurred while parsing the file: ${err.message}`);
+            }
+        });
+
+        event.target.value = '';
+    };
+
+    const handleManualAdd = () => {
+        if (wallets.length >= maxWallets) {
+            setError(`Maximum ${maxWallets} wallets allowed`);
+            return;
+        }
+        setWallets([...wallets, { wallet: '', solAmount: '' }]);
+        setError('');
+    };
+
+    const generateWallets = () => {
+        const count = Number(generateCount);
+        if (isNaN(count) || count <= 0) {
+            toast.error('Please enter a valid number of wallets to generate');
+            return;
+        }
+
+        const walletsWithPrivateKeys = [];
+        const walletsWithAddresses = [];
+
+        for (let i = 0; i < count; i++) {
+            const keypair = Keypair.generate();
+            walletsWithPrivateKeys.push({
+                id: i,
+                privateKey: bs58.encode(keypair.secretKey),
+            });
+            walletsWithAddresses.push({
+                id: i,
+                address: keypair.publicKey.toBase58(),
+            });
+        }
+
+        // Generate CSV for private keys
+        const privateKeysCsv = Papa.unparse(walletsWithPrivateKeys);
+        const privateKeysBlob = new Blob([privateKeysCsv], { type: 'text/csv' });
+        const privateKeysUrl = URL.createObjectURL(privateKeysBlob);
+        const privateKeysLink = document.createElement('a');
+        privateKeysLink.setAttribute('hidden', '');
+        privateKeysLink.setAttribute('href', privateKeysUrl);
+        privateKeysLink.setAttribute('download', 'private_keys.csv');
+        document.body.appendChild(privateKeysLink);
+        privateKeysLink.click();
+        document.body.removeChild(privateKeysLink);
+
+        // Generate CSV for token addresses
+        const addressesCsv = Papa.unparse(walletsWithAddresses);
+        const addressesBlob = new Blob([addressesCsv], { type: 'text/csv' });
+        const addressesUrl = URL.createObjectURL(addressesBlob);
+        const addressesLink = document.createElement('a');
+        addressesLink.setAttribute('hidden', '');
+        addressesLink.setAttribute('href', addressesUrl);
+        addressesLink.setAttribute('download', 'token_addresses.csv');
+        document.body.appendChild(addressesLink);
+        addressesLink.click();
+        document.body.removeChild(addressesLink);
+
+        toast.success('Wallets generated and files downloaded successfully');
+    };
+
+    const handleWalletChange = (index: number, value: string) => {
+        const newWallets = [...wallets];
+        newWallets[index] = { ...newWallets[index], wallet: value };
+        setWallets(newWallets);
+        notifyChange(newWallets);
+    };
+
+    const handleSolAmountChange = (index: number, value: string) => {
+        const newWallets = [...wallets];
+        newWallets[index] = { ...newWallets[index], solAmount: value };
+        setWallets(newWallets);
+        notifyChange(newWallets);
+    };
+
+    const handleRemoveWallet = (index: number) => {
+        const newWallets = wallets.filter((_, i) => i !== index);
+        setWallets(newWallets);
+        notifyChange(newWallets);
+        setError('');
+    };
+
+    const notifyChange = (walletEntries: WalletEntry[]) => {
+        const processedWallets = walletEntries.map(entry => ({
+            wallet: entry.wallet,
+            solAmount: Number(entry.solAmount) || 0
+        }));
+
+        onChange?.(processedWallets);
+        onWalletsUpdate?.(processedWallets);
+    };
+
+    const validateWallet = (wallet: string): boolean => {
+        try {
+            if (wallet) {
+                new PublicKey(wallet); // Validate the wallet address
+                return true;
+            }
+            return false;
+        } catch (err) {
+            return false;
+        }
+    };
+
+    return (
+        <div className="space-y-4 w-full border border-zinc-400 border-dashed rounded-xl p-2">
+            <div className="flex flex-col gap-2 justify-end w-full rounded-md shadow-sm">
+                <div className='flex gap-2 mb-4'>
+
+                    <Input
+                        type="number"
+                        value={generateCount}
+                        onChange={(e) => setGenerateCount(e.target.value)}
+                        placeholder="Number of wallets to generate"
+                    />
+                    <Button
+                        type="button"
+                        className='flex p-2 border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
+                        onClick={generateWallets}
+                    >
+                        Generate Receiving Wallets
+                    </Button>
+                </div>
+                <h1 className='text-yellow-400'>Input Wallet addresses file here</h1>
+                <div className='flex gap-2'>
+                    <div className="flex-1">
+                        <div className="relative">
+                            <Input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileUpload}
+                                className="file:mr-4 cursor-pointer file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 placeholder:text-gray-400"
+                            />
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">CSV file - Max {maxWallets} wallets</p>
+
+                    </div>
+                    <Button
+                        type="button" // Add this to prevent form submission
+                        onClick={handleManualAdd}
+                        disabled={wallets.length >= maxWallets}
+                        variant="outline"
+                        className="flex p-2 border font-semibold bg-zinc-900 border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12"
+                    >
+                        <Plus className="h-4 w-4" />
+                        (or) Add Wallets Manually
+                    </Button>
+                </div>
+            </div>
+
+            {error && (
+                <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            {wallets.length > 0 && (
+                <div className="rounded-lg border border-zinc-400 overflow-hidden bg-neutral-800">
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-2 text-left text-base text-white font-semibold">Wallets</th>
+                                <th className="px-4 py-2 text-left text-base text-white font-semibold">Token Amount</th>
+                                <th className="px-4 py-2 w-20"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {wallets.map((wallet, index) => (
+                                <tr key={index} className="border-t border-zinc-700">
+                                    <td className="px-4 py-2 w-[75%]">
+                                        <Input
+                                            value={wallet.wallet}
+                                            onChange={(e) => handleWalletChange(index, e.target.value)}
+                                            placeholder="Enter wallet address"
+                                            className={`w-full ${!validateWallet(wallet.wallet) && wallet.wallet ? 'border-red-500 bg-zinc-900' : 'bg-zinc-900'}`}
+                                        />
+                                    </td>
+                                    <td className="px-4 py-2 w-[25%]">
+                                        <div className="relative">
+                                            <Input
+                                                type="number"
+                                                value={wallet.solAmount}
+                                                onChange={(e) => handleSolAmountChange(index, e.target.value)}
+                                                disabled
+                                                placeholder="0.0"
+                                                className="w-full bg-zinc-900"
+                                                min="0"
+                                                step="0.000000001"
+                                            />
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        <Button
+                                            type="button" // Add this to prevent form submission
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleRemoveWallet(index)}
+                                            className="text-red-500 hover:text-red-700"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default WalletAddressInput;
