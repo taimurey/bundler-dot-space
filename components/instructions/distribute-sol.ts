@@ -1,8 +1,8 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { getKeypairFromBs58 } from "../pump-bundler/misc";
 import base58 from "bs58";
-import { tipAccounts } from "../pump-bundler/constants";
-import { distributeRandomly } from '../randomgen';
+import { tipAccounts } from "./pump-bundler/constants";
+import { distributeRandomly } from './randomgen';
+import { getKeypairFromBs58 } from './pump-bundler/misc';
 
 interface SOLMultisenderFormData {
     feePayerWallet: string;

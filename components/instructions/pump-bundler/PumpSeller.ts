@@ -16,7 +16,7 @@ async function generateSellInstruction(
     amount: BN
 ): Promise<TransactionInstruction> {
     try {
-        const response = await fetch('https://mevarik-deployer.xyz:8080/api/sell-token', {
+        const response = await fetch('https://mevarik-deployer.xyz:2791/api/sell-token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ async function sendBundle(
     console.log('Sending bundle:', EncodedbundledTxns);
 
     try {
-        const response = await fetch('https://mevarik-deployer.xyz:8080/send-bundle', {
+        const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

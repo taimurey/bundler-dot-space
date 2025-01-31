@@ -17,7 +17,6 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
 
     return (
         <>
-            <AppHeader />
             <div className="flex h-screen">
                 {displaySidebar && (
                     <div className="hidden md:flex min-w-[300px] h-full bg-[#0d1117] border-r border-gray-700">
