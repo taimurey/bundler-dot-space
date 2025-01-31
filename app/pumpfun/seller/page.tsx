@@ -24,7 +24,6 @@ import { getHeaderLayout } from '@/components/header-layout';
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const PumpfunSell = () => {
     const { cluster } = useSolana();

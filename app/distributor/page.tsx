@@ -21,8 +21,6 @@ export type BalanceType = {
     publicKey: string;
 };
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
-
 const LiquidityHandlerRaydium = () => {
     const { connection } = useConnection();
 

@@ -23,7 +23,7 @@ import {
     PROGRAM_ID,
 }
     from "@metaplex-foundation/mpl-token-metadata";
-import { tokenData } from "../removeLiquidity/config";
+import { tokenData } from "../config";
 import { SendTransaction } from "./SendTransaction";
 
 

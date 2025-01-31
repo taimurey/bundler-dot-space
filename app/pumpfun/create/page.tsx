@@ -51,7 +51,6 @@ interface TokenMetadata {
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
@@ -847,7 +846,7 @@ const LiquidityHandlerRaydium = () => {
     );
 }
 
-export const modeOptions = [
+const modeOptions = [
     { value: 1, label: "Wallet Mode" },
     { value: 5, label: "Wallet Mode" },
 ];
