@@ -32,7 +32,6 @@ export type BalanceType = {
     tokenAmount?: string;
 };
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const Component = () => {
     const { cluster } = useSolana();
