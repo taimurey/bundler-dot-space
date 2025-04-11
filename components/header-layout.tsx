@@ -3,7 +3,8 @@
 import { FC, ReactNode } from "react";
 import Sidebar from "@/components/sidebar";
 import { usePathname } from "next/navigation";
-import AppHeader from "@/components/app-header";
+import MevLabLogo from "./icons/JupiterLogo";
+import Link from "next/link";
 
 type HeaderLayoutProps = {
     title?: string;
@@ -12,20 +13,19 @@ type HeaderLayoutProps = {
 
 export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
     const pathname = usePathname();
-
     const displaySidebar = pathname !== "/";
 
     return (
-        <>
-            <div className="flex h-screen">
-                {displaySidebar && (
-                    <div className="hidden md:flex min-w-[300px] h-full bg-[#0d1117] border-r border-gray-700">
-                        <Sidebar />
-                    </div>
-                )}
-                <main className="flex-1 overflow-auto">{children}</main>
-            </div>
-        </>
+        <div className="flex flex-1 h-full overflow-hidden">
+
+            {displaySidebar && (
+                <div className="relative hidden md:block h-full">
+                    <Sidebar />
+                </div>
+            )}
+
+            <main className="flex-1 overflow-auto">{children}</main>
+        </div>
     );
 };
 

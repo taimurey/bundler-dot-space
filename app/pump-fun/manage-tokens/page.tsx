@@ -235,7 +235,7 @@ const PumpfunSell = () => {
                             <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Sell Mode</p>
-                                    <p className=' text-[12px] text-[#96989c] '>Create a pumpfun token and ghost wallet buys in one go</p>
+                                    <p className=' text-[12px] text-[#96989c] '>Create a pump-fun token and ghost wallet buys in one go</p>
                                 </div>
                                 <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
                                     <select

@@ -8,20 +8,15 @@ import MenuIcon from '@/components/icons/MenuIcon';
 import HeaderLinksMobile from './mobile-header';
 // import WalletButton from '../WalletButton';
 import DiscordIcon from '@/components/icons/DiscordIcon';
-import HomeIcon from '@/components/icons/HomeIcon';
 import SwapIcon from '@/components/icons/SwapIcon';
 import LiquidityIcon from '@/components/icons/LiquidityIcon';
 import { usePathname } from 'next/navigation';
+import HeaderLinks from './HeaderLinks';
 
 export const headerLinks = [
   {
-    id: 0,
-    href: '/',
-    icon: <HomeIcon />,
-  },
-  {
     id: 1,
-    href: '/mintinglab/create-spl',
+    href: '/minting-lab/create-token',
     icon: <SwapIcon width="20" height="20" />,
   },
   {
@@ -31,32 +26,19 @@ export const headerLinks = [
   }
 ];
 
-export const HeaderLinks = () => {
-  const router = usePathname();
-  const [active, setActive] = useState<number>(getActiveLink(router));
-
-  useEffect(() => {
-    setActive(getActiveLink(router));
-  }, [router]);
-
-  function getActiveLink(pathname: string): number {
-    switch (pathname) {
-      case '/':
-        return -1;
-      case '/pumpfun/create':
-        return 0;
-      case '/mintinglab/create-spl':
-        return 1;
-      default:
-        return -1;
-    }
-  }
-}
-
-
 const AppHeader: React.FC = () => {
+  const route = usePathname();
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
   const handleToggleMenu = () => setOpenMobileMenu(!openMobileMenu);
+  const handleToggleSidebar = () => {
+    // We'll emit a custom event that the sidebar component will listen for
+    const event = new CustomEvent('toggle-sidebar');
+    window.dispatchEvent(event);
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   useEffect(() => {
     const body = document.querySelector('body');
     if (body) {
@@ -70,33 +52,45 @@ const AppHeader: React.FC = () => {
 
   return (
     <>
-      <div className="relative flex items-center justify-between w-full bg-[#010409] bg-opacity-50 border-b-2 border-[#333333] backdrop-blur-3xl">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between w-full bg-[#111318] bg-opacity-95 border-b-2 border-[#333333] backdrop-blur-md h-14">
         <div className="flex items-center px-2 gap-1">
-          <div className="flex items-center  ">
+          <div className="flex items-center">
             <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
               {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
             </button>
 
+            {/* Sidebar toggle button (visible on desktop) */}
+            {route !== '/' && (
+              <button
+                onClick={handleToggleSidebar}
+                type="button"
+                className="hidden md:flex w-8 h-8 mr-3 text-white items-center justify-center hover:bg-gray-700 rounded-md transition-colors"
+                aria-label="Toggle sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-white transition-transform duration-300 ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </button>
+            )}
+
             <Link href="/">
               <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer select-none">
                 <MevLabLogo />
-                <span className="text-[29px] font-normal text-center font-[kanit-medium] ml-1 mt-1">Bundler
-                  <span className='font-bold font-sans  ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
+                <span className="text-lg font-bold text-center ml-1 mt-1">BUNDLER
+                  <span className='font-md ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
                 </span>
               </h1>
             </Link>
           </div>
-          {/* <HeaderLinks /> */}
+          <HeaderLinks />
         </div>
 
         <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
-
           <div className="hidden items-center justify-end md:flex space-x-4">
             <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
               <DiscordIcon width="40" height="40" />
             </a>
             {/* <WalletButton /> */}
-
           </div>
         </div>
       </div>
@@ -106,14 +100,12 @@ const AppHeader: React.FC = () => {
           style={{
             height: 'calc(100vh - 70px)',
           }}
-          className="z-[60] md:hidden fixed top-[60px] left-0 w-full bg-[rgba(62,62,69,0.85)] backdrop-blur-[20px]"
+          className="z-[60] md:hidden top-[60px] left-0 w-full bg-[rgba(62,62,69,0.85)] backdrop-blur-[20px]"
           onClick={handleToggleMenu}
         >
           <HeaderLinksMobile />
-
         </div>
       )}
-
     </>
   );
 };

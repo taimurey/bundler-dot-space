@@ -11,16 +11,8 @@ export default {
 	theme: {
 		fontFamily: {
 			sans: [
-				'Inter',
+				'Poppins',
 				...defaultTheme.fontFamily.sans
-			],
-			'heliuk-brave': [
-				'Heliuk Brave',
-				'sans-serif'
-			],
-			'heliuk-regular': [
-				'Heliuk Regular',
-				'sans-serif'
 			]
 		},
 		extend: {

@@ -1,4 +1,3 @@
-
 import {
     ComputeBudgetProgram,
     Connection,
@@ -21,13 +20,27 @@ import {
 import {
     createCreateMetadataAccountV3Instruction,
     PROGRAM_ID,
-}
-    from "@metaplex-foundation/mpl-token-metadata";
-import { tokenData } from "../config";
+} from "@metaplex-foundation/mpl-token-metadata";
 import { SendTransaction } from "./SendTransaction";
 
+export interface TokenData {
+    tokenName: string;
+    tokenSymbol: string;
+    tokenDescription: string;
+    iconUrl: string;
+    websiteUrl: string;
+    twitterUrl: string;
+    telegramUrl: string;
+    discordUrl: string;
+    tokenDecimals: string;
+    supply: string;
+    uploadedImage: string | null;
+    freezeAuthority: boolean;
+    revokeMintAuthority: boolean;
+    revokeMetadataUpdateAuthority: boolean;
+}
 
-export async function createToken(tokenInfo: tokenData, connection: Connection, tokenMetadata: any, myPublicKey: PublicKey, sendTransaction: any) {
+export async function createToken(tokenInfo: TokenData, connection: Connection, tokenMetadata: any, myPublicKey: PublicKey, sendTransaction: any) {
     const metadata = await uploadMetaData(tokenMetadata);
     const lamports = await getMinimumBalanceForRentExemptMint(connection);
     const mintKeypair = Keypair.generate();
@@ -68,7 +81,6 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         }
     );
 
-
     const createNewTokenTransaction = new Transaction().add(
         SystemProgram.createAccount({
             fromPubkey: myPublicKey,
@@ -96,9 +108,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
             myPublicKey,
             Number(tokenInfo.supply) * Math.pow(10, Number(tokenInfo.tokenDecimals))
         ),
-
         createMetadataInstruction
-
     );
     createNewTokenTransaction.feePayer = myPublicKey;
 
@@ -120,7 +130,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
 
     if (tokenInfo.revokeMintAuthority) {
         const revokeMint = createSetAuthorityInstruction(
-            mintKeypair.publicKey, // mint acocunt || token account
+            mintKeypair.publicKey, // mint account || token account
             myPublicKey, // current auth
             AuthorityType.MintTokens, // authority type
             null
@@ -130,7 +140,7 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
 
     if (tokenInfo.freezeAuthority) {
         const revokeFreeze = createSetAuthorityInstruction(
-            mintKeypair.publicKey, // mint acocunt || token account
+            mintKeypair.publicKey, // mint account || token account
             myPublicKey, // current auth
             AuthorityType.FreezeAccount, // authority type
             null
@@ -148,7 +158,6 @@ export async function createToken(tokenInfo: tokenData, connection: Connection, 
         [mintKeypair]
     );
 
-
     return { signature, token };
 }
 
@@ -159,10 +168,8 @@ export async function uploadMetaData(metadata: any) {
         headers: {
             'Content-Type': 'application/json',
         },
-        // Send the array of numbers instead of Uint8Array
         body: JSON.stringify(metadata)
     });
-
 
     const responseText = await response.text();
 
@@ -170,5 +177,4 @@ export async function uploadMetaData(metadata: any) {
     const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
 
     return httpUrl;
-
 }

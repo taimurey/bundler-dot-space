@@ -1,8 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
-import SpaceLogo from '@/public/boxlogo.png'
+import SpaceLogo from '@/public/bundler.svg'
 
-const MevLabLogo: React.FC<{ width?: number; height?: number }> = ({ width = 45, height = 45 }) => {
+const MevLabLogo: React.FC<{ width?: number; height?: number }> = ({ width = 35, height = 35 }) => {
   return (
     <Image
       src={SpaceLogo}

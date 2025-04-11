@@ -19,7 +19,6 @@ import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';
 import { calculateBuyTokensAndNewReserves } from "@/components/instructions/pump-bundler/misc";
 import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-address-input';
 import { BalanceType } from "@/components/types/solana-types";
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
@@ -30,7 +29,7 @@ import { PublicKey } from "@solana/web3.js";
 import { VersionedTransaction } from "@solana/web3.js";
 import { getGlobalStateData } from "@/components/instructions/pump-bundler/global-state";
 import { getHeaderLayout } from "@/components/header-layout";
-
+import { FaSpinner } from "react-icons/fa";
 interface WorkerResult {
     secretKey: Uint8Array;
     publicKey: string;
@@ -471,7 +470,7 @@ const LiquidityHandlerRaydium = () => {
     }, []);
 
     return (
-        <div className="flex mt-8 justify-center w-full">
+        <div className="flex justify-center w-full container mx-auto p-20">
             <form>
                 <div className="">
                     <div className="">
@@ -479,7 +478,7 @@ const LiquidityHandlerRaydium = () => {
                             <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Bundle Mode</p>
-                                    <p className=' text-[12px] text-[#96989c] '>Create a pumpfun token and ghost wallet buys in one go</p>
+                                    <p className=' text-[12px] text-[#96989c] '>Create a pump-fun token and ghost wallet buys in one go</p>
                                 </div>
                                 <div className='w-full'>
                                     <label className="block text-base text-white font-semibold" >
@@ -550,7 +549,7 @@ const LiquidityHandlerRaydium = () => {
                                         {isLoading ? (
                                             <>
                                                 <span className="italic font-i ellipsis">Generating..</span>
-                                                <FontAwesomeIcon icon="spinner" />
+                                                <FaSpinner />
                                             </>
                                         ) : (
                                             'Generate'

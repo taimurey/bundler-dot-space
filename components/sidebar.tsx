@@ -1,6 +1,6 @@
 "use client"
 import { usePathname, useRouter } from "next/navigation";
-import { FC, } from "react";
+import { FC, useState, useEffect } from "react";
 import React from 'react';
 import TokenIcon from "@/components/icons/TokenIcon";
 import MarketIcon from "@/components/icons/MarketIcon";
@@ -11,430 +11,503 @@ import { WalletProfileContext } from '@/components/contexts/wallet-context';
 import VirusIcon from "@/components/icons/VirusIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import ManagerIcon from "@/components/icons/ManagerIcon";
-import { useState, useEffect } from 'react';
-import HomeIcon from '@/components/icons/HomeIcon';
-import LiquidityIcon from '@/components/icons/LiquidityIcon';
+import { TbPillFilled } from "react-icons/tb";
 import CashInflowIcon from "@/components/icons/cashInflowIcon";
-import SwapIcon from "@/components/icons/SwapIcon";
-import PillIcon from "@/components/icons/PillIcon";
 import MultiSenderIcon from "@/components/icons/MultiSendIcon";
+import { MdSevereCold, MdToken } from "react-icons/md";
+import ToolsIcon from "@/components/icons/ToolsIcon";
+import { FaCoins, FaFire } from "react-icons/fa";
+import { GiBrainFreeze } from "react-icons/gi";
+import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
+import MevLabLogo from "./icons/JupiterLogo";
+import CloseIcon from "./icons/CloseIcon";
+import { LockIcon } from "lucide-react";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     className?: string;
 }
 
-const SidebarSublinks = ({
+// Direct navigation link with icon
+const SidebarLink = ({
     href,
     isActive,
     title,
     icon,
-}: LinkProps & {
+    isMainLink = false,
+    isCollapsed = false,
+    gradientFrom,
+    gradientTo
+}: {
     href: string;
     isActive: boolean;
     title: string;
-    description: string;
     icon: React.ReactNode;
-    external?: boolean;
-    isExpanded?: boolean;
+    isMainLink?: boolean;
+    isCollapsed?: boolean;
+    gradientFrom?: string;
+    gradientTo?: string;
 }) => {
-    const router = useRouter();
-    const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        router.push(href);
+    // Create gradient text class based on active state and provided colors
+    const getTextColorClass = () => {
+        if (isActive) {
+            if (gradientFrom === mintingLabGradient.from) return "text-blue-500";
+            if (gradientFrom === pumpFunGradient.from) return "text-emerald-400";
+            if (gradientFrom === raydiumGradient.from) return "text-purple-500";
+            if (gradientFrom === utilitiesGradient.from) return "text-amber-500";
+            return "text-[#ffac40]"; // Default active color
+        }
+        return ""; // Use default text color for inactive
     };
-
-    return (
-        <div
-            className={`flex justify-start text-white/50 duration-300 ease-in-out hover:text-white fill-current font-extralight px-6 border-b-2 border-transparent transition-height cursor-pointer 
-            ${isActive && `!text-[#baf775] duration-300 ease-in-out`}`}
-            onClick={handleClick}
-        >
-            <div className="flex justify-start items-center gap-4">
-                <div className={`w-10 h-10 bg-[#343536]  border-[#ffffff] flex items-center justify-center transition-all duration-300 ease-in-out  rounded-xl`}>
-                    {icon}
-                </div>
-                <div className={`flex flex-col transition-opacity ease-in-out`}>
-                    <span className="text-sm font-normal whitespace-nowrap">{title}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const HeaderLink = ({
-    href,
-    icon,
-    index,
-    external,
-    active,
-    setActive,
-}: LinkProps & {
-    href: string;
-    icon?: React.ReactNode; // icon is now optional
-    external?: boolean;
-    index: number;
-    active: number;
-    setActive: (index: number) => void;
-}) => {
-
-    const isActive = active === index;
-
-    const linkProps: { target?: string; rel?: string } = {};
-
-    if (external) {
-        linkProps.target = '_blank';
-        linkProps.rel = 'noopener noreferrer';
-    }
-
-    const linkStyle = icon ?
-        `flex items-center text-white/50 hover:text-white font-[Roboto] fill-current h-[40px] my-[10px] mt-2 px-3 rounded-xl ${isActive ? ' bg-[#0d1117] !text-[#ffac40] ' : ""}` :
-        `flex items-center justify-center font-[Roboto] text-white/50 hover:text-white fill-current h-[40px] my-[10px] px-4`;
 
     return (
         <Link
             href={href}
-            className={linkStyle}
-            {...linkProps}
-            onClick={() => {
-                setActive(index);
-            }}
+            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} gap-3 py-2 
+                ${isMainLink ? 'px-3' : (isCollapsed ? 'px-3' : 'pl-8 pr-4')} 
+                rounded-lg cursor-pointer transition-all duration-300 
+                ${isActive
+                    ? 'bg-[#0d1117]'
+                    : 'text-white/70 hover:text-white hover:bg-slate-600/15'}`}
+            title={isCollapsed ? title : undefined}
         >
-            {icon && <span className="flex items-center w-5">{icon}</span>}
+            <div className={`${isMainLink ? 'w-8 h-8' : 'w-6 h-6'} flex items-center justify-center ${getTextColorClass()}`}>
+                {icon}
+            </div>
+            {!isCollapsed && (
+                <span className={`text-sm ${isMainLink ? 'font-medium' : 'font-normal'} whitespace-nowrap transition-all duration-300 ${getTextColorClass()} ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
+                    {title}
+                </span>
+            )}
         </Link>
     );
 };
 
+// Define gradient colors at the top level
+const mintingLabGradient = { from: "#3b82f6", to: "#1e40af" };   // Blue gradient
+const pumpFunGradient = { from: "#10b981", to: "#047857" };      // Green gradient
+const raydiumGradient = { from: "#8b5cf6", to: "#6d28d9" };      // Purple gradient
+const utilitiesGradient = { from: "#f59e0b", to: "#d97706" };        // Amber/orange gradient
 
+// Divider component for visual separation
+const Divider = ({ label, isCollapsed, group }: { label: string; isCollapsed: boolean; group?: string }) => {
+    // Get appropriate text color class based on group
+    const getTextColorClass = () => {
+        if (group === 'minting-lab') return "text-blue-500";
+        if (group === 'pump-fun') return "text-green-500";
+        if (group === 'raydium') return "text-purple-500";
+        if (group === 'utilities') return "text-amber-500";
+        return "text-white/40"; // Default
+    };
 
-
-
-
+    return (
+        <div className="px-4 py-2 mt-2">
+            {!isCollapsed && (
+                <div className="flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out">
+                    <div className="h-px bg-white/10 flex-grow"></div>
+                    <span className={`text-xs ${getTextColorClass()} uppercase font-semibold tracking-wider transition-opacity duration-300 ease-in-out`}>{label}</span>
+                    <div className="h-px bg-white/10 flex-grow"></div>
+                </div>
+            )}
+            {isCollapsed && <div className="h-px bg-white/10 w-full"></div>}
+        </div>
+    );
+};
 
 const Sidebar: FC = () => {
-    const router = usePathname();
-    const [isRaydiumOpen, setIsRaydiumOpen] = useState<boolean>(false);
-    const [isPumpFunOpen, setIsPumpFunOpen] = useState<boolean>(false);
-    const [CreateTokenOpen, setCreateTokenOpen] = useState<boolean>(false);
-    const [TokenManagerOpen, setTokenManagerOpen] = useState<boolean>(false);
+    const router = useRouter();
+    const pathname = usePathname();
+    const { isProfilesActive, setisProfilesActive } = WalletProfileContext();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
+    // Track text visibility separately
+    const [textVisible, setTextVisible] = useState(true);
 
-    const toggleRaydium = () => setIsRaydiumOpen(!isRaydiumOpen);
-    const togglePumpFun = () => setIsPumpFunOpen(!isPumpFunOpen);
-    const toggleCreateToken = () => setCreateTokenOpen(!CreateTokenOpen);
-    const toggleTokenManager = () => setTokenManagerOpen(!TokenManagerOpen);
-
-    const [active, setActive] = useState<number>(getActiveLink(router));
-
+    // Listen for toggle event from header
     useEffect(() => {
-        setActive(getActiveLink(router));
-        if (router.includes('/pumpfun')) {
-            setIsRaydiumOpen(false);
-            setIsPumpFunOpen(true);
-        } else if (router.includes('/raydium')) {
-            setIsRaydiumOpen(true);
-            setIsPumpFunOpen(false);
-        } else if (router.includes('/mintinglab/create-spl')) {
-            setCreateTokenOpen(true);
-            setTokenManagerOpen(false);
-        } else if (router.includes('/mintinglab/openbook/create')) {
-            setCreateTokenOpen(false);
-            setTokenManagerOpen(false);
-        } else if (router.includes('/mintinglab/tokenmanager')) {
-            setTokenManagerOpen(true);
-            setCreateTokenOpen(false);
+        const handleToggleSidebar = () => {
+            if (!isLocked) {
+                handleCollapse(!isCollapsed);
+            }
+        };
+
+        window.addEventListener('toggle-sidebar', handleToggleSidebar);
+        return () => {
+            window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+        };
+    }, [isLocked, isCollapsed]);
+
+    // Handle collapse with smooth text transitions
+    const handleCollapse = (collapse: boolean) => {
+        if (collapse) {
+            // Hide text first, then collapse sidebar
+            setTextVisible(false);
+            setTimeout(() => {
+                setIsCollapsed(true);
+            }, 150);
+        } else {
+            // Expand sidebar first, then show text
+            setIsCollapsed(false);
+            setTimeout(() => {
+                setTextVisible(true);
+            }, 150);
         }
+    };
 
-    }, [router]);
-
-    function getActiveLink(pathname: string): number {
-        if (pathname === '/') return 0;
-        if (pathname.startsWith('/mintinglab') || pathname.startsWith('/dashboard')) return 1;
-        if (pathname.startsWith('')) return 2;
-        return -1;
-    }
-
-    const headerLinks = [
-        {
-            id: 0,
-            href: '/',
-            icon: <HomeIcon />,
-        },
-        {
-            id: 1,
-            href: '/mintinglab/create-spl',
-            icon: <SwapIcon width="20" height="20" />,
-        },
-        {
-            id: 2,
-            href: '/pumpfun/create',
-            icon: <LiquidityIcon width="20" height="20" />,
+    // Handle hover effects
+    useEffect(() => {
+        if (!isLocked) {
+            if (isHovering) {
+                setIsCollapsed(false);
+                setTimeout(() => {
+                    setTextVisible(true);
+                }, 150);
+            } else {
+                setTextVisible(false);
+                setTimeout(() => {
+                    setIsCollapsed(true);
+                }, 150);
+            }
         }
-    ];
+    }, [isHovering, isLocked]);
 
+    // Check if window is available (client-side)
+    useEffect(() => {
+        const handleResize = () => {
+            const isMobileSize = window.innerWidth < 768;
+            setIsMobile(isMobileSize);
+            if (isMobileSize) {
+                handleCollapse(true);
+            }
+        };
 
-    const sublinks = [
-        {
-            href: '/mintinglab/create-spl',
-            isActive: router === '/mintinglab/create-spl',
-            title: 'Token Program',
-            description: 'Mint SPL Tokens',
-            icon: <TokenIcon />,
-        },
-        {
-            href: '/mintinglab/openbook/create',
-            isActive: router === '/mintinglab/openbook/create',
-            title: 'Create OpenBook',
-            description: 'Openbook Market Creation',
-            icon: <MarketIcon />,
-        },
-        {
-            href: '/mintinglab/tokenmanager',
-            isActive: router === '/mintinglab/tokenmanager',
-            title: 'Authority Manager',
-            description: 'Manage SPL Tokens',
-            icon: <ManagerIcon />,
-        },
-        {
-            href: '/pumpfun/create',
-            isActive: router === '/pumpfun/create',
-            title: 'Bundler',
-            description: 'Create a PumpFun Bundle',
-            icon: <PillIcon />,
-        },
-        // {
-        //     href: '/pumpfun/bomber',
-        //     isActive: router === '/pumpfun/bomber',
-        //     title: 'Spammer',
-        //     description: 'Create a PumpFun Bundle',
-        //     icon: <PillIcon />,
-        // },
-        {
-            href: '/pumpfun/seller',
-            isActive: router === '/pumpfun/seller',
-            title: 'Seller',
-            description: 'Create a PumpFun Bundle',
-            icon: <PillIcon rotate={true} />,
-        },
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
+    // Determine if sidebar should be expanded based on hover and lock state
+    const isExpanded = isLocked ? !isCollapsed : (isHovering || !isCollapsed);
+
+    // Main navigation links (shown at the top level)
+    const mainLinks = [
+        {
+            href: '/minting-lab/create-token',
+            title: 'Minting Lab',
+            icon: <MdToken className="w-6 h-6" />,
+        },
+        {
+            href: '/pump-fun/create',
+            title: 'PumpFun',
+            icon: <TbPillFilled className="w-6 h-6" />,
+        },
         {
             href: '/raydium/create',
-            isActive: router === '/raydium/create',
-            title: 'Bundler',
-            description: 'Add liquidity to a market',
+            title: 'Raydium',
             icon: <FlaskIcon />,
         },
         {
-            href: '/raydium/manage',
-            isActive: router === '/raydium/manage',
-            title: 'Remover',
-            description: 'Handle liquidity on Raydium',
-            icon: <ManageIcon />,
-        },
-        {
-            href: '/distributor',
-            isActive: router === '/distributor',
-            title: 'Token Distributor',
-            description: 'Send tokens to multiple wallets',
-            icon: <MultiSenderIcon />,
-        },
-        {
-            href: '/generate-volume',
-            isActive: router === '/generate-volume',
-            title: 'Volume Generator',
-            description: 'Generate volume on Raydium',
-            icon: <CashInflowIcon />,
-        },
+            href: '/utilities/distributor',
+            title: 'Utilities',
+            icon: <ToolsIcon width="25" height="25" />,
+        }
     ];
 
-    const isMintingLabPage = router.includes('/mintinglab');
+    // Sub-navigation links
+    const subLinks = [
+        // MintingLab links
+        {
+            href: '/minting-lab/create-token',
+            title: 'SPL Token',
+            icon: <TokenIcon />,
+            group: 'minting-lab'
+        },
+        {
+            href: '/minting-lab/create-token-2022',
+            title: 'SPL Token 2022',
+            icon: <FaCoins className="w-6 h-6" />,
+            group: 'minting-lab'
+        },
 
-    // Filter links based on the current page
-    const filteredLinks = sublinks.filter(link => {
-        // If on the /mintinglab page, exclude Raydium and PumpFun links
-        if (isMintingLabPage) {
-            return !link.href.includes('/raydium/') && !link.href.includes('/pumpfun/');
+        {
+            href: '/minting-lab/burn-token',
+            title: 'Burn Tokens',
+            icon: <FaFire className="w-6 h-6" />,
+            group: 'minting-lab'
+        },
+
+        {
+            href: '/minting-lab/freeze-token',
+            title: 'Freeze Accounts',
+            icon: <GiBrainFreeze className="w-6 h-6" />,
+            group: 'minting-lab'
+        },
+        {
+            href: '/minting-lab/unfreeze-token',
+            title: 'Unfreeze Accounts',
+            icon: <MdSevereCold className="w-6 h-6" />,
+            group: 'minting-lab'
+        },
+
+        {
+            href: '/minting-lab/tokenmanager',
+            title: 'Permission Manager',
+            icon: <ManagerIcon />,
+            group: 'minting-lab'
+        },
+        // Raydium links
+        {
+            href: '/raydium/openbook',
+            title: 'Create OpenBook',
+            icon: <MarketIcon />,
+            group: 'raydium'
+        },
+        {
+            href: '/raydium/create',
+            title: 'Raydium Bundler',
+            icon: <FlaskIcon />,
+            group: 'raydium'
+        },
+        {
+            href: '/raydium/manage',
+            title: 'Raydium Manager',
+            icon: <ManageIcon />,
+            group: 'raydium'
+        },
+        // PumpFun links
+        {
+            href: '/pump-fun/create',
+            title: 'PumpFun Bundler',
+            icon: <TbPillFilled className="w-6 h-6 rotate-180" />,
+            group: 'pump-fun'
+        },
+        {
+            href: '/pump-fun/manage-tokens',
+            title: 'PumpFun Manager',
+            icon: <TbPillFilled className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        // Utility links
+        {
+            href: '/utilities/distributor',
+            title: 'Token Distributor',
+            icon: <MultiSenderIcon />,
+            group: 'utils'
+        },
+        {
+            href: '/utilities/volume-generator',
+            title: 'Volume Generator',
+            icon: <CashInflowIcon />,
+            group: 'utils'
         }
-        // Otherwise, include all links
-        return true;
-    });
+    ];
 
-    const raydiumLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/raydium/') && !link.href.includes('generate-volume'));
-    const pumpFunLinks = isMintingLabPage ? [] : filteredLinks.filter(link => link.href.includes('/pumpfun/') && !link.href.includes('generate-volume'));
+    const isMintingLabPage = pathname.includes('/minting-lab');
+    const isPumpFunPage = pathname.includes('/pump-fun');
+    const isRaydiumPage = pathname.includes('/raydium');
+    const isUtilsPage = pathname.includes('/utilities/distributor') || pathname.includes('/utilities/volume-generator');
+    const isHomePage = pathname === '/';
 
-    const volumeBotLink = filteredLinks.filter(link => link.href.includes('/generate-volume'));
-    const distributorLink = filteredLinks.filter(link => link.href.includes('/distributor'));
+    // Determine which sub-links to show based on active section
+    let visibleSubLinks = subLinks;
 
-    const CreatetokenLink = filteredLinks.filter(link => link.href.includes('/mintinglab/create-spl'));
-    const TokenManagerLink = filteredLinks.filter(link => link.href.includes('/mintinglab/tokenmanager'));
+    if (isMintingLabPage) {
+        visibleSubLinks = subLinks.filter(link => link.group === 'minting-lab');
+    } else if (isPumpFunPage) {
+        visibleSubLinks = subLinks.filter(link => link.group === 'pump-fun');
+    } else if (isRaydiumPage) {
+        visibleSubLinks = subLinks.filter(link => link.group === 'raydium');
+    } else if (isUtilsPage || pathname.includes('/utils')) {
+        visibleSubLinks = subLinks.filter(link => link.group === 'utils');
+    } else {
+        // On homepage, don't show any sublinks
+        visibleSubLinks = [];
+    }
 
-    const showAllPortfolios = router.includes('/');
-    const { isProfilesActive, setisProfilesActive } = WalletProfileContext();
+    const showAllPortfolios = pathname.includes('/');
 
     return (
-        <>
-            <div className=" min-h-screen h-full flex bg-[#0c1118]">
-                <div className="bg-black h-full py-4 px-2" >
-                    {headerLinks.map((link, index) => (
-                        <HeaderLink
-                            key={index}
-                            href={link.href}
-                            icon={link.icon}
-                            index={index}
-                            active={active}
-                            setActive={setActive}
-                        />
-                    ))}
-                </div>
-                {(router !== '/' &&
-                    <div className="flex  justify-start gap-2 items-start w-full max-w-[220px] py-8 flex-col select-none">
-                        {showAllPortfolios && !router.startsWith('/mintinglab') &&
-                            <div className="mx-6 mb-2 py-1 px-2 w-full max-w-[200px] rounded-3xl flex justify-start items-center 
-                         text-white/50 hover:text-white fill-current font-extralight 
-                           border-b-2 border-transparent transition-height duration-200 
-                           ease-in-out cursor-pointer bg-[#1a1a1a] gap-3"
-                                onClick={() => setisProfilesActive(!isProfilesActive)}>
-                                <div className="bg-[#333333] px-3 py-3  rounded-full">
-                                    <VirusIcon color="#37db9c" /></div>
-
-                                <div className="flex flex-col">
-                                    <p className="font-bold text-white/80 ">Wallets</p>
-                                </div>
-                                <div className="font-bold">
-                                    {'➤'}
-                                </div>
+        <div
+            className="border-r border-white/10"
+            onMouseEnter={() => !isLocked && setIsHovering(true)}
+            onMouseLeave={() => !isLocked && setIsHovering(false)}
+        >
+            <div className="flex justify-end">
+                {pathname !== '/' && (
+                    <div className="flex items-center justify-center">
+                        <button
+                            onClick={() => setIsLocked(!isLocked)}
+                            type="button"
+                            className="hidden md:flex w-8 h-8 mr-1 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
+                            aria-label={isLocked ? "Unlock sidebar" : "Lock sidebar"}
+                        >
+                            <LockIcon className={`w-3 h-3 ${isLocked ? 'text-blue-400' : ''}`} />
+                        </button>
+                        <button
+                            onClick={() => handleCollapse(!isCollapsed)}
+                            type="button"
+                            className="hidden md:flex w-8 h-8 mr-3 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
+                            aria-label="Toggle sidebar"
+                        >
+                            {isCollapsed ? <RiMenuFold2Line /> : <RiMenuFoldLine />}
+                        </button>
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                    <Link href="/">
+                        <h1 className="flex items-center text-lg font-semibold text-white cursor-pointer select-none">
+                            <MevLabLogo />
+                            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-w-[200px] opacity-100' : 'max-w-0 opacity-0'}`}>
+                                {textVisible && (
+                                    <span className="text-lg font-bold text-center ml-1 mt-1">BUNDLER
+                                        <span className='font-md ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
+                                    </span>
+                                )}
                             </div>
+                        </h1>
+                    </Link>
+                </div>
+            </div>
+            <div className={`min-h-screen h-full relative transition-all duration-300 ease-in-out py-6 flex flex-col ${isExpanded ? 'w-64' : 'w-16'}`}>
+                <div className="flex items-center justify-center px-2 space-y-4">
+                </div>
+                {/* Main navigation */}
+                <div className="flex flex-col gap-1 mb-4 px-2">
+                    {mainLinks.map((link, index) => {
+                        let gradientFrom, gradientTo;
+
+                        if (link.href.includes('/minting-lab')) {
+                            gradientFrom = mintingLabGradient.from;
+                            gradientTo = mintingLabGradient.to;
+                        } else if (link.href.includes('/pump-fun')) {
+                            gradientFrom = pumpFunGradient.from;
+                            gradientTo = pumpFunGradient.to;
+                        } else if (link.href.includes('/raydium')) {
+                            gradientFrom = raydiumGradient.from;
+                            gradientTo = raydiumGradient.to;
+                        } else if (link.title === '/utilities') {
+                            gradientFrom = utilitiesGradient.from;
+                            gradientTo = utilitiesGradient.to;
                         }
-                        <div className="flex  flex-col gap-2 h-full p-2">
-                            {!isMintingLabPage && (
-                                <div className="accordion-item cursor-pointer select-none">
-                                    <div className="accordion-title flex items-center " onClick={toggleRaydium}>
-                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                        >
-                                            <h2>Raydium</h2>
-                                            <span className={`ease-in-out duration-300 cursor-pointer ml-2 ${isRaydiumOpen ? 'rotate-90' : 'rotate-0'}`}
-                                            >➤</span>
-                                        </div>
-                                    </div>
-                                    {isRaydiumOpen && (
-                                        <div className="accordion-content">
-                                            {raydiumLinks.map((link, index) => (
-                                                <SidebarSublinks
-                                                    key={index}
-                                                    href={link.href}
-                                                    isActive={link.isActive}
-                                                    title={link.title}
-                                                    description={link.description}
-                                                    icon={link.icon}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {!isMintingLabPage && (
-                                <div className="accordion-item cursor-pointer">
-                                    <div className="accordion-title flex items-center " onClick={togglePumpFun}>
-                                        <div className="flex justify-start items-center select-none gap-4 w-full bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                        >
-                                            <h2>PumpFun</h2>
-                                            <span className={`ease-in-out duration-300 cursor-pointer  ${isPumpFunOpen ? 'rotate-90' : 'rotate-0'}`}
-                                            >➤</span>
-                                        </div>
-                                    </div>
-                                    {isPumpFunOpen && (
-                                        <div className="accordion-content">
-                                            {pumpFunLinks.map((link, index) => (
-                                                <SidebarSublinks
-                                                    key={index}
-                                                    href={link.href}
-                                                    isActive={link.isActive}
-                                                    title={link.title}
-                                                    description={link.description}
-                                                    icon={link.icon}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {isMintingLabPage && (
-                                <div className="accordion-item cursor-pointer">
-                                    <div className="accordion-title flex items-center " onClick={toggleCreateToken}>
-                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                        >
-                                            <h2>Create Token</h2>
-                                            <span className={`ease-in-out duration-300 cursor-pointer  ${CreateTokenOpen ? 'rotate-90' : 'rotate-0'}`}
-                                            >➤</span>
-                                        </div>
-                                    </div>
-                                    {CreateTokenOpen && (
-                                        <div className="accordion-content">
-                                            {CreatetokenLink.map((link, index) => (
-                                                <SidebarSublinks
-                                                    key={index}
-                                                    href={link.href}
-                                                    isActive={link.isActive}
-                                                    title={link.title}
-                                                    description={link.description}
-                                                    icon={link.icon}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {isMintingLabPage && (
-                                <div className="accordion-item cursor-pointer">
-                                    <div className="accordion-title flex items-center " onClick={toggleTokenManager}>
-                                        <div className="flex justify-start items-center gap-4 w-56 bg-slate-600/5 hover:bg-slate-600/15  px-6 py-2 rounded-xl ease-in-out duration-300 mb-3"
-                                        >
-                                            <h2>Token Utils</h2>
-                                            <span className={`ease-in-out duration-300 cursor-pointer  ${TokenManagerOpen ? 'rotate-90' : 'rotate-0'}`}
-                                            >➤</span>
-                                        </div>
-                                    </div>
-                                    {TokenManagerOpen && (
-                                        <div className="accordion-content">
-                                            {TokenManagerLink.map((link, index) => (
-                                                <SidebarSublinks
-                                                    key={index}
-                                                    href={link.href}
-                                                    isActive={link.isActive}
-                                                    title={link.title}
-                                                    description={link.description}
-                                                    icon={link.icon}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            {!isMintingLabPage && distributorLink.map((link, index) => (
-                                <SidebarSublinks
-                                    key={index}
-                                    href={link.href}
-                                    isActive={link.isActive}
-                                    title={link.title}
-                                    description={link.description}
-                                    icon={link.icon}
-                                />
-                            ))}
-                            {!isMintingLabPage && volumeBotLink.map((link, index) => (
-                                <SidebarSublinks
-                                    key={index}
-                                    href={link.href}
-                                    isActive={link.isActive}
-                                    title={link.title}
-                                    description={link.description}
-                                    icon={link.icon}
-                                />
-                            ))}
+
+                        return (
+                            <SidebarLink
+                                key={index}
+                                href={link.href}
+                                isActive={
+                                    link.href === '/' ? isHomePage :
+                                        (link.href.includes('/minting-lab') && isMintingLabPage) ||
+                                        (link.href.includes('/pump-fun') && isPumpFunPage) ||
+                                        (link.href.includes('/raydium') && isRaydiumPage) ||
+                                        (link.title === '/utilities' && isUtilsPage)
+                                }
+                                title={link.title}
+                                icon={link.icon}
+                                isMainLink={true}
+                                isCollapsed={!isExpanded || !textVisible}
+                                gradientFrom={gradientFrom}
+                                gradientTo={gradientTo}
+                            />
+                        );
+                    })}
+                </div>
+
+                {/* Wallet section (maintained as original) */}
+                {showAllPortfolios && !pathname.startsWith('/minting-lab') && isExpanded && textVisible && (
+                    <div className="mb-4 px-2 overflow-hidden transition-all duration-300 ease-in-out">
+                        <div
+                            className="mx-1 mb-2 py-1 px-3 rounded-xl flex justify-start items-center 
+                            text-white/50 hover:text-white fill-current font-extralight 
+                            border-b-2 border-transparent transition-height duration-200 
+                            ease-in-out cursor-pointer bg-[#252427] gap-3"
+                            onClick={() => setisProfilesActive(!isProfilesActive)}>
+                            <div className="bg-[#3b3939] px-3 py-3 rounded-full">
+                                <VirusIcon color="#37db9c" />
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                                <p className="font-bold text-white/80 whitespace-nowrap">Wallets</p>
+                            </div>
+                            <div className="font-bold">
+                                {'➤'}
+                            </div>
                         </div>
                     </div>
                 )}
-            </div >
-        </>
-    )
+
+                {/* Collapsed wallet button */}
+                {showAllPortfolios && !pathname.startsWith('/minting-lab') && (!isExpanded || !textVisible) && (
+                    <div className="mb-4 px-2 flex justify-center">
+                        <div
+                            className="p-2 rounded-xl flex justify-center items-center 
+                            text-white/50 hover:text-white cursor-pointer bg-[#1a1a1a]"
+                            onClick={() => setisProfilesActive(!isProfilesActive)}
+                            title="Wallets">
+                            <div className="bg-[#333333] p-2 rounded-full">
+                                <VirusIcon color="#37db9c" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Contextual sub-navigation */}
+                {visibleSubLinks.length > 0 && (
+                    <>
+                        <Divider
+                            label={
+                                isMintingLabPage ? "Minting Lab" :
+                                    isPumpFunPage ? "PumpFun" :
+                                        isRaydiumPage ? "Raydium" :
+                                            isUtilsPage ? "Utilities" : "Tools"
+                            }
+                            isCollapsed={!isExpanded || !textVisible}
+                            group={
+                                isMintingLabPage ? "minting-lab" :
+                                    isPumpFunPage ? "pump-fun" :
+                                        isRaydiumPage ? "raydium" :
+                                            isUtilsPage ? "utilities" : undefined
+                            }
+                        />
+
+                        <div className="flex flex-col gap-1 mt-2 px-2 overflow-hidden">
+                            {visibleSubLinks.map((link, index) => {
+                                let gradientFrom, gradientTo;
+
+                                if (link.group === 'minting-lab') {
+                                    gradientFrom = mintingLabGradient.from;
+                                    gradientTo = mintingLabGradient.to;
+                                } else if (link.group === 'pump-fun') {
+                                    gradientFrom = pumpFunGradient.from;
+                                    gradientTo = pumpFunGradient.to;
+                                } else if (link.group === 'raydium') {
+                                    gradientFrom = raydiumGradient.from;
+                                    gradientTo = raydiumGradient.to;
+                                } else if (link.group === 'utilities') {
+                                    gradientFrom = utilitiesGradient.from;
+                                    gradientTo = utilitiesGradient.to;
+                                }
+
+                                return (
+                                    <SidebarLink
+                                        key={index}
+                                        href={link.href}
+                                        isActive={pathname === link.href}
+                                        title={link.title}
+                                        icon={link.icon}
+                                        isCollapsed={!isExpanded || !textVisible}
+                                        gradientFrom={gradientFrom}
+                                        gradientTo={gradientTo}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
 };
 
 export default Sidebar;
