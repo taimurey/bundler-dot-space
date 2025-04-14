@@ -204,7 +204,7 @@ const Sidebar: FC = () => {
             icon: <TbPillFilled className="w-6 h-6" />,
         },
         {
-            href: '/raydium/create',
+            href: '/raydium/create-ray-amm',
             title: 'Raydium',
             icon: <FlaskIcon className="w-6 h-6" />,
         },
@@ -252,7 +252,7 @@ const Sidebar: FC = () => {
         },
 
         {
-            href: '/minting-lab/tokenmanager',
+            href: '/minting-lab/token-manager',
             title: 'Permission Manager',
             icon: <ManagerIcon />,
             group: 'minting-lab'
@@ -285,7 +285,7 @@ const Sidebar: FC = () => {
         {
             href: '/raydium/manage-cpmm',
             title: 'RayCPMM Manager',
-            icon: <GiBubblingFlask className="w-6 h-6" />,
+            icon: <LiaFlaskSolid className="w-6 h-6" />,
             group: 'raydium'
         },
         // PumpFun links
