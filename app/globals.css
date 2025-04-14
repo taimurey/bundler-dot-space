@@ -14,25 +14,25 @@ body {
 
 @layer base {
   :root {
-    --background: 222 17% 8%;
-    --foreground: 0 0% 100%;
-    --card: 222 13% 16%;
-    --card-foreground: 0 0% 100%;
-    --popover: 222 13% 16%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 142 65% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 222 13% 16%;
-    --secondary-foreground: 220 9% 65%;
-    --muted: 222 13% 16%;
-    --muted-foreground: 220 9% 65%;
-    --accent: 222 13% 16%;
-    --accent-foreground: 0 0% 100%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 222 10% 20%;
-    --input: 222 13% 16%;
-    --ring: 142 65% 59%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -81,11 +81,11 @@ body {
   }
 
   .input {
-    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+    @apply rounded-md p-2 bg-neutral-700 focus-style sm:text-sm
   }
 
   .input-2 {
-    @apply rounded-md p-2 bg-neutral-300 focus-style sm:text-sm
+    @apply rounded-md p-2 bg-neutral-700 focus-style sm:text-sm
   }
 
   .input-label {

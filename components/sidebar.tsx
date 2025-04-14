@@ -7,7 +7,7 @@ import MarketIcon from "@/components/icons/MarketIcon";
 import Link from "next/link";
 import FlaskIcon from "@/components/icons/FlaskIcon";
 import ManageIcon from "@/components/icons/ManageIcon";
-import { WalletProfileContext } from '@/components/contexts/wallet-context';
+import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import VirusIcon from "@/components/icons/VirusIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import ManagerIcon from "@/components/icons/ManagerIcon";
@@ -16,12 +16,13 @@ import CashInflowIcon from "@/components/icons/cashInflowIcon";
 import MultiSenderIcon from "@/components/icons/MultiSendIcon";
 import { MdSevereCold, MdToken } from "react-icons/md";
 import ToolsIcon from "@/components/icons/ToolsIcon";
-import { FaCoins, FaFire } from "react-icons/fa";
+import { FaCoins, FaFire, FaStickyNote } from "react-icons/fa";
 import { GiBrainFreeze } from "react-icons/gi";
 import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
 import MevLabLogo from "./icons/JupiterLogo";
-import CloseIcon from "./icons/CloseIcon";
+import { GiBubblingFlask } from "react-icons/gi";
 import { LockIcon } from "lucide-react";
+import { LiaFlaskSolid } from "react-icons/lia";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     className?: string;
@@ -205,10 +206,10 @@ const Sidebar: FC = () => {
         {
             href: '/raydium/create',
             title: 'Raydium',
-            icon: <FlaskIcon />,
+            icon: <FlaskIcon className="w-6 h-6" />,
         },
         {
-            href: '/utilities/distributor',
+            href: '/utilities/distribute-tokens',
             title: 'Utilities',
             icon: <ToolsIcon width="25" height="25" />,
         }
@@ -260,19 +261,31 @@ const Sidebar: FC = () => {
         {
             href: '/raydium/openbook',
             title: 'Create OpenBook',
-            icon: <MarketIcon />,
+            icon: <FaStickyNote className="w-5 h-5" />,
             group: 'raydium'
         },
         {
-            href: '/raydium/create',
-            title: 'Raydium Bundler',
-            icon: <FlaskIcon />,
+            href: '/raydium/create-ray-amm',
+            title: 'Raydium AMM Bundler',
+            icon: <FlaskIcon className="w-5 h-5" />,
             group: 'raydium'
         },
         {
-            href: '/raydium/manage',
-            title: 'Raydium Manager',
-            icon: <ManageIcon />,
+            href: '/raydium/manage-amm',
+            title: 'RayAMM Manager',
+            icon: <ManageIcon className="w-7 h-7" />,
+            group: 'raydium'
+        },
+        {
+            href: '/raydium/create-ray-cpmm',
+            title: 'RayCPMM Bundler',
+            icon: <GiBubblingFlask className="w-6 h-6" />,
+            group: 'raydium'
+        },
+        {
+            href: '/raydium/manage-cpmm',
+            title: 'RayCPMM Manager',
+            icon: <GiBubblingFlask className="w-6 h-6" />,
             group: 'raydium'
         },
         // PumpFun links
@@ -290,7 +303,7 @@ const Sidebar: FC = () => {
         },
         // Utility links
         {
-            href: '/utilities/distributor',
+            href: '/utilities/distribute-tokens',
             title: 'Token Distributor',
             icon: <MultiSenderIcon />,
             group: 'utils'
@@ -306,7 +319,7 @@ const Sidebar: FC = () => {
     const isMintingLabPage = pathname.includes('/minting-lab');
     const isPumpFunPage = pathname.includes('/pump-fun');
     const isRaydiumPage = pathname.includes('/raydium');
-    const isUtilsPage = pathname.includes('/utilities/distributor') || pathname.includes('/utilities/volume-generator');
+    const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/volume-generator');
     const isHomePage = pathname === '/';
 
     // Determine which sub-links to show based on active section

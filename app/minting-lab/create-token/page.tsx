@@ -1,7 +1,6 @@
 "use client"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { createImageFromInitials } from "../../../components/helpers/common/createImage";
-import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";

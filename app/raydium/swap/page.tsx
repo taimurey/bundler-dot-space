@@ -10,7 +10,7 @@ import {
 import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '@/components/ui/input-field';
-import { WalletProfileContext } from '@/components/contexts/wallet-context';
+import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import WalletsDrawer from '@/components/sidebar-drawer';
 
 

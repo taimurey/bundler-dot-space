@@ -5,16 +5,16 @@ import BN from "bn.js";
 import { ReactNode } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
-import { getHeaderLayout } from "../../../../components/layouts/HeaderLayout";
-import { useSerum } from "../../../../components/context";
-import { validatePubkey } from "../../../../utils/pubkey";
-import { getVaultOwnerAndNonce } from "../../../../utils/serum";
-import { validateMint, validateTokenAccount } from "../../../../utils/token";
+import { TransactionToast } from "@/components/common/Toasts/TransactionToast";
+import { getHeaderLayout } from "@/components/header-layout";
+import { useSerum } from "@/components/context";
+import { validatePubkey } from "@/utils/pubkey";
+import { getVaultOwnerAndNonce } from "@/utils/serum";
+import { validateMint, validateTokenAccount } from "@/utils/token";
 import {
   sendSignedTransaction,
   signTransaction,
-} from "../../../../utils/transaction";
+} from "@/utils/transaction";
 
 export type CreateMarketAdvancedFormValues = {
   baseMint: string;
@@ -293,7 +293,7 @@ const CreateMarketAdvanced = () => {
                     <div
                       id="tooltip-default"
                       role="tooltip"
-                      className="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-neutral-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip dark:bg-neutral-700"
+                      className="inline-block absolute invisible z-10 py-2 px-3 text-sm font-medium text-white bg-neutral-700 rounded-lg shadow-sm opacity-0 transition-opacity duration-300 tooltip"
                     >
                       Tooltip content
                       <div className="tooltip-arrow" data-popper-arrow></div>

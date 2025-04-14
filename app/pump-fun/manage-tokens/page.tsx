@@ -9,7 +9,7 @@ import {
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
-import { useSolana } from '@/components/contexts/SolanaContext';
+import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { toast } from 'react-toastify';
 import { BundleToast } from '@/components/bundler-toasts';
 import { BalanceType } from '@/components/types/solana-types';
@@ -18,7 +18,7 @@ import { PumpSeller } from '@/components/instructions/pump-bundler/PumpSeller';
 import WalletInput from '@/components/instructions/pump-bundler/wallet-input';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
-import { WalletEntry } from '@/components/instructions/pump-bundler/wallet-address-input';
+import { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { getHeaderLayout } from '@/components/header-layout';
 
 const ZERO = new BN(0)

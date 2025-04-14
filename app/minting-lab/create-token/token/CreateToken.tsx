@@ -1,15 +1,15 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createImageFromInitials } from "../../../../components/helpers/common/createImage"
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
+import { createImageFromInitials } from "@/components/helpers/common/createImage"
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { useNetworkConfiguration } from "../../../../components/context/NetworkConfigurationProvider";
+import { useNetworkConfiguration } from "@/components/context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
-import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
-import { createToken } from "../../../../components/TransactionUtils/token";
-import { LinkToast, TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
-import ImageUploadIcon from "../../../../components/icons/imageuploadIcon";
+import { UpdatedInputField } from "@/components/FieldComponents/UpdatedInputfield";
+import { createToken } from "@/components/TransactionUtils/token";
+import { LinkToast, TransactionToast } from "@/components/common/Toasts/TransactionToast";
+import ImageUploadIcon from "@/components/icons/imageuploadIcon";
+import TwitterIcon from "@/components/icons/TwitterIcon";
+import { FaDiscord, FaGlobe, FaTelegram } from "react-icons/fa";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -407,18 +407,18 @@ const CreateToken: FC = () => {
                                     <div className="flex justify-center items-center gap-2  ">
                                         <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
 
-                                            <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                            <TwitterIcon className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                         </a>
                                         <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
 
-                                            <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                            <FaTelegram className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                         </a>
                                         <a href={formData.discordUrl} target="_blank" rel="noreferrer">
 
-                                            <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                            <FaDiscord className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                         </a>
                                         <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                            <FontAwesomeIcon icon={faWebflow} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                            <FaGlobe className="bg-white text-black text-[12px] rounded-full p-[3px]" />
                                         </a>
                                     </div>
 

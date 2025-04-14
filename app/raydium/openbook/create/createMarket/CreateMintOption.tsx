@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { classNames } from '../../utils/general';
+import { ReactNode } from "react";
+import { classNames } from "@/utils/general";
 
 export default function CreateMintOption({
   active,

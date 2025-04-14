@@ -1,5 +1,5 @@
+import { getHeaderLayout } from "@/components/header-layout";
 import CreateToken from "./token/CreateToken";
-import { getHeaderLayout } from "../../../components/layouts/HeaderLayout";
 import { ReactNode } from "react";
 import React from 'react';
 export const Create = () => {

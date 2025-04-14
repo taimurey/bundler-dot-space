@@ -3,10 +3,12 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { WalletProfileContextProvider } from "@/components/contexts/wallet-context";
-import { SolanaProvider } from "@/components/contexts/SolanaContext";
+import { WalletProfileContextProvider } from "@/components/SolanaWallet/wallet-context";
+import { SolanaProvider } from "@/components/SolanaWallet/SolanaContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// Import Solana wallet adapter styles
+import '@solana/wallet-adapter-react-ui/styles.css';
 import { HeroPattern } from "@/components/ui/HeroPattern";
 import AppHeader from "@/components/app-header";
 import { HeaderLayout } from "@/components/header-layout";
@@ -30,7 +32,7 @@ export default function RootLayout({
   const pathname = usePathname();
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className={`${poppins.className} antialiased`}>
         <WalletProfileContextProvider>
           <SolanaProvider>

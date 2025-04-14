@@ -1,4 +1,4 @@
-import { ClusterType, useSolana } from '@/components/contexts/SolanaContext';
+import { ClusterType, useSolana } from '@/components/SolanaWallet/SolanaContext';
 
 type TransactionSuccessProps = {
     txSig: string;

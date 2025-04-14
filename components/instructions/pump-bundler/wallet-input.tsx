@@ -103,46 +103,30 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
             return;
         }
 
-        const walletsWithPrivateKeys = [];
-        const walletsWithAddresses = [];
+        const walletsWithDetails = [];
 
         for (let i = 0; i < count; i++) {
             const keypair = Keypair.generate();
-            walletsWithPrivateKeys.push({
-                id: i,
-                privateKey: bs58.encode(keypair.secretKey),
-            });
-            walletsWithAddresses.push({
+            walletsWithDetails.push({
                 id: i,
                 address: keypair.publicKey.toBase58(),
+                privateKey: bs58.encode(keypair.secretKey),
             });
         }
 
-        // Generate CSV for private keys
-        const privateKeysCsv = Papa.unparse(walletsWithPrivateKeys);
-        const privateKeysBlob = new Blob([privateKeysCsv], { type: 'text/csv' });
-        const privateKeysUrl = URL.createObjectURL(privateKeysBlob);
-        const privateKeysLink = document.createElement('a');
-        privateKeysLink.setAttribute('hidden', '');
-        privateKeysLink.setAttribute('href', privateKeysUrl);
-        privateKeysLink.setAttribute('download', 'private_keys.csv');
-        document.body.appendChild(privateKeysLink);
-        privateKeysLink.click();
-        document.body.removeChild(privateKeysLink);
+        // Generate CSV with both addresses and private keys
+        const csvData = Papa.unparse(walletsWithDetails);
+        const blob = new Blob([csvData], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('hidden', '');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'wallets.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-        // Generate CSV for token addresses
-        const addressesCsv = Papa.unparse(walletsWithAddresses);
-        const addressesBlob = new Blob([addressesCsv], { type: 'text/csv' });
-        const addressesUrl = URL.createObjectURL(addressesBlob);
-        const addressesLink = document.createElement('a');
-        addressesLink.setAttribute('hidden', '');
-        addressesLink.setAttribute('href', addressesUrl);
-        addressesLink.setAttribute('download', 'token_addresses.csv');
-        document.body.appendChild(addressesLink);
-        addressesLink.click();
-        document.body.removeChild(addressesLink);
-
-        toast.success('Wallets generated and files downloaded successfully');
+        toast.success('Wallets generated and file downloaded successfully');
     };
 
     const handleWalletChange = (index: number, value: string) => {

@@ -3,7 +3,7 @@ import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import VirusIcon from '@/components/icons/VirusIcon';
 import { toast } from 'react-toastify';
-import { WalletProfileContext } from '@/components/contexts/wallet-context';
+import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 
 interface Profile {
     id: number;

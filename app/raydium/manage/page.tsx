@@ -24,7 +24,7 @@ import { BundleToast } from '@/components/bundler-toasts';
 import base58 from 'bs58';
 import { ApibundleSend } from '@/components/instructions/DistributeTokens/bundler';
 import WalletsDrawer from '@/components/sidebar-drawer';
-import { WalletProfileContext } from '@/components/contexts/wallet-context';
+import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 
 
 

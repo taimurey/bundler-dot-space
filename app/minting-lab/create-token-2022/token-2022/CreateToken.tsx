@@ -1,15 +1,28 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { createImageFromInitials } from "../../../../components/helpers/common/createImage"
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTwitter, faTelegram, faDiscord, faWebflow } from '@fortawesome/free-brands-svg-icons';
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../../components/context/NetworkConfigurationProvider";
 import { toast } from "react-toastify";
 import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
-import { createToken } from "../../../../components/TransactionUtils/token";
+import { createToken2022 } from "../../../../components/TransactionUtils/token2022";
 import { LinkToast, TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
 import ImageUploadIcon from "../../../../components/icons/imageuploadIcon";
+import TwitterIcon from "@/components/icons/TwitterIcon";
+import { FaDiscord, FaGlobe, FaTelegram, FaInfoCircle } from "react-icons/fa";
+
+// Tooltip component for extension descriptions
+const ExtensionTooltip: FC<{ title: string; description: string }> = ({ title, description }) => {
+    return (
+        <div className="group relative flex items-center">
+            <FaInfoCircle className="ml-2 text-gray-400 cursor-pointer" />
+            <div className="absolute left-full ml-2 w-64 p-2 bg-black text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <p className="font-semibold mb-1">{title}</p>
+                <p>{description}</p>
+            </div>
+        </div>
+    );
+};
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
@@ -17,6 +30,7 @@ const CreateToken: FC = () => {
     const { networkConfiguration } = useNetworkConfiguration();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
+        // Basic token info
         tokenName: "",
         tokenSymbol: "",
         tokenDescription: "",
@@ -25,38 +39,52 @@ const CreateToken: FC = () => {
         twitterUrl: "",
         telegramUrl: "",
         discordUrl: "",
-        tokenDecimals: "6",
+        tokenDecimals: "9",
         supply: "1000000000",
         uploadedImage: uploadedImage,
-        freezeAuthority: false,
-        revokeMintAuthority: false,
-        revokeMetadataUpdateAuthority: false
+
+        // Token-2022 Extensions
+        transferFeeEnabled: false,
+        transferFeeBasisPoints: 100, // 1%
+        maxTransferFee: "1000", // 1000 tokens
+
+        memoTransferEnabled: false,
+
+        metadataPointerEnabled: false,
+
+        permanentDelegateEnabled: false,
+        permanentDelegateAddress: "",
+
+        interestBearingEnabled: false,
+        interestRate: 500, // 5%
+
+        defaultAccountStateEnabled: false,
+        defaultAccountState: "initialized", // or "frozen"
     });
 
-
-
-
-    const [tokenMintAddress] = useState("");
-    const [isLoading] = useState(false);
-    // const [tags,] = useState<string[]>([]);
+    const [tokenMintAddress, setTokenMintAddress] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [image, setImage] = useState<string>("");
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        throw new Error('NFT_STORAGE is not defined');
-    }
     const [uploading, setUploading] = useState(false);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [creatingToken, setCreatingToken] = useState(false);
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, field: string) => {
+        const { value, checked, type } = e.target as HTMLInputElement;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
-        const { value, checked } = e.target as HTMLInputElement;
-        if (e.target.type === 'checkbox') {
+        if (type === 'checkbox') {
             setFormData(prevState => ({
                 ...prevState,
                 [field]: checked,
             }));
+        } else if (type === 'number') {
+            // Handle numeric fields
+            setFormData(prevState => ({
+                ...prevState,
+                [field]: value,
+            }));
         } else {
-            // For other input types (e.g., text, textarea), update the formData with the value
+            // For other input types (e.g., text, textarea, select), update the formData with the value
             setFormData(prevState => ({
                 ...prevState,
                 [field]: value,
@@ -66,7 +94,7 @@ const CreateToken: FC = () => {
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
-        handleChange(e, "uploadedImage")
+        handleChange(e as any, "uploadedImage")
 
         if (file) {
             const reader = new FileReader();
@@ -86,7 +114,7 @@ const CreateToken: FC = () => {
                     // Convert Uint8Array to an array of numbers
                     const imageArray = Array.from(imageUint8Array);
 
-                    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+                    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-json', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -135,6 +163,42 @@ const CreateToken: FC = () => {
             setCreatingToken(false);
             return;
         }
+
+        // Validate extension-specific fields
+        if (formData.transferFeeEnabled) {
+            if (formData.transferFeeBasisPoints <= 0 || formData.transferFeeBasisPoints > 10000) {
+                toast.error("Transfer fee basis points must be between 1 and 10000");
+                setCreatingToken(false);
+                return;
+            }
+            if (parseFloat(formData.maxTransferFee) <= 0) {
+                toast.error("Maximum transfer fee must be greater than 0");
+                setCreatingToken(false);
+                return;
+            }
+        }
+
+        if (formData.interestBearingEnabled) {
+            if (formData.interestRate <= 0 || formData.interestRate > 10000) {
+                toast.error("Interest rate must be between 1 and 10000");
+                setCreatingToken(false);
+                return;
+            }
+        }
+
+        if (formData.permanentDelegateEnabled && formData.permanentDelegateAddress) {
+            try {
+                // This would validate the public key format
+                if (formData.permanentDelegateAddress.length !== 44) {
+                    throw new Error("Invalid public key length");
+                }
+            } catch (error) {
+                toast.error("Invalid permanent delegate address");
+                setCreatingToken(false);
+                return;
+            }
+        }
+
         const TokenMetadata: any = {
             "name": formData.tokenName,
             "symbol": formData.tokenSymbol,
@@ -144,6 +208,7 @@ const CreateToken: FC = () => {
                 "site": "https://bundler.space"
             }
         };
+
         // Conditionally add description if it exists
         if (formData.tokenDescription) {
             TokenMetadata.description = formData.tokenDescription;
@@ -161,15 +226,12 @@ const CreateToken: FC = () => {
         }
 
         console.log(TokenMetadata, "TokenMetadata")
-        toast.info("Creating token...");
+        toast.info("Creating Token-2022 token...");
         try {
-            const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
+            const { signature, token } = await createToken2022(formData, connection, TokenMetadata, publicKey, sendTransaction);
 
-            // router.push("/market/create");
-            // router.push({
-            //     pathname: "/market/create",
-            //     query: { token }
-            // });
+            setTokenMintAddress(token);
+
             toast(
                 () => (<TransactionToast
                     txSig={signature}
@@ -199,13 +261,12 @@ const CreateToken: FC = () => {
         }
         catch (error: any) {
             toast.error("Error creating the token");
+            console.error(error);
         } finally {
             // Set the creatingToken state to false
             setCreatingToken(false);
         }
-        setCreatingToken(false);
     };
-
 
     const setImageandsymbol = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { value } = e.target;
@@ -214,402 +275,132 @@ const CreateToken: FC = () => {
         handleChange(e, "tokenSymbol")
     }
 
-
-
     return (
-        <div className="relative divide-y divide-neutral-700 w-full">
-            {creatingToken && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-white"></div>
+        <div className="max-w-5xl mx-auto">
+            {isLoading && (
+                <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
+                    <ClipLoader />
                 </div>
             )}
-            <div className="divide-y divide-neutral-700 w-full ">
 
-
-                {isLoading && (
-                    <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
-                        <ClipLoader />
+            {!tokenMintAddress ? (
+                <form onSubmit={createTokenCallback} className="py-4 flex flex-col gap-6">
+                    <div className="lg:w-1/2">
+                        <p className="text-[20px] uppercase block text-base text-white font-bold">SPL Token 2022 Creation</p>
+                        <p className="text-[13px] text-[#8c929d]">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                     </div>
-                )}
+                    <hr className="border-[#e8e2e2b8]" />
 
-                {!tokenMintAddress ? (
-                    <>
-                        <form action="" className="py-4 flex flex-col gap-6">
-                            <div className="lg:w-1/2  ">
-                                <p className="text-[20px] uppercase  block  text-base text-white font-bold">SPL Token Creation</p>
-                                <p className="text-[13px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
-                            </div>
-                            <hr className=" border-[#e8e2e2b8] " />
-                            <div className="flex gap-4 ">
-                                <UpdatedInputField id="tokenName *"
-                                    label="Token Name "
+                    {/* Basic Token Info Section */}
+                    <div className="space-y-6">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="md:w-1/2">
+                                <UpdatedInputField
+                                    id="tokenName"
+                                    label="Token Name *"
                                     value={formData.tokenName}
                                     onChange={(e) => handleChange(e, 'tokenName')}
-                                    placeholder="Enter Token Name (ex. Mevarik)"
+                                    placeholder="Enter Token Name (e.g., Solana Token)"
                                     type="text"
-                                    required={true} />
-
-                                <UpdatedInputField id="tokenSymbol"
+                                    required={true}
+                                />
+                            </div>
+                            <div className="md:w-1/2">
+                                <UpdatedInputField
+                                    id="tokenSymbol"
                                     label="Token Symbol *"
                                     value={formData.tokenSymbol}
-                                    onChange={(e) => { handleChange(e, 'tokenSymbol'), setImageandsymbol(e) }}
-                                    placeholder="Enter Token Symbol"
+                                    onChange={(e) => { handleChange(e, 'tokenSymbol'); setImageandsymbol(e); }}
+                                    placeholder="Enter Token Symbol (e.g., SOL)"
                                     type="text"
-                                    required={true} />
+                                    required={true}
+                                />
                             </div>
-                            <div className="flex gap-4 ">
-                                <UpdatedInputField id="tokenDecimals"
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="md:w-1/2">
+                                <UpdatedInputField
+                                    id="tokenDecimals"
                                     label="Token Decimals *"
                                     value={formData.tokenDecimals}
                                     onChange={(e) => handleChange(e, 'tokenDecimals')}
-                                    placeholder={"Enter token decimals(0-9)"}
+                                    placeholder="Enter token decimals (0-9)"
                                     type="number"
-                                    required={true} />
-
-                                <UpdatedInputField id="supply"
-                                    label="Supply *"
+                                    required={true}
+                                />
+                            </div>
+                            <div className="md:w-1/2">
+                                <UpdatedInputField
+                                    id="supply"
+                                    label="Initial Supply *"
                                     value={formData.supply}
                                     onChange={(e) => handleChange(e, 'supply')}
-                                    placeholder={"Quantity of tokens to issue"}
-                                    type="number"
-                                    required={true} />
+                                    placeholder="Enter token supply"
+                                    type="text"
+                                    required={true}
+                                />
                             </div>
-                            <div className="">
-                                <label className="font-normal mt-5 text-white "> Description</label>
-                                <textarea
-                                    name=""
-                                    id="tokenDescription"
-                                    value={formData.tokenDescription}
-                                    rows={5}
-                                    className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
-                                    onChange={(e) => handleChange(e, 'tokenDescription')}
-                                    placeholder="Enter description...">
-                                </textarea>
-                            </div>
+                        </div>
 
-                            <div className="flex gap-4 w-full">
-                                <div className="w-1/2 flex flex-col gap-4">
-                                    <UpdatedInputField
-                                        id="websiteUrl"
-                                        label="Extensions"
-                                        value={formData.websiteUrl}
-                                        onChange={(e) => handleChange(e, 'websiteUrl')}
-                                        placeholder={"Website URL"}
-                                        type="url"
-                                        required={false}
+                        <div>
+                            <label className="block text-white font-medium"> Description</label>
+                            <textarea
+                                name=""
+                                id="tokenDescription"
+                                value={formData.tokenDescription}
+                                rows={5}
+                                className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
+                                onChange={(e) => handleChange(e, 'tokenDescription')}
+                                placeholder="Enter description..."
+                            ></textarea>
+                        </div>
 
-                                    />
-                                    <UpdatedInputField
-                                        id="twitterUrl"
-                                        label=""
-                                        value={formData.twitterUrl}
-                                        onChange={(e) => handleChange(e, 'twitterUrl')}
-                                        placeholder={"Twitter URL"}
-                                        type="url"
-                                        required={false}
-
-                                    /><UpdatedInputField
-                                        id="telegramUrl"
-                                        label=""
-                                        value={formData.telegramUrl}
-                                        onChange={(e) => handleChange(e, 'telegramUrl')}
-                                        placeholder={"Telegram Group URL"}
-                                        type="url"
-                                        required={false}
-
-                                    /><UpdatedInputField
-                                        id="discordUrl"
-                                        label=""
-                                        value={formData.discordUrl}
-                                        onChange={(e) => handleChange(e, 'discordUrl')}
-                                        placeholder={"Discord URL"}
-                                        type="url"
-                                        required={false}
-
-                                    />
-
-
-
-                                </div>
-                                <div className="w-1/2 pt-6">
-                                    <div className=" flex items-center justify-center  p-2 border border-white border-dashed rounded-md shadow-lg h-full">
-                                        {!uploadedImage && (
-                                            <div>
-                                                <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
-                                                    <ImageUploadIcon />
-                                                </div>
-                                                <input
-                                                    className="hidden cursor-pointer"
-                                                    aria-describedby="file_input_help"
-                                                    id="file_input"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleImageUpload}
-                                                // required
-                                                />
-                                                <label
-                                                    className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
-                                                    htmlFor="file_input"
-                                                >
-                                                    Upload an Image
-                                                </label>
-                                            </div>
-                                        )}
-                                        {uploadedImage && (
-                                            <div className="relative flex justify-center h-40 border-y-v3-bg rounded-md">
-                                                <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div className="flex gap-4 ">
-                                <div className="w-1/2 ">
-                                    <h1 className=" text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]  ">
-                                        Revoke Authorities
-                                    </h1>
-                                    <div className="border  border-[#404040] mt-1 shadow-black  rounded-md p-4 flex flex-col gap-2">
-                                        <div className="flex gap-4 items-center  ">
-                                            <input
-                                                type="checkbox"
-                                                name="freezeAuthority"
-                                                id="freezeAuthority"
-                                                onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                            />
-                                            <label className="text-[16px] " htmlFor="freezeAuthority">Freeze Authority</label>
-                                        </div>
-                                        <div className="flex gap-4 items-center  ">
-                                            <input
-                                                type="checkbox"
-                                                name="revokeMintAuthority"
-                                                id="revokeMintAuthority"
-                                                onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                            />
-                                            <label className="text-[16px]" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                                <div className="w-1/2 p-4 border  border-[#404040] mt-7 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row  ">
-
-                                    <div className="flex gap-2 justify-center items-center  ">
-                                        {uploadedImage || image ?
-                                            <img src={uploadedImage ? uploadedImage : image} className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                            <div className="w-[50px] bg-[#404040] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
-                                        <div className="">
-                                            <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                            <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-center items-center gap-2  ">
-                                        <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-
-                                            <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                        </a>
-                                        <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-
-                                            <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                        </a>
-                                        <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-
-                                            <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                        </a>
-                                        <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                            <FontAwesomeIcon icon={faWebflow} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                        </a>
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-                            <div className="flex justify-center items-center ">
-
-                                <button
-                                    className="text-center  hover:shadow-xl hover:shadow-black/50 w-2/3  border border-[#476e34] rounded-md  invoke-btn"
-                                    disabled={uploading || creatingToken}
-                                    type="submit"
-                                    id="formbutton"
-                                    onClick={createTokenCallback}
-
-                                >
-                                    <span className="btn-text-gradient font-bold">
-                                        {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : 'Create token'}
-                                    </span>
-                                </button>
-                            </div>
-
-                        </form>
-                        {/* <form className="py-4 flex bg-[] gap-8 flex-col lg:flex-row w-full" onSubmit={createTokenCallback} id="form">
-                            <div className="lg:w-1/2  ">
-                                <p className="text-[20px] uppercase  block  text-base text-white font-bold">Token Information</p>
-                                <p className="text-[14px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
-                                <div className="sm:gap-4  mt-4"> */}
-                        {/* <TokenInput label="Token Name (ex. Mevarik)" value={tokenName} onChange={setTokenName} placeholder={"Enter token name"} /> */}
-                        {/* <InputField
-                                        id="tokenName*"
-                                        label="Token Name (ex. Mevarik)"
-                                        value={formData.tokenName}
-                                        onChange={(e) => handleChange(e, 'tokenName')}
-                                        placeholder="Enter Token Name"
-                                        type="text"
-                                        required={true}
-                                    />
-                                    <InputField
-                                        id="tokenSymbol"
-                                        label="Token Symbol*"
-                                        value={formData.tokenSymbol}
-                                        onChange={(e) => { handleChange(e, 'tokenSymbol'), setImageandsymbol(e) }}
-                                        placeholder="Enter Token Symbol"
-                                        type="text"
-                                        required={true}
-
-                                    />
-                                    <InputField
-                                        id="tokenDecimals"
-                                        label="Token Decimals*"
-                                        value={formData.tokenDecimals}
-                                        onChange={(e) => handleChange(e, 'tokenDecimals')}
-                                        placeholder={"Enter token decimals(0-9)"}
-                                        type="number"
-                                        required={true}
-
-                                    /> */}
-                        {/* <InputField
-                                        id="supply"
-                                        label="Supply*"
-                                        value={formData.supply}
-                                        onChange={(e) => handleChange(e, 'supply')}
-                                        placeholder={"Quantity of tokens to issue"}
-                                        type="number"
-                                        required={true}
-
-                                    />
-                                    <div className="sm:gap-4 mt-4">
-                                        <label className=" block mt-5 text-base text-white font-semibold "> Description (Optional)</label>
-                                        <textarea name="" id="tokenDescription" value={formData.tokenDescription} rows={5} className="  mt-1 px-4  py-1  bg-[#202020]   sm:text-md block w-full p-4 rounded-md text-base border  border-[#404040]  text-white bg-transparent focus:outline-none sm:text-base text-[12px]"
-                                            onChange={(e) => handleChange(e, 'tokenDescription')}
-                                            placeholder="Enter description..."></textarea>
-                                    </div> */}
-                        {/* <div className="border border-[#444444] shadow-black shadow-lg rounded-lg mt-5">
-                                        <h1 className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83] p-2 rounded-md">
-                                            Revoke Authorities
-                                        </h1>
-                                        <div className="p-4">
-                                            <div className="flex gap-4 items-center mt-2 ">
-                                                <input
-                                                    type="checkbox"
-                                                    name="freezeAuthority"
-                                                    id="freezeAuthority"
-                                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                                />
-                                                <label className="text-[15px] font-mono" htmlFor="freezeAuthority">Freeze Authority</label>
-                                            </div>
-                                            <div className="flex gap-4 items-center mt-2 ">
-                                                <input
-                                                    type="checkbox"
-                                                    name="revokeMintAuthority"
-                                                    id="revokeMintAuthority"
-                                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                                />
-                                                <label className="text-[15px] font-mono" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
-                                            </div>
-                                        </div>
-                                    </div> */}
-                        {/* <div className="  block mt-5 text-base text-white font-semibold"> Extensions (Optional)</div>
-                                    <InputField
-                                        id="websiteUrl"
-                                        label=""
-                                        value={formData.websiteUrl}
-                                        onChange={(e) => handleChange(e, 'websiteUrl')}
-                                        placeholder={"Website URL"}
-                                        type="url"
-                                        required={false}
-
-                                    />
-                                    <InputField
-                                        id="twitterUrl"
-                                        label=""
-                                        value={formData.twitterUrl}
-                                        onChange={(e) => handleChange(e, 'twitterUrl')}
-                                        placeholder={"Twitter URL"}
-                                        type="url"
-                                        required={false}
-
-                                    /><InputField
-                                        id="telegramUrl"
-                                        label=""
-                                        value={formData.telegramUrl}
-                                        onChange={(e) => handleChange(e, 'telegramUrl')}
-                                        placeholder={"Telegram Group URL"}
-                                        type="url"
-                                        required={false}
-
-                                    /><InputField
-                                        id="discordUrl"
-                                        label=""
-                                        value={formData.discordUrl}
-                                        onChange={(e) => handleChange(e, 'discordUrl')}
-                                        placeholder={"Discord URL"}
-                                        type="url"
-                                        required={false}
-
-                                    /> */}
-
-                        {/* <div className="text-[14px] font-normal mt-4">(Optional) Tags - Max 5 tags
-                            </div>
-                            <TagsInput selector="tag-input1" duplicate={false} max={5} tags={tags} setTags={setTags} /> */}
-
-
-
-
-
-                        {/* <div className="pt-2 space-y-2">
-
-
-                            </div> */}
-
-                        {/* </div> */}
-                        {/* </div> */}
-                        {/* <div className="lg:w-1/2 flex justify-start flex-col ">
-                                <div className=" text-[14px] font-normal">
-                                    <label className=" block text-base text-white font-semibold ">
-                                    </label> */}
-                        {/* <InputField
-                                    id="iconUrl"
-                                    label=""
-                                    value={formData.iconUrl}
-                                    onChange={(e) => handleChange(e, 'iconUrl')}
-                                    placeholder={"Enter or Upload symbol icon url"}
+                        <div className="flex gap-4 w-full">
+                            <div className="w-1/2 flex flex-col gap-4">
+                                <UpdatedInputField
+                                    id="websiteUrl"
+                                    label="Extensions"
+                                    value={formData.websiteUrl}
+                                    onChange={(e) => handleChange(e, 'websiteUrl')}
+                                    placeholder={"Website URL"}
                                     type="url"
-                                required = {false}
-
-                                /> */}
-                        {/* </div> */}
-
-                        {/* image upload  */}
-                        {/* <div className=" flex items-center justify-center my-6 p-2 h-1/3 border-2 border-white border-dashed rounded-md shadow-black shadow-lg">
+                                    required={false}
+                                />
+                                <UpdatedInputField
+                                    id="twitterUrl"
+                                    label=""
+                                    value={formData.twitterUrl}
+                                    onChange={(e) => handleChange(e, 'twitterUrl')}
+                                    placeholder={"Twitter URL"}
+                                    type="url"
+                                    required={false}
+                                />
+                                <UpdatedInputField
+                                    id="telegramUrl"
+                                    label=""
+                                    value={formData.telegramUrl}
+                                    onChange={(e) => handleChange(e, 'telegramUrl')}
+                                    placeholder={"Telegram Group URL"}
+                                    type="url"
+                                    required={false}
+                                />
+                                <UpdatedInputField
+                                    id="discordUrl"
+                                    label=""
+                                    value={formData.discordUrl}
+                                    onChange={(e) => handleChange(e, 'discordUrl')}
+                                    placeholder={"Discord URL"}
+                                    type="url"
+                                    required={false}
+                                />
+                            </div>
+                            <div className="w-1/2 pt-6">
+                                <div className="flex items-center justify-center p-2 border border-white border-dashed rounded-md shadow-lg h-full">
                                     {!uploadedImage && (
                                         <div>
-                                            <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-12 w-12 text-gray-400 cursor-pointer"
-                                                    stroke="currentColor"
-                                                    fill="none"
-                                                    viewBox="0 0 48 48"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    />
-                                                </svg>
+                                            <div className="flex justify-center" onClick={() => document.getElementById('file_input')?.click()}>
+                                                <ImageUploadIcon />
                                             </div>
                                             <input
                                                 className="hidden cursor-pointer"
@@ -618,10 +409,9 @@ const CreateToken: FC = () => {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageUpload}
-                                            // required
                                             />
                                             <label
-                                                className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                                className="block align-bottom w-full py-1 px-5 text-sm text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
                                                 htmlFor="file_input"
                                             >
                                                 Upload an Image
@@ -629,98 +419,268 @@ const CreateToken: FC = () => {
                                         </div>
                                     )}
                                     {uploadedImage && (
-                                        <div className="relative flex justify-center h-4/5 border-y-v3-bg rounded-md">
+                                        <div className="relative flex justify-center h-40 border-y-v3-bg rounded-md">
                                             <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
                                         </div>
                                     )}
                                 </div>
-                                <div className="bg-[#262626] border px-4 py-2 my-2 rounded-md border-[#404040]">
-
-                                    <div className="bg-[#171717] p-4 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row  ">
-
-                                        <div className="flex gap-2 justify-center items-center  ">
-                                            {uploadedImage || image ?
-                                                <img src={uploadedImage ? uploadedImage : image} className="w-[65px] h-[65px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                                <div className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
-                                            <div className="">
-                                                <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                                <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-center items-center gap-2  ">
-                                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-
-                                                <FontAwesomeIcon icon={faTwitter} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                            </a>
-                                            <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-
-                                                <FontAwesomeIcon icon={faTelegram} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                            </a>
-                                            <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-
-                                                <FontAwesomeIcon icon={faDiscord} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                            </a>
-                                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                                <FontAwesomeIcon icon={faWebflow} size="sm" className="bg-white text-black text-[12px] rounded-full p-[3px]" />
-                                            </a>
-                                        </div>
-
-                                    </div>
-
-                                </div> */}
-
-                        {/* <div className="flex gap-4 items-center mt-2 ">
-                            <input
-                                type="checkbox"
-                                name="revokeMetadataUpdateAuthority"
-                                id="revokeMetadataUpdateAuthority"
-                                onChange={(e) => handleChange(e, 'revokeMetadataUpdateAuthority')}
-                            />
-                            <label className="text-[12px] " htmlFor="revokeMetadataUpdateAuthority">Revoke MetaData Update Authority</label>
-                        </div> */}
-                        {/* <div> */}
-                        {/* <p className="text-[12px] mt-10">  CREATE TOKEN<br />
-                                Generate a token. In this process, you can get a token mint address.</p> */}
-                        {/* <button
-                                        className="invoke-btn w-full custom-button"
-                                        disabled={uploading || creatingToken}
-                                        type="submit"
-                                        id="formbutton"
-                                        onClick={createTokenCallback}
-
-                                    >
-                                        <span className="btn-text-gradient">
-                                            {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : 'Create token'}
-                                        </span>
-                                    </button>
-                                </div>
                             </div>
-                        </form> */}
-                    </>
-
-                ) : (
-                    <div className="mt-4 break-words">
-                        <p className="font-medium">Link to your new token.</p>
-                        <a
-                            className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
-                            href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {tokenMintAddress}
-                        </a>
+                        </div>
                     </div>
 
-                )
-                }
+                    {/* Token Info Section */}
+                    <div className="w-1/2 p-4 border border-[#404040] mt-7 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row">
+                        <div className="flex gap-2 justify-center items-center">
+                            {uploadedImage || image ?
+                                <img src={uploadedImage ? uploadedImage : image} className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
+                                <div className="w-[50px] bg-[#404040] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
+                            <div className="">
+                                <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                            </div>
+                        </div>
+                        <div className="flex justify-center items-center gap-2">
+                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
+                                <TwitterIcon className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                            </a>
+                            <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
+                                <FaTelegram className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                            </a>
+                            <a href={formData.discordUrl} target="_blank" rel="noreferrer">
+                                <FaDiscord className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                            </a>
+                            <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
+                                <FaGlobe className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                            </a>
+                        </div>
+                    </div>
 
-            </div >
-        </div >
+                    {/* Token Extensions Section */}
+                    <h2 className="text-xl font-bold text-white mt-6 mb-4">Token-2022 Extensions</h2>
+                    <div className="space-y-6">
+                        {/* Transfer Fee Extension */}
+                        <div className="p-4 bg-neutral-800 rounded-lg">
+                            <div className="flex items-center mb-3">
+                                <input
+                                    type="checkbox"
+                                    id="transferFeeEnabled"
+                                    checked={formData.transferFeeEnabled}
+                                    onChange={(e) => handleChange(e, 'transferFeeEnabled')}
+                                    className="mr-2 h-4 w-4"
+                                />
+                                <label htmlFor="transferFeeEnabled" className="text-white font-medium">Transfer Fee</label>
+                                <ExtensionTooltip
+                                    title="Transfer Fee"
+                                    description="Collect a fee on each token transfer. The fee is a percentage of the transfer amount, capped at a maximum value."
+                                />
+                            </div>
+
+                            {formData.transferFeeEnabled && (
+                                <div className="ml-6 space-y-3">
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-300 mb-1">Fee Basis Points (1% = 100)</label>
+                                        <input
+                                            type="number"
+                                            value={formData.transferFeeBasisPoints}
+                                            onChange={(e) => handleChange(e, 'transferFeeBasisPoints')}
+                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            min="1"
+                                            max="10000"
+                                        />
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            This equals {(formData.transferFeeBasisPoints / 100).toFixed(2)}% fee per transfer
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-300 mb-1">Maximum Transfer Fee</label>
+                                        <input
+                                            type="text"
+                                            value={formData.maxTransferFee}
+                                            onChange={(e) => handleChange(e, 'maxTransferFee')}
+                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                        />
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            Maximum amount of tokens that can be charged as a fee per transfer
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Memo Transfer Extension */}
+                            <div className="p-4 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="memoTransferEnabled"
+                                        checked={formData.memoTransferEnabled}
+                                        onChange={(e) => handleChange(e, 'memoTransferEnabled')}
+                                        className="mr-2 h-4 w-4"
+                                    />
+                                    <label htmlFor="memoTransferEnabled" className="text-white font-medium">Required Memo Transfer</label>
+                                    <ExtensionTooltip
+                                        title="Required Memo Transfer"
+                                        description="Require a memo instruction when tokens are transferred to this account."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Metadata Pointer Extension */}
+                            <div className="p-4 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="metadataPointerEnabled"
+                                        checked={formData.metadataPointerEnabled}
+                                        onChange={(e) => handleChange(e, 'metadataPointerEnabled')}
+                                        className="mr-2 h-4 w-4"
+                                    />
+                                    <label htmlFor="metadataPointerEnabled" className="text-white font-medium">Metadata Pointer</label>
+                                    <ExtensionTooltip
+                                        title="Metadata Pointer"
+                                        description="Enables pointing to token metadata stored in an external account."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Permanent Delegate Extension */}
+                        <div className="p-4 bg-neutral-800 rounded-lg">
+                            <div className="flex items-center mb-3">
+                                <input
+                                    type="checkbox"
+                                    id="permanentDelegateEnabled"
+                                    checked={formData.permanentDelegateEnabled}
+                                    onChange={(e) => handleChange(e, 'permanentDelegateEnabled')}
+                                    className="mr-2 h-4 w-4"
+                                />
+                                <label htmlFor="permanentDelegateEnabled" className="text-white font-medium">Permanent Delegate</label>
+                                <ExtensionTooltip
+                                    title="Permanent Delegate"
+                                    description="Configure a permanent delegate that can transfer tokens from any account."
+                                />
+                            </div>
+
+                            {formData.permanentDelegateEnabled && (
+                                <div className="ml-6">
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-300 mb-1">Delegate Address (optional)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.permanentDelegateAddress}
+                                            onChange={(e) => handleChange(e, 'permanentDelegateAddress')}
+                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            placeholder="Enter public key (leave empty to use your wallet)"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Interest Bearing Extension */}
+                            <div className="p-4 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center mb-3">
+                                    <input
+                                        type="checkbox"
+                                        id="interestBearingEnabled"
+                                        checked={formData.interestBearingEnabled}
+                                        onChange={(e) => handleChange(e, 'interestBearingEnabled')}
+                                        className="mr-2 h-4 w-4"
+                                    />
+                                    <label htmlFor="interestBearingEnabled" className="text-white font-medium">Interest Bearing</label>
+                                    <ExtensionTooltip
+                                        title="Interest Bearing"
+                                        description="Make your token accrue interest over time."
+                                    />
+                                </div>
+
+                                {formData.interestBearingEnabled && (
+                                    <div className="ml-6">
+                                        <div className="flex flex-col">
+                                            <label className="text-sm text-gray-300 mb-1">Interest Rate (basis points)</label>
+                                            <input
+                                                type="number"
+                                                value={formData.interestRate}
+                                                onChange={(e) => handleChange(e, 'interestRate')}
+                                                className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                                min="1"
+                                                max="10000"
+                                            />
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                This equals {(formData.interestRate / 100).toFixed(2)}% interest rate
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Default Account State Extension */}
+                            <div className="p-4 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center mb-3">
+                                    <input
+                                        type="checkbox"
+                                        id="defaultAccountStateEnabled"
+                                        checked={formData.defaultAccountStateEnabled}
+                                        onChange={(e) => handleChange(e, 'defaultAccountStateEnabled')}
+                                        className="mr-2 h-4 w-4"
+                                    />
+                                    <label htmlFor="defaultAccountStateEnabled" className="text-white font-medium">Default Account State</label>
+                                    <ExtensionTooltip
+                                        title="Default Account State"
+                                        description="Set the default state of new token accounts."
+                                    />
+                                </div>
+
+                                {formData.defaultAccountStateEnabled && (
+                                    <div className="ml-6">
+                                        <div className="flex flex-col">
+                                            <label className="text-sm text-gray-300 mb-1">Default State</label>
+                                            <select
+                                                value={formData.defaultAccountState}
+                                                onChange={(e) => handleChange(e, 'defaultAccountState')}
+                                                className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            >
+                                                <option value="initialized">Initialized (normal)</option>
+                                                <option value="frozen">Frozen (restricted)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="flex justify-center items-center mt-6">
+                        <button
+                            className="text-center hover:shadow-xl hover:shadow-black/50 w-2/3 border border-[#476e34] rounded-md invoke-btn"
+                            disabled={uploading || creatingToken}
+                            type="submit"
+                            id="formbutton"
+                        >
+                            <span className="btn-text-gradient font-bold">
+                                {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : creatingToken ? "Creating Token..." : "Create Token-2022"}
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                <div className="mt-4 break-words">
+                    <p className="font-medium">Link to your new token.</p>
+                    <a
+                        className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
+                        href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        {tokenMintAddress}
+                    </a>
+                </div>
+            )}
+        </div>
     );
-
-
-
 };
-
 
 export default CreateToken;
