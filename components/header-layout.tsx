@@ -28,9 +28,11 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
             )}
 
             <main className="flex-1 overflow-auto">
-                <div className="flex items-center justify-end gap-2">
-                    <WalletButton />
-                </div>
+                {displaySidebar && (
+                    <div className="flex items-center justify-end gap-2">
+                        <WalletButton />
+                    </div>
+                )}
                 {children}
             </main>
         </div>

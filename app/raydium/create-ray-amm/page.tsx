@@ -2,11 +2,7 @@
 
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
-import { ReactNode } from 'react';
 import { Metaplex } from "@metaplex-foundation/js";
-import {
-    MAINNET_PROGRAM_ID,
-} from '@raydium-io/raydium-sdk';
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
@@ -23,12 +19,11 @@ import { getKeypairFromBs58 } from '@/components/instructions/pump-bundler/misc'
 import WalletsDrawer from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
-import { getHeaderLayout } from '@/components/header-layout';
+import { randomColor } from '@/components/utils/random-color';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
@@ -639,8 +634,5 @@ const modeOptions = [
 ];
 
 
-export const randomColor = () => {
-    return '#' + Math.floor(Math.random() * 16777215).toString(16);
-}
 
 export default LiquidityHandlerRaydium;

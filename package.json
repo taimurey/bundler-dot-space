@@ -33,6 +33,7 @@
     "jito-ts": "^4.2.0",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.474.0",
+    "motion": "^12.7.3",
     "next": "15.1.6",
     "papaparse": "^5.5.2",
     "pino-pretty": "^13.0.0",

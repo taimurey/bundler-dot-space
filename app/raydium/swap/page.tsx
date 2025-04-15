@@ -2,11 +2,6 @@
 
 import React, { ChangeEvent, useState } from 'react';
 import { BN } from 'bn.js';
-import { ReactNode } from 'react';
-import { getHeaderLayout } from '@/components/header-layout';
-import {
-    MAINNET_PROGRAM_ID,
-} from '@raydium-io/raydium-sdk';
 import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '@/components/ui/input-field';
@@ -17,7 +12,6 @@ import WalletsDrawer from '@/components/sidebar-drawer';
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const Swap = () => {
     const [airdropChecked, setAirdropChecked] = useState(false);

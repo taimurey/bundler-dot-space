@@ -206,7 +206,7 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="relative w-full container mx-auto p-20 space-y-4">
+        <div className="relative w-full container mx-auto px-20 py-10">
             <div className=" bg-[#0c0e11] bg-opacity-70 border border-neutral-500 p-4 rounded-2xl shadow-2xl shadow-black">
                 <div className="divide-y divide-neutral-700 w-full ">
 

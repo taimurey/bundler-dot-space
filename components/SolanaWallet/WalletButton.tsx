@@ -42,8 +42,7 @@ const WalletButton: FC = () => {
 
   return (
     <>
-      <div className="relative flex justify-end z-auto pt-4 px-4 text-md">
-
+      <div className="relative flex justify-end pt-4 px-4 text-md">
         <div>
           <Dialog>
             <DialogTrigger asChild>

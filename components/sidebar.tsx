@@ -23,6 +23,10 @@ import MevLabLogo from "./icons/JupiterLogo";
 import { GiBubblingFlask } from "react-icons/gi";
 import { LockIcon } from "lucide-react";
 import { LiaFlaskSolid } from "react-icons/lia";
+import RaydiumIcon from "./icons/RaydiumIcon";
+import PumpFunIcon from "./icons/PumpFunIcon";
+import GoldenPumpFunIcon from "./icons/GoldenPumpIcon";
+import SolanaIcon from "./icons/SolanaIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     className?: string;
@@ -191,22 +195,23 @@ const Sidebar: FC = () => {
     // Determine if sidebar should be expanded based on hover and lock state
     const isExpanded = isLocked ? !isCollapsed : (isHovering || !isCollapsed);
 
+
     // Main navigation links (shown at the top level)
     const mainLinks = [
         {
             href: '/minting-lab/create-token',
             title: 'Minting Lab',
-            icon: <MdToken className="w-6 h-6" />,
+            icon: <SolanaIcon className="w-6 h-6" />,
         },
         {
             href: '/pump-fun/create',
             title: 'PumpFun',
-            icon: <TbPillFilled className="w-6 h-6" />,
+            icon: <PumpFunIcon className="w-6 h-6" />,
         },
         {
             href: '/raydium/create-ray-amm',
             title: 'Raydium',
-            icon: <FlaskIcon className="w-6 h-6" />,
+            icon: <RaydiumIcon className="w-6 h-6" />,
         },
         {
             href: '/utilities/distribute-tokens',
@@ -292,13 +297,13 @@ const Sidebar: FC = () => {
         {
             href: '/pump-fun/create',
             title: 'PumpFun Bundler',
-            icon: <TbPillFilled className="w-6 h-6 rotate-180" />,
+            icon: <PumpFunIcon className="w-6 h-6 rotate-180" />,
             group: 'pump-fun'
         },
         {
             href: '/pump-fun/manage-tokens',
             title: 'PumpFun Manager',
-            icon: <TbPillFilled className="w-6 h-6" />,
+            icon: <GoldenPumpFunIcon className="w-6 h-6" />,
             group: 'pump-fun'
         },
         // Utility links

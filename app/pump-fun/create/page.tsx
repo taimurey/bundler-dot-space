@@ -13,7 +13,7 @@ import { toast } from 'react-toastify';
 import { BundleToast, LinkToast, TransactionToast } from '@/components/bundler-toasts';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
-import { randomColor } from "@/components/utils/declarations";
+import { randomColor } from '@/components/utils/random-color';
 import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';

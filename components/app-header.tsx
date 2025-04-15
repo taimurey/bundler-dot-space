@@ -12,6 +12,7 @@ import SwapIcon from '@/components/icons/SwapIcon';
 import LiquidityIcon from '@/components/icons/LiquidityIcon';
 import { usePathname } from 'next/navigation';
 import HeaderLinks from './HeaderLinks';
+import WalletButton from './SolanaWallet/WalletButton';
 
 export const headerLinks = [
   {
@@ -52,7 +53,7 @@ const AppHeader: React.FC = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between w-full bg-[#111318] bg-opacity-95 border-b-2 border-[#333333] backdrop-blur-md h-14">
+      <div className="fixed top-0 left-0 right-0 flex items-center justify-between px-4 z-50">
         <div className="flex items-center px-2 gap-1">
           <div className="flex items-center">
             <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
@@ -85,13 +86,11 @@ const AppHeader: React.FC = () => {
           <HeaderLinks />
         </div>
 
-        <div className="hidden md:flex items-center space-x-4 mr-4 z-50">
-          <div className="hidden items-center justify-end md:flex space-x-4">
-            <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
-              <DiscordIcon width="40" height="40" />
-            </a>
-            {/* <WalletButton /> */}
-          </div>
+        <div className="flex items-center justify-end gap-2">
+          <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
+            <DiscordIcon width="40" height="40" />
+          </a>
+          {/* <WalletButton /> */}
         </div>
       </div>
 

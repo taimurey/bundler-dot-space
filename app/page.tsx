@@ -3,40 +3,45 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Head from 'next/head';
 import { RainbowButton } from "@/components/ui/rainbow-button";
+import PumpFunIcon from "@/components/icons/PumpFunIcon";
+import RaydiumIcon from "@/components/icons/RaydiumIcon";
+import SolanaIcon from "@/components/icons/SolanaIcon";
+import MultiSendIcon from "@/components/icons/MultiSendIcon";
+import { Spotlight, GridBackground } from "@/components/blocks/spotlight-new";
 
 const Home = () => {
 
   const buttons = [
     {
       id: 1,
-      initials: "PF",
+      icon: PumpFunIcon,
       name: "PumpFun",
-      color: "bg-orange-500",
+      color: "",
       href: "/pump-fun/create",
       available: true
     },
     {
       id: 2,
-      initials: "R",
+      icon: RaydiumIcon,
       name: "Raydium",
-      color: "bg-blue-500",
-      href: "#",
+      color: "",
+      href: "/raydium/create-ray-amm",
       available: true
     },
     {
       id: 3,
-      initials: "LL",
+      icon: SolanaIcon,
       name: "LaunchLab",
-      color: "bg-purple-500",
-      href: "#",
+      color: "",
+      href: "/minting-lab/create-token",
       available: false
     },
     {
       id: 4,
-      initials: "+",
+      icon: MultiSendIcon,
       name: "More",
-      color: "bg-gradient-to-br from-[#6df374] to-[#505050]",
-      href: "#",
+      color: "",
+      href: "/utilities/distribute-tokens",
       available: true
     }
   ];
@@ -51,8 +56,18 @@ const Home = () => {
         <meta name="keywords" content="Pump.Fun, Raydium, Solana, Token Bundler, Crypto Trading, LaunchLab" />
         <meta name="author" content="BundlerdotSpace" />
       </Head>
-      <div className="flex flex-col relative min-h-screen">
-        <div className="flex flex-col items-center justify-center w-full h-screen">
+      <div className="flex flex-col relative min-h-screen overflow-hidden">
+        <GridBackground
+          className="bg-gradient-to-br from-[#6df374] to-[#505050]"
+          width={100}
+          height={100}
+        />
+        <Spotlight
+          width={720}
+          height={1680}
+          xOffset={200}
+        />
+        <div className="flex flex-col items-center justify-center w-full h-screen relative z-10">
           <div className="w-full mx-auto flex flex-col gap-6 px-4">
             <h1 className={`text-5xl font-bold text-center transition-opacity duration-500`}>
               <span className="text-[#f5ac41]">The Ultimate</span> <span className="text-white">Degen Toolkit for Solana</span>
@@ -66,15 +81,15 @@ const Home = () => {
               {buttons.map((button) => (
                 <div
                   key={button.id}
-                  className="group py-4 px-6 border cursor-pointer border-[#232221] rounded-xl bg-[#0f1117] shadow-md shadow-[#101010] flex flex-col items-center transition-all duration-300 hover:border-[#f5ac41] hover:shadow-[#f5ac41]/20 hover:shadow-lg hover:-translate-y-1"
+                  className="group py-4 px-6 border cursor-pointer border-[#232221] rounded-xl bg-[#0f1117]/80 backdrop-blur-sm shadow-md shadow-[#101010] flex flex-col items-center transition-all duration-300 hover:border-[#f5ac41] hover:shadow-[#f5ac41]/20 hover:shadow-lg hover:-translate-y-1"
                 >
                   <div className={`w-16 h-16 ${button.color} rounded-full mb-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
-                    <span className="text-white font-bold">{button.initials}</span>
+                    <button.icon className="w-8 h-8" />
                   </div>
                   <p className="text-white font-medium">{button.name}</p>
                   {button.available ? (
                     <Link href={button.href} className="mt-2 cursor-pointer text-white flex items-center transition-colors duration-300 group-hover:text-[#f5ac41]">
-                      Connect <span className="ml-1 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                      Launch <span className="ml-1 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     </Link>
                   ) : (
                     <div className="mt-2 flex flex-col items-center">
