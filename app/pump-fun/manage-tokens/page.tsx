@@ -10,7 +10,7 @@ import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import { BundleToast } from '@/components/bundler-toasts';
 import { BalanceType } from '@/components/types/solana-types';
 import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
@@ -162,7 +162,7 @@ const PumpfunSell = () => {
                             message={'Bundle ID:'}
                         />
                     ),
-                    { autoClose: 5000 }
+                    { duration: 5000 }
                 );
             });
         } catch (error) {

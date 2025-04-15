@@ -69,12 +69,12 @@ const Home = () => {
         />
         <div className="flex flex-col items-center justify-center w-full h-screen relative z-10">
           <div className="w-full mx-auto flex flex-col gap-6 px-4">
-            <h1 className={`text-5xl font-bold text-center transition-opacity duration-500`}>
+            <h1 className={`text-4xl md:text-5xl font-bold text-center transition-opacity duration-500`}>
               <span className="text-[#f5ac41]">The Ultimate</span> <span className="text-white">Degen Toolkit for Solana</span>
             </h1>
 
-            <p className={`text-[18px] md:text-[20px] text-white text-center`}>
-              Connect all your coins and pools in a few clicks. Start effectively managing your entire portfolio – solana
+            <p className={`text-md md:text-lg text-white text-center`}>
+              Connect all your coins and pools in a few clicks. Start effectively managing your entire portfolio
             </p>
 
             <div className={`w-1/2 mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mt-8`}>

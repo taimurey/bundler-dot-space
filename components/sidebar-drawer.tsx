@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import VirusIcon from '@/components/icons/VirusIcon';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 
 interface Profile {

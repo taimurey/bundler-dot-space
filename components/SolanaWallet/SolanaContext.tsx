@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 export type ClusterType = "mainnet-beta" | "testnet" | "devnet" | "custom";
 

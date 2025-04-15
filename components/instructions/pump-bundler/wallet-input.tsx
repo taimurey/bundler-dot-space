@@ -5,7 +5,7 @@ import { Table } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { PublicKey, Keypair } from '@solana/web3.js';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import { Input } from '@/components/ui/input';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 

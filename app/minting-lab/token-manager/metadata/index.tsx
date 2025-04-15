@@ -6,10 +6,10 @@ import {
 import {
   AuthorityType,
   createSetAuthorityInstruction,
-} from '@solana/spl-token-2';
+} from '@solana/spl-token';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { InputField } from "../../../../components/FieldComponents/InputField";
-import { toast } from "react-toastify";
+import { InputField } from "@/components/ui/input-field";
+import { toast } from "sonner";
 
 const RevokeAuthorities: FC = () => {
   const { connection } = useConnection();

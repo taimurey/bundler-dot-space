@@ -4,7 +4,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { ReactNode } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { TransactionToast } from "@/components/common/Toasts/TransactionToast";
 import { getHeaderLayout } from "@/components/header-layout";
 import { useSerum } from "@/components/context";
@@ -129,12 +129,12 @@ const CreateMarketAdvanced = () => {
                 message="Created market successfully."
               />
             ),
-            { autoClose: 5000 }
+            { duration: 5000 }
           );
         },
         sendingCallback: async () => {
           toast.info("Creating market...", {
-            autoClose: 2000,
+            duration 2000,
           });
         },
       });

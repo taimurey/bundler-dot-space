@@ -7,7 +7,7 @@ import { getHeaderLayout } from '@/components/header-layout';
 import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import WalletsDrawer from '@/components/sidebar-drawer';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 

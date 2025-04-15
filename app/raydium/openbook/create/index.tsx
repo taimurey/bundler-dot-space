@@ -26,7 +26,7 @@ import ReactTooltip from "react-tooltip";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import AdvancedOptionsForm from "../../../../components/createMarket/AdvancedOptionsForm";
 import CreateMintOption from "../../../../components/createMarket/CreateMintOption";
 import ExistingMintForm from "../../../../components/createMarket/ExistingMintForm";

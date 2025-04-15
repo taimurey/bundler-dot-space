@@ -21,7 +21,7 @@ import {
 //   PencilIcon,
 // } from "@heroicons/react/24/outline";
 // import useProgramStore from "../../stores/programStore";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import debounce from "lodash.debounce";
@@ -89,7 +89,7 @@ const SettingsPanel = () => {
           setCustomEndpoint(endpointURL.toString());
           toast.success("RPC endpoint updated!", {
             pauseOnHover: false,
-            autoClose: 1000,
+            duration: 1000,
           });
         }
       } catch (e) {

@@ -1,7 +1,7 @@
 // import { createBurnCheckedInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
 // import { WalletContextState } from '@solana/wallet-adapter-react';
 // import { Connection, PublicKey, Transaction, } from '@solana/web3.js';
-// import { toast } from 'react-toastify';
+// import { toast } from "sonner";
 // import { sendSignedTransaction, signTransaction } from '../../utils/transaction';
 
 
@@ -39,7 +39,7 @@
 //         connection,
 //         skipPreflight: false,
 //         sendingCallback: async () => {
-//             toast.info(`Minting  tokens...`, { autoClose: 2000 });
+//             toast.info(`Minting  tokens...`, { duration 2000 });
 //         },
 //         successCallback: async (txSig: string) => {
 //             toast(() => (

@@ -6,11 +6,13 @@ import { ReactNode } from 'react';
 import { getHeaderLayout } from '@/components/header-layout';
 import {
     ApiPoolInfoV4,
+    CacheLTA,
     jsonInfo2PoolKeys,
     Liquidity,
     LiquidityPoolKeys,
     Token,
     TOKEN_PROGRAM_ID,
+    TokenAccount,
     TokenAmount
 } from '@raydium-io/raydium-sdk';
 import { LAMPORTS_PER_SOL, VersionedTransaction, PublicKey, RpcResponseAndContext, GetProgramAccountsResponse, SystemProgram, Keypair, TransactionMessage } from '@solana/web3.js';
@@ -18,7 +20,7 @@ import { formatAmmKeysById } from '@/components/instructions/removeLiquidity/for
 import { getWalletTokenAccount } from '@/components/instructions/removeLiquidity/util';
 import { addLookupTableInfo, makeTxVersion } from '@/components/instructions/removeLiquidity/config';
 import { buildSimpleTransaction } from '@raydium-io/raydium-sdk';
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { BundleToast } from '@/components/bundler-toasts';
 import base58 from 'bs58';
@@ -160,7 +162,7 @@ const RaydiumLiquidityRemover = () => {
                 userKeys: {
                     owner: publicKey,
                     payer: publicKey,
-                    tokenAccounts: walletTokenAccounts,
+                    tokenAccounts: walletTokenAccounts as TokenAccount[],
                 },
                 amountIn: removeLpTokenAmount,
                 makeTxVersion,
@@ -202,7 +204,7 @@ const RaydiumLiquidityRemover = () => {
             makeTxVersion,
             payer: publicKey,
             innerTransactions: removeLiquidityInstructionResponse.innerTransactions,
-            addLookupTableInfo: addLookupTableInfo,
+            addLookupTableInfo: addLookupTableInfo as unknown as CacheLTA,
         })
 
 
@@ -273,7 +275,7 @@ const RaydiumLiquidityRemover = () => {
                             message={'Bundle ID:'}
                         />
                     ),
-                    { autoClose: 5000 }
+                    { duration: 5000 }
                 );
             } catch (error) {
                 console.error(error);

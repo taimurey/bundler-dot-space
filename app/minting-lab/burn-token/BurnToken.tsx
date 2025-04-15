@@ -11,15 +11,17 @@ import {
     TOKEN_PROGRAM_ID,
     getAssociatedTokenAddress,
     createBurnCheckedInstruction,
-    getMint
+    getMint,
+    TOKEN_2022_PROGRAM_ID
 } from "@solana/spl-token";
 import React, { FC, useState, useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { UpdatedInputField } from "../../../components/FieldComponents/UpdatedInputfield";
 import { TransactionToast } from "../../../components/common/Toasts/TransactionToast";
 import { SendTransaction } from "../../../components/TransactionUtils/SendTransaction";
+import { Metaplex } from "@metaplex-foundation/js";
 
 interface TokenAccountInfo {
     mint: string;
@@ -30,7 +32,130 @@ interface TokenAccountInfo {
     };
     name?: string;
     symbol?: string;
+    logo?: string;
+    isToken2022?: boolean;
 }
+
+// Helper function to fetch token metadata using Metaplex
+const fetchTokenMetadata = async (
+    connection: Connection,
+    mintAddress: string
+): Promise<{ name: string; symbol: string; logo?: string }> => {
+    try {
+        const mintPublicKey = new PublicKey(mintAddress);
+        const metaplex = Metaplex.make(connection);
+
+        // Check if this is a Token-2022 token
+        const mintAccountInfo = await connection.getAccountInfo(mintPublicKey);
+        const isToken2022 = mintAccountInfo?.owner.equals(TOKEN_2022_PROGRAM_ID) || false;
+
+        console.log(`Fetching metadata for ${mintAddress}, isToken2022: ${isToken2022}`);
+
+        try {
+            // Use Metaplex to fetch the metadata
+            const metadataAccount = metaplex.nfts().pdas().metadata({ mint: mintPublicKey });
+            console.log(`Metadata PDA: ${metadataAccount.toBase58()}`);
+
+            const metadataAccountInfo = await connection.getAccountInfo(metadataAccount);
+
+            if (metadataAccountInfo) {
+                console.log("Metadata account found, fetching token details");
+                try {
+                    const token = await metaplex.nfts().findByMint({
+                        mintAddress: mintPublicKey,
+                        // tokenStandard: isToken2022 ? 5 : undefined // 5 is ProgrammableNonFungible, used for Token-2022
+                    });
+                    console.log("Token metadata:", token);
+
+                    return {
+                        name: token.name || `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+                        symbol: token.symbol || "???",
+                        logo: token.json?.image
+                    };
+                } catch (findError) {
+                    console.error("Error in metaplex.nfts().findByMint:", findError);
+
+                    // Try a different approach for Token-2022
+                    if (isToken2022) {
+                        try {
+                            // For Token-2022 with metadata pointer extension
+                            const rawMetadata = await fetch(
+                                `https://api.metaplex.solana.com/v1/metadata/${mintAddress}`
+                            ).then(res => res.json());
+
+                            console.log("Raw metadata from API:", rawMetadata);
+
+                            if (rawMetadata) {
+                                return {
+                                    name: rawMetadata.name || `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+                                    symbol: rawMetadata.symbol || "???",
+                                    logo: rawMetadata.image
+                                };
+                            }
+                        } catch (apiError) {
+                            console.error("Error fetching metadata from API:", apiError);
+
+                            // Try Solana on-chain metadata API as another fallback
+                            try {
+                                const response = await fetch(
+                                    `https://public-api.solscan.io/token/meta?tokenAddress=${mintAddress}`
+                                );
+
+                                if (response.ok) {
+                                    const tokenData = await response.json();
+                                    console.log("Solscan token data:", tokenData);
+
+                                    if (tokenData && tokenData.symbol) {
+                                        return {
+                                            name: tokenData.name || tokenData.symbol || `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+                                            symbol: tokenData.symbol || "???",
+                                            logo: tokenData.icon || tokenData.image
+                                        };
+                                    }
+                                }
+                            } catch (solscanError) {
+                                console.error("Error fetching from Solscan:", solscanError);
+                            }
+                        }
+                    }
+                }
+            } else {
+                console.log("No metadata account found");
+            }
+        } catch (error) {
+            console.error("Error in metadata PDA lookup:", error);
+        }
+
+        // Fallback: Use on-chain mint data
+        try {
+            const mintInfo = await getMint(
+                connection,
+                mintPublicKey,
+                'confirmed',
+                isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
+            );
+
+            return {
+                name: `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+                symbol: "???",
+            };
+        } catch (mintError) {
+            console.error("Error fetching mint info:", mintError);
+        }
+
+        // Final fallback
+        return {
+            name: `Unknown (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+            symbol: "???"
+        };
+    } catch (error) {
+        console.error("Error in fetchTokenMetadata:", error);
+        return {
+            name: `Unknown (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
+            symbol: "???"
+        };
+    }
+};
 
 const BurnToken: FC = () => {
     const { connection } = useConnection();
@@ -55,58 +180,49 @@ const BurnToken: FC = () => {
         const fetchTokenAccounts = async () => {
             setIsLoading(true);
             try {
+                // Get standard SPL token accounts
                 const accounts = await connection.getParsedTokenAccountsByOwner(
                     publicKey,
                     { programId: TOKEN_PROGRAM_ID }
                 );
 
+                // Get Token-2022 accounts
+                const accounts2022 = await connection.getParsedTokenAccountsByOwner(
+                    publicKey,
+                    { programId: TOKEN_2022_PROGRAM_ID }
+                );
+
+                // Combine accounts with non-zero balance
+                const allAccountsFiltered = [
+                    ...accounts.value,
+                    ...accounts2022.value
+                ].filter(account => {
+                    const parsedInfo = account.account.data.parsed.info;
+                    return parsedInfo.tokenAmount.uiAmount > 0;
+                });
+
                 const tokenInfo = await Promise.all(
-                    accounts.value
-                        .filter(account => {
-                            const parsedInfo = account.account.data.parsed.info;
-                            // Filter out accounts with zero balance
-                            return parsedInfo.tokenAmount.uiAmount > 0;
-                        })
-                        .map(async (account) => {
-                            const parsedInfo = account.account.data.parsed.info;
+                    allAccountsFiltered.map(async (account) => {
+                        const parsedInfo = account.account.data.parsed.info;
+                        const mintAddress = parsedInfo.mint;
 
-                            // Try to get token metadata for name and symbol
-                            let name = "";
-                            let symbol = "";
+                        // Determine if this is a Token-2022 token
+                        const mintPublicKey = new PublicKey(mintAddress);
+                        const mintAccountInfo = await connection.getAccountInfo(mintPublicKey);
+                        const isToken2022 = mintAccountInfo?.owner.equals(TOKEN_2022_PROGRAM_ID) || false;
 
-                            try {
-                                const mintInfo = await getMint(connection, new PublicKey(parsedInfo.mint));
-                                const metadataPDA = PublicKey.findProgramAddressSync(
-                                    [
-                                        Buffer.from("metadata"),
-                                        new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").toBuffer(),
-                                        new PublicKey(parsedInfo.mint).toBuffer(),
-                                    ],
-                                    new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
-                                )[0];
+                        // Fetch metadata using Metaplex
+                        const metadata = await fetchTokenMetadata(connection, mintAddress);
 
-                                try {
-                                    const metadataInfo = await connection.getAccountInfo(metadataPDA);
-                                    if (metadataInfo) {
-                                        // Parse the metadata info if available
-                                        const metadata = decodeMetadata(metadataInfo.data);
-                                        name = metadata.data.name.replace(/\0/g, '');
-                                        symbol = metadata.data.symbol.replace(/\0/g, '');
-                                    }
-                                } catch (error) {
-                                    console.error("Error fetching metadata:", error);
-                                }
-                            } catch (error) {
-                                console.error("Error fetching mint info:", error);
-                            }
-
-                            return {
-                                mint: parsedInfo.mint,
-                                tokenAmount: parsedInfo.tokenAmount,
-                                name: name || `Unknown (${parsedInfo.mint.slice(0, 4)}...${parsedInfo.mint.slice(-4)})`,
-                                symbol: symbol || "???"
-                            };
-                        })
+                        return {
+                            mint: mintAddress,
+                            tokenAmount: parsedInfo.tokenAmount,
+                            name: metadata.name,
+                            symbol: metadata.symbol,
+                            logo: metadata.logo,
+                            isToken2022
+                        };
+                    })
                 );
 
                 setTokenAccounts(tokenInfo);
@@ -120,45 +236,6 @@ const BurnToken: FC = () => {
 
         fetchTokenAccounts();
     }, [publicKey, connection]);
-
-    // Helper function to decode metadata
-    const decodeMetadata = (buffer: Buffer) => {
-        // This is a simplified version, in reality you'd use a proper parser
-        // from the metaplex library
-        try {
-            // Skip the first part of the buffer which contains header information
-            const offset = 1 + 32 + 32 + 4; // Format + Update auth + Mint + Name string length
-            const nameLength = buffer[offset - 1]; // Name length is stored right before name
-
-            let name = '';
-            for (let i = 0; i < nameLength; i++) {
-                if (buffer[offset + i] !== 0) {
-                    name += String.fromCharCode(buffer[offset + i]);
-                }
-            }
-
-            const symbolOffset = offset + nameLength + 4; // 4 bytes for symbol length
-            const symbolLength = buffer[symbolOffset - 1];
-
-            let symbol = '';
-            for (let i = 0; i < symbolLength; i++) {
-                if (buffer[symbolOffset + i] !== 0) {
-                    symbol += String.fromCharCode(buffer[symbolOffset + i]);
-                }
-            }
-
-            return {
-                data: {
-                    name,
-                    symbol,
-                    uri: '' // We don't parse the URI here
-                }
-            };
-        } catch (e) {
-            console.error("Error decoding metadata:", e);
-            return { data: { name: '', symbol: '', uri: '' } };
-        }
-    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string) => {
         const { value } = e.target;
@@ -202,9 +279,15 @@ const BurnToken: FC = () => {
 
         try {
             const tokenMint = new PublicKey(formData.tokenAddress);
+
+            // Use the appropriate token program ID based on the token type
+            const programId = selectedToken.isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+
             const tokenATA = await getAssociatedTokenAddress(
                 tokenMint,
-                publicKey
+                publicKey,
+                false,
+                programId
             );
 
             // Calculate the amount to burn based on decimals
@@ -221,8 +304,10 @@ const BurnToken: FC = () => {
                 tokenATA,           // Token account to burn from
                 tokenMint,          // Mint account
                 publicKey,          // Owner of token account
-                BigInt(burnAmount),      // Amount to burn
-                decimals            // Decimals of the token
+                BigInt(burnAmount), // Amount to burn
+                decimals,           // Decimals of the token
+                [],                 // Multisig signers (empty array for single signer)
+                programId           // Use the appropriate program ID
             );
 
             // Create transaction
@@ -260,7 +345,7 @@ const BurnToken: FC = () => {
                         message={"Tokens burned successfully!"}
                     />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
 
             // Reset burn amount
@@ -273,7 +358,7 @@ const BurnToken: FC = () => {
             if (publicKey) {
                 const accounts = await connection.getParsedTokenAccountsByOwner(
                     publicKey,
-                    { programId: TOKEN_PROGRAM_ID }
+                    { programId }
                 );
 
                 const updatedToken = accounts.value
@@ -306,7 +391,7 @@ const BurnToken: FC = () => {
 
     return (
         <div className="container mx-auto max-w-5xl px-4 py-8">
-            <h1 className="text-3xl font-bold text-center mb-8">Burn Tokens</h1>
+            {/* <h1 className="text-3xl font-bold text-center mb-8">Burn Tokens</h1> */}
 
             {isLoading ? (
                 <div className="flex justify-center my-20">
@@ -328,6 +413,7 @@ const BurnToken: FC = () => {
                                 {tokenAccounts.map((token, index) => (
                                     <option key={index} value={token.mint}>
                                         {token.name} ({token.symbol}) - Balance: {token.tokenAmount.uiAmount}
+                                        {token.isToken2022 ? " (Token-2022)" : ""}
                                     </option>
                                 ))}
                             </select>
@@ -401,7 +487,25 @@ const BurnToken: FC = () => {
 
                                 <div className="text-gray-400">Current Balance:</div>
                                 <div>{selectedToken.tokenAmount.uiAmount}</div>
+
+                                <div className="text-gray-400">Token Type:</div>
+                                <div>{selectedToken.isToken2022 ? "Token-2022" : "SPL Token"}</div>
                             </div>
+
+                            {selectedToken.logo && (
+                                <div className="mt-4 flex justify-center">
+                                    <img
+                                        src={selectedToken.logo}
+                                        alt={`${selectedToken.name} logo`}
+                                        className="h-16 w-16 rounded-full"
+                                        onError={(e) => {
+                                            // Hide the image if it fails to load
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
 

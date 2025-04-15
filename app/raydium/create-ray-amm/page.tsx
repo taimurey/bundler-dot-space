@@ -9,7 +9,7 @@ import base58 from 'bs58';
 import { OutputField } from '@/components/OutputField';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import { BundleToast, TransactionToast } from '@/components/bundler-toasts';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import { truncate } from '@/components/sidebar-drawer';
@@ -282,7 +282,7 @@ const LiquidityHandlerRaydium = () => {
                         message={'Bundle ID:'}
                     />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
 
             toast(
@@ -292,7 +292,7 @@ const LiquidityHandlerRaydium = () => {
                         message={'Mint:'}
                     />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
         } catch (error) {
             console.log('Error:', error);

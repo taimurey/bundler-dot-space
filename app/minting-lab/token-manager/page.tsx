@@ -11,7 +11,7 @@ import {
     AccountState,
 } from '@solana/spl-token';
 import { UpdatedInputField as InputField } from '../../../components/FieldComponents/UpdatedInputfield';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 
 // Tooltip component
 const Tooltip = ({ children, text }: { children: React.ReactNode, text: string }) => {

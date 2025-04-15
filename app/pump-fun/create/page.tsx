@@ -9,7 +9,7 @@ import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from "sonner";
 import { BundleToast, LinkToast, TransactionToast } from '@/components/bundler-toasts';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
@@ -296,14 +296,14 @@ const LiquidityHandlerRaydium = () => {
                 () => (
                     <BundleToast txSig={bundler} message={'Bundle ID:'} />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
 
             toast(
                 () => (
                     <TransactionToast txSig={tokenKeypair.publicKey.toString()} message={'Mint:'} />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
         } catch (error) {
             console.log('Error:', error);

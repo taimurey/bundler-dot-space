@@ -5,8 +5,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { WalletProfileContextProvider } from "@/components/SolanaWallet/wallet-context";
 import { SolanaProvider } from "@/components/SolanaWallet/SolanaContext";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from "@/components/ui/sonner";
 // Import Solana wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { HeroPattern } from "@/components/ui/HeroPattern";
@@ -41,18 +40,7 @@ export default function RootLayout({
               <HeaderLayout>
                 {pathname !== "/" && <HeroPattern />}
                 {children}
-                <ToastContainer
-                  position="bottom-right"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="dark"
-                />
+                <Toaster position="top-center" closeButton richColors theme="dark" />
               </HeaderLayout>
             </div>
           </SolanaProvider>

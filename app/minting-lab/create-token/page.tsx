@@ -4,7 +4,7 @@ import { createImageFromInitials } from "../../../components/helpers/common/crea
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { UpdatedInputField } from "../../../components/FieldComponents/UpdatedInputfield";
 import { createToken } from "../../../components/TransactionUtils/token";
 import { LinkToast, TransactionToast } from "../../../components/common/Toasts/TransactionToast";
@@ -168,7 +168,7 @@ const CreateToken: FC = () => {
                     message={"Token created successfully!"}
                 />
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
 
             toast(
@@ -185,7 +185,7 @@ const CreateToken: FC = () => {
                         </a>
                     </div>
                 ),
-                { autoClose: 5000 }
+                { duration: 5000 }
             );
 
         }

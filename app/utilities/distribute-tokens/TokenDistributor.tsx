@@ -22,7 +22,7 @@ import {
 import React, { FC, useState, useEffect, ChangeEvent, SetStateAction } from "react";
 import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { TransactionToast, LinkToast } from "../../../components/common/Toasts/TransactionToast";
 import { BlockEngineLocation, InputField } from "@/components/ui/input-field";
 import { FaInfoCircle } from "react-icons/fa";
@@ -430,7 +430,7 @@ const TokenDistributor: FC = () => {
                                 message={"Bundle sent successfully!"}
                             />
                         ),
-                        { autoClose: 5000 }
+                        { duration: 5000 }
                     );
                 } catch (error: any) {
                     console.error("Error sending bundle:", error);
