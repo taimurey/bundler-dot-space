@@ -1,13 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createImageFromInitials } from "../../../../components/helpers/common/createImage"
+import { createImageFromInitials } from "@/components/helpers/common/createImage"
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { useNetworkConfiguration } from "../../../../components/context/NetworkConfigurationProvider";
+import { useNetworkConfiguration } from "@/components/context/NetworkConfigurationProvider";
 import { toast } from "sonner";
-import { UpdatedInputField } from "../../../../components/FieldComponents/UpdatedInputfield";
-import { createToken2022 } from "../../../../components/TransactionUtils/token2022";
-import { LinkToast, TransactionToast } from "../../../../components/common/Toasts/TransactionToast";
-import ImageUploadIcon from "../../../../components/icons/imageuploadIcon";
+import { UpdatedInputField } from "@/components/FieldComponents/UpdatedInputfield";
+import { createToken2022 } from "@/components/TransactionUtils/token2022";
+import { LinkToast, TransactionToast } from "@/components/common/Toasts/TransactionToast";
+import ImageUploadIcon from "@/components/icons/imageuploadIcon";
 import TwitterIcon from "@/components/icons/TwitterIcon";
 import { FaDiscord, FaGlobe, FaTelegram, FaInfoCircle } from "react-icons/fa";
 
@@ -88,6 +88,8 @@ const CreateToken: FC = () => {
             setFormData(prevState => ({
                 ...prevState,
                 [field]: value,
+                // Automatically enable metadataPointer if tokenName field has a value
+                ...(field === 'tokenName' && value ? { metadataPointerEnabled: true } : {})
             }));
         }
     };
@@ -97,6 +99,12 @@ const CreateToken: FC = () => {
         handleChange(e as any, "uploadedImage")
 
         if (file) {
+            // Automatically enable metadataPointer when an image is uploaded
+            setFormData(prevState => ({
+                ...prevState,
+                metadataPointerEnabled: true
+            }));
+
             const reader = new FileReader();
             reader.onloadend = async () => {
                 const base64Image = reader.result as string;
@@ -442,18 +450,26 @@ const CreateToken: FC = () => {
                             </div>
                         </div>
                         <div className="flex justify-center items-center gap-2">
-                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                <TwitterIcon className="text-white w-4 h-4" />
-                            </a>
-                            <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-                                <FaTelegram className="text-white w-4 h-4" />
-                            </a>
-                            <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-                                <FaDiscord className="text-white w-4 h-4" />
-                            </a>
-                            <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
-                                <FaGlobe className="text-white w-4 h-4" />
-                            </a>
+                            {formData.twitterUrl && (
+                                <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
+                                    <TwitterIcon className="text-white w-4 h-4" />
+                                </a>
+                            )}
+                            {formData.telegramUrl && (
+                                <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
+                                    <FaTelegram className="text-white w-4 h-4" />
+                                </a>
+                            )}
+                            {formData.discordUrl && (
+                                <a href={formData.discordUrl} target="_blank" rel="noreferrer">
+                                    <FaDiscord className="text-white w-4 h-4" />
+                                </a>
+                            )}
+                            {formData.websiteUrl && (
+                                <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
+                                    <FaGlobe className="text-white w-4 h-4" />
+                                </a>
+                            )}
                         </div>
                     </div>
 

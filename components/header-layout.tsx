@@ -9,15 +9,38 @@ import WalletButton from "./SolanaWallet/WalletButton";
 import SettingsPanel from "./SolanaWallet/SettingsPanel";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { PiGearBold } from "react-icons/pi";
+import { Metadata } from "next";
+
+// Page metadata interface
+export interface PageMetadata {
+    title: string;
+    description?: string;
+    section?: string; // e.g. "Minting Lab", "Bundler Lab"
+}
 
 type HeaderLayoutProps = {
-    title?: string;
+    metadata?: PageMetadata | string; // Accept string for backward compatibility
     children: ReactNode;
 };
 
-export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
+export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
     const pathname = usePathname();
     const displaySidebar = pathname !== "/";
+
+    // Handle both string and PageMetadata for backward compatibility
+    let pageTitle = "Bundler Space";
+    let pageDescription = "Solana tools and utilities";
+
+    if (metadata) {
+        if (typeof metadata === 'string') {
+            // Legacy: if metadata is just a string title
+            pageTitle = `${metadata} | Bundler Space`;
+        } else {
+            // New approach: metadata is a PageMetadata object
+            pageTitle = metadata.title ? `${metadata.title} | Bundler Space` : "Bundler Space";
+            pageDescription = metadata.description || "Solana tools and utilities";
+        }
+    }
 
     return (
         <div className="flex flex-1 h-full overflow-hidden">
@@ -29,8 +52,15 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
 
             <main className="flex-1 overflow-auto">
                 {displaySidebar && (
-                    <div className="flex items-center justify-end gap-2">
-                        <WalletButton />
+                    <div className="flex items-center justify-end px-4 py-2">
+                        {metadata && (
+                            <h1 className="text-xl font-semibold text-white mr-auto">
+                                {typeof metadata === 'string' ? metadata : metadata.title}
+                            </h1>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <WalletButton />
+                        </div>
                     </div>
                 )}
                 {children}
@@ -39,6 +69,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ title, children }) => {
     );
 };
 
-export const getHeaderLayout = (page: React.ReactNode, title?: string) => (
-    <HeaderLayout title={title}>{page}</HeaderLayout>
+// Support both new PageMetadata objects and legacy string titles
+export const getHeaderLayout = (page: React.ReactNode, metadata?: PageMetadata | string) => (
+    <HeaderLayout metadata={metadata}>{page}</HeaderLayout>
 );

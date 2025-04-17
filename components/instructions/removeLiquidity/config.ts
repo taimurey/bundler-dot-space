@@ -1,7 +1,7 @@
 import { AddressLookupTableAccount } from '@solana/web3.js';
 
 // This is a placeholder for the actual configuration
-export const makeTxVersion = 0; // 0 for legacy, 1 for versioned transactions
+export const makeTxVersion = 1; // 0 for legacy, 1 for versioned transactions
 
 export async function addLookupTableInfo(lookupTableAddresses: string[]): Promise<AddressLookupTableAccount[]> {
     console.log('addLookupTableInfo called with addresses:', lookupTableAddresses);

@@ -271,7 +271,7 @@ const Sidebar: FC = () => {
         },
         {
             href: '/raydium/create-ray-amm',
-            title: 'Raydium AMM Bundler',
+            title: 'RayAMM Bundler',
             icon: <FlaskIcon className="w-5 h-5" />,
             group: 'raydium'
         },

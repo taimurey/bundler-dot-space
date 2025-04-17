@@ -206,7 +206,7 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4">
+        <div className="w-full max-w-4xl mx-auto px-4 py-10">
             <div className="bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-lg shadow-md">
                 <div className="divide-y divide-neutral-700 w-full">
 
@@ -381,18 +381,26 @@ const CreateToken: FC = () => {
                                             </div>
                                         </div>
                                         <div className="flex justify-center items-center gap-2">
-                                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                                <FaTwitter size="sm" className="text-white w-4 h-4" />
-                                            </a>
-                                            <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-                                                <FaTelegram size="sm" className="text-white w-4 h-4" />
-                                            </a>
-                                            <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-                                                <FaDiscord size="sm" className="text-white w-4 h-4" />
-                                            </a>
-                                            <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
-                                                <FaGlobe size="sm" className="text-white w-4 h-4" />
-                                            </a>
+                                            {formData.twitterUrl && (
+                                                <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
+                                                    <FaTwitter size="sm" className="text-white w-4 h-4" />
+                                                </a>
+                                            )}
+                                            {formData.telegramUrl && (
+                                                <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
+                                                    <FaTelegram size="sm" className="text-white w-4 h-4" />
+                                                </a>
+                                            )}
+                                            {formData.discordUrl && (
+                                                <a href={formData.discordUrl} target="_blank" rel="noreferrer">
+                                                    <FaDiscord size="sm" className="text-white w-4 h-4" />
+                                                </a>
+                                            )}
+                                            {formData.websiteUrl && (
+                                                <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
+                                                    <FaGlobe size="sm" className="text-white w-4 h-4" />
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
