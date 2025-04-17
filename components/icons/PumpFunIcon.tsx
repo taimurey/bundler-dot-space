@@ -1,7 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const PumpFunIcon = ({ className = '' }) => {
+interface PumpFunIconProps {
+    className?: string;
+}
+
+const PumpFunIcon = ({ className = '' }: PumpFunIconProps) => {
     return (
         <svg
             className={className}
@@ -61,8 +64,5 @@ const PumpFunIcon = ({ className = '' }) => {
     );
 };
 
-PumpFunIcon.propTypes = {
-    className: PropTypes.string,
-};
 
 export default PumpFunIcon;

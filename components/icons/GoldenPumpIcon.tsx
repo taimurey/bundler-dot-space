@@ -1,7 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const GoldenPumpFunIcon = ({ className = '' }) => {
+interface GoldenPumpFunIconProps {
+    className?: string;
+}
+
+const GoldenPumpFunIcon = ({ className = '' }: GoldenPumpFunIconProps) => {
     return (
         <svg
             className={className}
@@ -42,8 +45,6 @@ const GoldenPumpFunIcon = ({ className = '' }) => {
     );
 };
 
-GoldenPumpFunIcon.propTypes = {
-    className: PropTypes.string,
-};
+
 
 export default GoldenPumpFunIcon;

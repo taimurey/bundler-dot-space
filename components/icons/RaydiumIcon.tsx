@@ -1,7 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const RaydiumIcon = ({ className = '' }) => {
+interface RaydiumIconProps {
+    className?: string;
+}
+
+const RaydiumIcon = ({ className = '' }: RaydiumIconProps) => {
     return (
         <svg
             className={className}
@@ -83,8 +86,5 @@ const RaydiumIcon = ({ className = '' }) => {
     );
 };
 
-RaydiumIcon.propTypes = {
-    className: PropTypes.string,
-};
 
 export default RaydiumIcon;
