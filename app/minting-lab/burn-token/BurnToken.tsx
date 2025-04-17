@@ -390,20 +390,18 @@ const BurnToken: FC = () => {
     };
 
     return (
-        <div className="container mx-auto max-w-5xl px-4 py-8">
-            {/* <h1 className="text-3xl font-bold text-center mb-8">Burn Tokens</h1> */}
-
+        <div className="p-4">
             {isLoading ? (
-                <div className="flex justify-center my-20">
-                    <ClipLoader size={40} color={"#ffffff"} />
+                <div className="flex justify-center items-center my-8">
+                    <ClipLoader />
                 </div>
             ) : (
-                <div className="bg-[#1a1a1a] rounded-lg p-6 shadow-lg">
+                <div className="bg-[#1a1a1a] rounded-lg p-4 shadow-md">
                     <form onSubmit={handleBurnToken}>
-                        <div className="mb-6">
-                            <label className="block mb-2 text-lg font-medium">Select Token</label>
+                        <div className="mb-4">
+                            <label className="block mb-1 text-sm font-medium">Select Token</label>
                             <select
-                                className="w-full p-3 bg-[#2a2a2a] border border-gray-700 rounded-lg"
+                                className="w-full p-2 text-sm bg-[#2a2a2a] border border-gray-700 rounded focus-style"
                                 value={formData.tokenAddress}
                                 onChange={(e) => handleChange(e, 'tokenAddress')}
                                 disabled={isBurning}
@@ -420,17 +418,17 @@ const BurnToken: FC = () => {
                         </div>
 
                         {selectedToken && (
-                            <div className="mb-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <label className="text-lg font-medium">Amount to Burn</label>
-                                    <div className="text-sm">
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-sm font-medium">Amount to Burn</label>
+                                    <div className="text-xs">
                                         Balance: {selectedToken.tokenAmount.uiAmount} {selectedToken.symbol}
                                     </div>
                                 </div>
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        className="w-full p-3 bg-[#2a2a2a] border border-gray-700 rounded-lg pr-16"
+                                        className="w-full p-2 text-sm bg-[#2a2a2a] border border-gray-700 rounded focus-style pr-16"
                                         placeholder="0.0"
                                         value={formData.burnAmount}
                                         onChange={(e) => handleChange(e, 'burnAmount')}
@@ -441,7 +439,7 @@ const BurnToken: FC = () => {
                                     />
                                     <button
                                         type="button"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 text-xs rounded"
                                         onClick={maxButtonClick}
                                         disabled={isBurning}
                                     >
@@ -451,15 +449,15 @@ const BurnToken: FC = () => {
                             </div>
                         )}
 
-                        <div className="mt-8">
+                        <div className="mt-4">
                             <button
                                 type="submit"
-                                className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors duration-200"
+                                className="w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded transition-colors duration-200"
                                 disabled={isBurning || !selectedToken}
                             >
                                 {isBurning ? (
                                     <div className="flex justify-center items-center">
-                                        <ClipLoader size={20} color={"#ffffff"} />
+                                        <ClipLoader size={16} color={"#ffffff"} />
                                         <span className="ml-2">Burning...</span>
                                     </div>
                                 ) : (
@@ -470,34 +468,34 @@ const BurnToken: FC = () => {
                     </form>
 
                     {selectedToken && (
-                        <div className="mt-6 p-4 bg-[#2a2a2a] rounded-lg">
-                            <h3 className="text-lg font-medium mb-2">Token Information</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="text-gray-400">Token Address:</div>
-                                <div className="text-sm break-all">{selectedToken.mint}</div>
+                        <div className="mt-4 p-3 bg-[#2a2a2a] rounded text-sm">
+                            <h3 className="text-sm font-medium mb-2">Token Information</h3>
+                            <div className="grid grid-cols-2 gap-1">
+                                <div className="text-gray-400 text-xs">Token Address:</div>
+                                <div className="text-xs break-all">{selectedToken.mint}</div>
 
-                                <div className="text-gray-400">Name:</div>
-                                <div>{selectedToken.name}</div>
+                                <div className="text-gray-400 text-xs">Name:</div>
+                                <div className="text-xs">{selectedToken.name}</div>
 
-                                <div className="text-gray-400">Symbol:</div>
-                                <div>{selectedToken.symbol}</div>
+                                <div className="text-gray-400 text-xs">Symbol:</div>
+                                <div className="text-xs">{selectedToken.symbol}</div>
 
-                                <div className="text-gray-400">Decimals:</div>
-                                <div>{selectedToken.tokenAmount.decimals}</div>
+                                <div className="text-gray-400 text-xs">Decimals:</div>
+                                <div className="text-xs">{selectedToken.tokenAmount.decimals}</div>
 
-                                <div className="text-gray-400">Current Balance:</div>
-                                <div>{selectedToken.tokenAmount.uiAmount}</div>
+                                <div className="text-gray-400 text-xs">Current Balance:</div>
+                                <div className="text-xs">{selectedToken.tokenAmount.uiAmount}</div>
 
-                                <div className="text-gray-400">Token Type:</div>
-                                <div>{selectedToken.isToken2022 ? "Token-2022" : "SPL Token"}</div>
+                                <div className="text-gray-400 text-xs">Token Type:</div>
+                                <div className="text-xs">{selectedToken.isToken2022 ? "Token-2022" : "SPL Token"}</div>
                             </div>
 
                             {selectedToken.logo && (
-                                <div className="mt-4 flex justify-center">
+                                <div className="mt-3 flex justify-center">
                                     <img
                                         src={selectedToken.logo}
                                         alt={`${selectedToken.name} logo`}
-                                        className="h-16 w-16 rounded-full"
+                                        className="h-12 w-12 rounded-full"
                                         onError={(e) => {
                                             // Hide the image if it fails to load
                                             const target = e.target as HTMLImageElement;
@@ -509,12 +507,11 @@ const BurnToken: FC = () => {
                         </div>
                     )}
 
-                    <div className="mt-6 p-4 bg-[#2a2a2a] rounded-lg">
-                        <h3 className="text-lg font-medium mb-2">About Token Burning</h3>
-                        <p className="text-gray-300">
+                    <div className="mt-4 p-3 bg-[#2a2a2a] rounded text-sm">
+                        <h3 className="text-sm font-medium mb-1">About Token Burning</h3>
+                        <p className="text-gray-300 text-xs">
                             Burning tokens permanently removes them from circulation, reducing the total supply.
-                            This action cannot be undone. The burned tokens will be permanently destroyed and
-                            removed from your wallet.
+                            This action cannot be undone.
                         </p>
                     </div>
                 </div>

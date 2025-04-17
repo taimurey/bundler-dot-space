@@ -1,6 +1,4 @@
-import 'twin.macro';
 import React, { HTMLAttributes, PropsWithChildren, useEffect, useState } from 'react';
-import tw from 'twin.macro';
 
 const Collapse: React.FC<
   PropsWithChildren<{
@@ -17,17 +15,12 @@ const Collapse: React.FC<
     else setLocalHeight(height);
   }, [height, maxHeight, expanded]);
 
-  const animationClass = expanded ? tw`animate-fade-in` : tw`animate-fade-out`;
-  const styles = [
-    tw`transition-all duration-200 overflow-hidden`,
-    animationClass,
-    { height: localHeight, maxHeight },
-    className,
-  ].join(' ');
-  return (
+  const animationClass = expanded ? 'animate-fade-in' : 'animate-fade-out';
+  const combinedClasses = `transition-all duration-200 overflow-hidden ${animationClass} ${className}`;
 
+  return (
     <div
-      className={styles}
+      className={combinedClasses}
       style={{ height: localHeight, maxHeight }}
     >
       {children}

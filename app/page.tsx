@@ -77,7 +77,7 @@ const Home = () => {
               Connect all your coins and pools in a few clicks. Start effectively managing your entire portfolio
             </p>
 
-            <div className={`w-1/2 mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mt-8`}>
+            <div className={`w-full lg:w-1/2 mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mt-8`}>
               {buttons.map((button) => (
                 <div
                   key={button.id}

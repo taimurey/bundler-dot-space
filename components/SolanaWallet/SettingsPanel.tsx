@@ -88,7 +88,6 @@ const SettingsPanel = () => {
         if (endpointURL.toString() !== cluster.endpoint) {
           setCustomEndpoint(endpointURL.toString());
           toast.success("RPC endpoint updated!", {
-            pauseOnHover: false,
             duration: 1000,
           });
         }

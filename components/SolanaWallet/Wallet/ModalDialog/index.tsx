@@ -1,5 +1,4 @@
 import React, { PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react'
-import tw from 'twin.macro';
 
 interface ModalDialogProps {
   open: boolean;
@@ -48,14 +47,16 @@ const ModalDialog: React.FC<PropsWithChildren<ModalDialogProps>> = ({ open, onCl
   }, [onClose, isLocalOpen]);
 
   if (!isLocalOpen) return null;
-  const style = [
-    tw`top-0 left-0 h-full w-full flex items-center justify-center bg-black/25 backdrop-blur-sm animate-fade-in cursor-auto z-50`,
-    isLocalOpen && !open && tw`animate-fade-out opacity-0`,].join(' ');
+
+  const baseClasses = 'top-0 left-0 h-full w-full flex items-center justify-center bg-black/25 backdrop-blur-sm animate-fade-in cursor-auto z-50';
+  const fadeOutClass = isLocalOpen && !open ? 'animate-fade-out opacity-0' : '';
+  const combinedClasses = `${baseClasses} ${fadeOutClass}`;
+
   return (
     <dialog
       role="dialog"
       aria-modal="true"
-      className={style}
+      className={combinedClasses}
       ref={ref}
     >
       {children}

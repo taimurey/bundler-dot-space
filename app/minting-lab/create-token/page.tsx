@@ -206,9 +206,9 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="relative w-full container mx-auto px-20 py-10">
-            <div className=" bg-[#0c0e11] bg-opacity-70 border border-neutral-500 p-4 rounded-2xl shadow-2xl shadow-black">
-                <div className="divide-y divide-neutral-700 w-full ">
+        <div className="w-full max-w-4xl mx-auto px-4">
+            <div className="bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-lg shadow-md">
+                <div className="divide-y divide-neutral-700 w-full">
 
                     {isLoading && (
                         <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
@@ -218,13 +218,13 @@ const CreateToken: FC = () => {
 
                     {!tokenMintAddress ? (
                         <>
-                            <form action="" className="py-4 flex flex-col gap-6">
-                                <div className="lg:w-1/2  ">
-                                    <p className="text-[20px] uppercase block text-base text-white font-bold">SPL Token Creation</p>
-                                    <p className="text-[13px] text-[#8c929d] ">This information is stored on IPFS by + Metaplex Metadata standard.</p>
+                            <form action="" className="p-4 flex flex-col gap-4">
+                                <div className="mb-2">
+                                    <p className="text-base uppercase text-white font-medium">SPL Token Creation</p>
+                                    <p className="text-xs text-[#8c929d]">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                                 </div>
-                                <hr className=" border-[#e8e2e2b8] " />
-                                <div className="flex gap-4 ">
+                                <hr className="border-[#e8e2e2b8]" />
+                                <div className="flex flex-col sm:flex-row gap-4">
                                     <UpdatedInputField id="tokenName *"
                                         label="Token Name "
                                         value={formData.tokenName}
@@ -241,7 +241,7 @@ const CreateToken: FC = () => {
                                         type="text"
                                         required={true} />
                                 </div>
-                                <div className="flex gap-4 ">
+                                <div className="flex flex-col sm:flex-row gap-4">
                                     <UpdatedInputField id="tokenDecimals"
                                         label="Token Decimals *"
                                         value={formData.tokenDecimals}
@@ -259,23 +259,24 @@ const CreateToken: FC = () => {
                                         required={true} />
                                 </div>
                                 <div className="">
-                                    <label className="font-normal mt-5 text-white "> Description</label>
+                                    <label className="font-normal text-sm text-white"> Description</label>
                                     <textarea
                                         name=""
                                         id="tokenDescription"
                                         value={formData.tokenDescription}
-                                        rows={5}
-                                        className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
+                                        rows={3}
+                                        className="mt-1 px-4 bg-[#202020]/20 text-sm block w-full p-2 rounded-md border border-[#404040] text-white focus:outline-none placeholder-[#dbd7d7d4]"
                                         onChange={(e) => handleChange(e, 'tokenDescription')}
                                         placeholder="Enter description...">
                                     </textarea>
                                 </div>
 
-                                <div className="flex gap-4 w-full">
-                                    <div className="w-1/2 flex flex-col gap-4">
+                                <div className="flex flex-col md:flex-row gap-4 w-full">
+                                    <div className="w-full md:w-1/2 flex flex-col gap-2">
+                                        <p className="text-xs text-white font-medium">Extensions</p>
                                         <UpdatedInputField
                                             id="websiteUrl"
-                                            label="Extensions"
+                                            label=""
                                             value={formData.websiteUrl}
                                             onChange={(e) => handleChange(e, 'websiteUrl')}
                                             placeholder={"Website URL"}
@@ -310,11 +311,12 @@ const CreateToken: FC = () => {
                                             required={false}
                                         />
                                     </div>
-                                    <div className="w-1/2 pt-6">
-                                        <div className=" flex items-center justify-center p-2 border border-white border-dashed rounded-md shadow-lg h-full">
+                                    <div className="w-full md:w-1/2">
+                                        <p className="text-xs text-white font-medium mb-2">Token Image</p>
+                                        <div className="flex items-center justify-center p-2 border border-white border-dashed rounded-md h-[200px]">
                                             {!uploadedImage && (
                                                 <div>
-                                                    <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
+                                                    <div className="flex justify-center mb-2" onClick={() => document.getElementById('file_input')?.click()}>
                                                         <ImageUploadIcon />
                                                     </div>
                                                     <input
@@ -326,7 +328,7 @@ const CreateToken: FC = () => {
                                                         onChange={handleImageUpload}
                                                     />
                                                     <label
-                                                        className="block align-bottom w-full py-1 px-5 text-sm text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                                        className="block text-center w-full py-1 px-5 text-xs text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
                                                         htmlFor="file_input"
                                                     >
                                                         Upload an Image
@@ -334,75 +336,75 @@ const CreateToken: FC = () => {
                                                 </div>
                                             )}
                                             {uploadedImage && (
-                                                <div className="relative flex justify-center h-40 border-y-v3-bg rounded-md">
-                                                    <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
+                                                <div className="relative flex justify-center h-full w-full">
+                                                    <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain max-h-full" />
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-4 ">
-                                    <div className="w-1/2 ">
-                                        <h1 className=" text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]  ">
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="w-full md:w-1/2">
+                                        <h1 className="text-sm text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]">
                                             Revoke Authorities
                                         </h1>
-                                        <div className="border border-[#404040] mt-1 shadow-black rounded-md p-4 flex flex-col gap-2">
-                                            <div className="flex gap-4 items-center  ">
+                                        <div className="border border-[#404040] mt-1 shadow-black rounded-md p-3 flex flex-col gap-2">
+                                            <div className="flex gap-2 items-center">
                                                 <input
                                                     type="checkbox"
                                                     name="freezeAuthority"
                                                     id="freezeAuthority"
                                                     onChange={(e) => handleChange(e, 'freezeAuthority')}
                                                 />
-                                                <label className="text-[16px] " htmlFor="freezeAuthority">Freeze Authority</label>
+                                                <label className="text-sm" htmlFor="freezeAuthority">Freeze Authority</label>
                                             </div>
-                                            <div className="flex gap-4 items-center  ">
+                                            <div className="flex gap-2 items-center">
                                                 <input
                                                     type="checkbox"
                                                     name="revokeMintAuthority"
                                                     id="revokeMintAuthority"
                                                     onChange={(e) => handleChange(e, 'revokeMintAuthority')}
                                                 />
-                                                <label className="text-[16px]" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
+                                                <label className="text-sm" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="w-1/2 p-4 border border-[#404040] mt-7 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row  ">
-                                        <div className="flex gap-2 justify-center items-center  ">
+                                    <div className="w-full md:w-1/2 p-3 border border-[#404040] mt-0 md:mt-7 rounded-md flex justify-between items-center flex-col gap-2 sm:flex-row">
+                                        <div className="flex gap-2 justify-center items-center">
                                             {uploadedImage || image ?
-                                                <img src={uploadedImage ? uploadedImage : image} className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                                <div className="w-[50px] bg-[#404040] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
+                                                <img src={uploadedImage ? uploadedImage : image} className="w-[40px] h-[40px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
+                                                <div className="w-[40px] bg-[#404040] h-[40px] bg-transparent rounded-full flex justify-center items-center">S</div>}
                                             <div className="">
-                                                <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                                <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate ">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                                                <p className="font-light text-[#c7f285] text-xs truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                                <p className="font-light text-xs truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                                             </div>
                                         </div>
-                                        <div className="flex justify-center items-center gap-2  ">
+                                        <div className="flex justify-center items-center gap-2">
                                             <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                                <FaTwitter size="sm" className="text-white w-6 h-6" />
+                                                <FaTwitter size="sm" className="text-white w-4 h-4" />
                                             </a>
                                             <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-                                                <FaTelegram size="sm" className="text-white w-6 h-6" />
+                                                <FaTelegram size="sm" className="text-white w-4 h-4" />
                                             </a>
                                             <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-                                                <FaDiscord size="sm" className="text-white w-6 h-6" />
+                                                <FaDiscord size="sm" className="text-white w-4 h-4" />
                                             </a>
                                             <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
-                                                <FaGlobe size="sm" className="text-white w-6 h-6" />
+                                                <FaGlobe size="sm" className="text-white w-4 h-4" />
                                             </a>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-center items-center ">
+                                <div className="flex justify-center items-center">
                                     <button
-                                        className="text-center hover:shadow-xl hover:shadow-black/50 w-2/3 border border-[#476e34] rounded-md invoke-btn"
+                                        className="text-center w-full sm:w-2/3 border border-[#476e34] rounded-md invoke-btn py-2 mt-6"
                                         disabled={uploading || creatingToken}
                                         type="submit"
                                         id="formbutton"
                                         onClick={createTokenCallback}
                                     >
-                                        <span className="btn-text-gradient font-bold">
+                                        <span className="btn-text-gradient font-bold text-sm">
                                             {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : 'Create token'}
                                         </span>
                                     </button>
@@ -410,10 +412,10 @@ const CreateToken: FC = () => {
                             </form>
                         </>
                     ) : (
-                        <div className="mt-4 break-words">
-                            <p className="font-medium">Link to your new token.</p>
+                        <div className="p-4 break-words">
+                            <p className="font-medium text-sm">Link to your new token.</p>
                             <a
-                                className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
+                                className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500 text-xs break-all"
                                 href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
                                 target="_blank"
                                 rel="noreferrer"

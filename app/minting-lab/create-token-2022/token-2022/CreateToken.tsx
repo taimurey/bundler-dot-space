@@ -276,7 +276,7 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="p-4">
             {isLoading && (
                 <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
                     <ClipLoader />
@@ -284,15 +284,15 @@ const CreateToken: FC = () => {
             )}
 
             {!tokenMintAddress ? (
-                <form onSubmit={createTokenCallback} className="py-4 flex flex-col gap-6">
-                    <div className="lg:w-1/2">
-                        <p className="text-[20px] uppercase block text-base text-white font-bold">SPL Token 2022 Creation</p>
-                        <p className="text-[13px] text-[#8c929d]">This information is stored on IPFS by + Metaplex Metadata standard.</p>
+                <form onSubmit={createTokenCallback} className="flex flex-col gap-4">
+                    <div>
+                        <p className="text-base uppercase text-white font-medium">SPL Token 2022 Creation</p>
+                        <p className="text-xs text-[#8c929d]">This information is stored on IPFS by + Metaplex Metadata standard.</p>
                     </div>
                     <hr className="border-[#e8e2e2b8]" />
 
                     {/* Basic Token Info Section */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="md:w-1/2">
                                 <UpdatedInputField
@@ -344,23 +344,24 @@ const CreateToken: FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-white font-medium"> Description</label>
+                            <label className="block text-white text-sm font-medium">Description</label>
                             <textarea
                                 name=""
                                 id="tokenDescription"
                                 value={formData.tokenDescription}
-                                rows={5}
-                                className="mt-1 px-4 bg-[#202020]/20 sm:text-md block w-full p-4 rounded-md border border-[#404040] text-white focus:outline-none text-[13px] placeholder-[#dbd7d7d4]"
+                                rows={3}
+                                className="mt-1 px-3 bg-[#202020]/20 text-sm block w-full p-2 rounded-md border border-[#404040] text-white focus:outline-none placeholder-[#dbd7d7d4]"
                                 onChange={(e) => handleChange(e, 'tokenDescription')}
                                 placeholder="Enter description..."
                             ></textarea>
                         </div>
 
-                        <div className="flex gap-4 w-full">
-                            <div className="w-1/2 flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row gap-4 w-full">
+                            <div className="w-full md:w-1/2 flex flex-col gap-2">
+                                <p className="text-xs text-white font-medium">Extensions</p>
                                 <UpdatedInputField
                                     id="websiteUrl"
-                                    label="Extensions"
+                                    label=""
                                     value={formData.websiteUrl}
                                     onChange={(e) => handleChange(e, 'websiteUrl')}
                                     placeholder={"Website URL"}
@@ -395,11 +396,12 @@ const CreateToken: FC = () => {
                                     required={false}
                                 />
                             </div>
-                            <div className="w-1/2 pt-6">
-                                <div className="flex items-center justify-center p-2 border border-white border-dashed rounded-md shadow-lg h-full">
+                            <div className="w-full md:w-1/2">
+                                <p className="text-xs text-white font-medium mb-2">Token Image</p>
+                                <div className="flex items-center justify-center p-2 border border-white border-dashed rounded-md h-[180px]">
                                     {!uploadedImage && (
                                         <div>
-                                            <div className="flex justify-center" onClick={() => document.getElementById('file_input')?.click()}>
+                                            <div className="flex justify-center mb-2" onClick={() => document.getElementById('file_input')?.click()}>
                                                 <ImageUploadIcon />
                                             </div>
                                             <input
@@ -411,7 +413,7 @@ const CreateToken: FC = () => {
                                                 onChange={handleImageUpload}
                                             />
                                             <label
-                                                className="block align-bottom w-full py-1 px-5 text-sm text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                                className="block text-center w-full py-1 px-3 text-xs text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
                                                 htmlFor="file_input"
                                             >
                                                 Upload an Image
@@ -419,8 +421,8 @@ const CreateToken: FC = () => {
                                         </div>
                                     )}
                                     {uploadedImage && (
-                                        <div className="relative flex justify-center h-40 border-y-v3-bg rounded-md">
-                                            <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
+                                        <div className="relative flex justify-center h-full w-full">
+                                            <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain max-h-full" />
                                         </div>
                                     )}
                                 </div>
@@ -429,38 +431,38 @@ const CreateToken: FC = () => {
                     </div>
 
                     {/* Token Info Section */}
-                    <div className="w-1/2 p-4 border border-[#404040] mt-7 rounded-md flex justify-between items-center flex-col gap-4 sm:flex-row">
+                    <div className="w-full md:w-1/2 p-3 border border-[#404040] rounded-md flex justify-between items-center flex-col gap-2 sm:flex-row">
                         <div className="flex gap-2 justify-center items-center">
                             {uploadedImage || image ?
-                                <img src={uploadedImage ? uploadedImage : image} className="w-[50px] h-[50px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                <div className="w-[50px] bg-[#404040] h-[50px] bg-transparent rounded-full flex justify-center items-center">S</div>}
+                                <img src={uploadedImage ? uploadedImage : image} className="w-[40px] h-[40px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
+                                <div className="w-[40px] bg-[#404040] h-[40px] bg-transparent rounded-full flex justify-center items-center">S</div>}
                             <div className="">
-                                <p className="font-light text-[#c7f285] lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                <p className="font-light lg:w-[80px] xl:w-[100px] 2xl:w-[160px] truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                                <p className="font-light text-[#c7f285] text-xs truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                <p className="font-light text-xs truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
                             </div>
                         </div>
                         <div className="flex justify-center items-center gap-2">
                             <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                <TwitterIcon className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                <TwitterIcon className="text-white w-4 h-4" />
                             </a>
                             <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-                                <FaTelegram className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                <FaTelegram className="text-white w-4 h-4" />
                             </a>
                             <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-                                <FaDiscord className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                <FaDiscord className="text-white w-4 h-4" />
                             </a>
                             <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
-                                <FaGlobe className="bg-white text-black text-[12px] rounded-full p-[3px]" />
+                                <FaGlobe className="text-white w-4 h-4" />
                             </a>
                         </div>
                     </div>
 
                     {/* Token Extensions Section */}
-                    <h2 className="text-xl font-bold text-white mt-6 mb-4">Token-2022 Extensions</h2>
-                    <div className="space-y-6">
+                    <h2 className="text-base font-medium text-white mt-4 mb-2">Token-2022 Extensions</h2>
+                    <div className="space-y-4">
                         {/* Transfer Fee Extension */}
-                        <div className="p-4 bg-neutral-800 rounded-lg">
-                            <div className="flex items-center mb-3">
+                        <div className="p-3 bg-neutral-800 rounded-lg">
+                            <div className="flex items-center mb-2">
                                 <input
                                     type="checkbox"
                                     id="transferFeeEnabled"
@@ -468,7 +470,7 @@ const CreateToken: FC = () => {
                                     onChange={(e) => handleChange(e, 'transferFeeEnabled')}
                                     className="mr-2 h-4 w-4"
                                 />
-                                <label htmlFor="transferFeeEnabled" className="text-white font-medium">Transfer Fee</label>
+                                <label htmlFor="transferFeeEnabled" className="text-white text-sm font-medium">Transfer Fee</label>
                                 <ExtensionTooltip
                                     title="Transfer Fee"
                                     description="Collect a fee on each token transfer. The fee is a percentage of the transfer amount, capped at a maximum value."
@@ -476,14 +478,14 @@ const CreateToken: FC = () => {
                             </div>
 
                             {formData.transferFeeEnabled && (
-                                <div className="ml-6 space-y-3">
+                                <div className="ml-6 space-y-2">
                                     <div className="flex flex-col">
-                                        <label className="text-sm text-gray-300 mb-1">Fee Basis Points (1% = 100)</label>
+                                        <label className="text-xs text-gray-300 mb-1">Fee Basis Points (1% = 100)</label>
                                         <input
                                             type="number"
                                             value={formData.transferFeeBasisPoints}
                                             onChange={(e) => handleChange(e, 'transferFeeBasisPoints')}
-                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            className="px-3 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded-md text-white"
                                             min="1"
                                             max="10000"
                                         />
@@ -492,12 +494,12 @@ const CreateToken: FC = () => {
                                         </p>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm text-gray-300 mb-1">Maximum Transfer Fee</label>
+                                        <label className="text-xs text-gray-300 mb-1">Maximum Transfer Fee</label>
                                         <input
                                             type="text"
                                             value={formData.maxTransferFee}
                                             onChange={(e) => handleChange(e, 'maxTransferFee')}
-                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            className="px-3 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded-md text-white"
                                         />
                                         <p className="text-xs text-gray-400 mt-1">
                                             Maximum amount of tokens that can be charged as a fee per transfer
@@ -507,9 +509,9 @@ const CreateToken: FC = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Memo Transfer Extension */}
-                            <div className="p-4 bg-neutral-800 rounded-lg">
+                            <div className="p-3 bg-neutral-800 rounded-lg">
                                 <div className="flex items-center">
                                     <input
                                         type="checkbox"
@@ -518,7 +520,7 @@ const CreateToken: FC = () => {
                                         onChange={(e) => handleChange(e, 'memoTransferEnabled')}
                                         className="mr-2 h-4 w-4"
                                     />
-                                    <label htmlFor="memoTransferEnabled" className="text-white font-medium">Required Memo Transfer</label>
+                                    <label htmlFor="memoTransferEnabled" className="text-white text-sm font-medium">Required Memo Transfer</label>
                                     <ExtensionTooltip
                                         title="Required Memo Transfer"
                                         description="Require a memo instruction when tokens are transferred to this account."
@@ -527,7 +529,7 @@ const CreateToken: FC = () => {
                             </div>
 
                             {/* Metadata Pointer Extension */}
-                            <div className="p-4 bg-neutral-800 rounded-lg">
+                            <div className="p-3 bg-neutral-800 rounded-lg">
                                 <div className="flex items-center">
                                     <input
                                         type="checkbox"
@@ -536,7 +538,7 @@ const CreateToken: FC = () => {
                                         onChange={(e) => handleChange(e, 'metadataPointerEnabled')}
                                         className="mr-2 h-4 w-4"
                                     />
-                                    <label htmlFor="metadataPointerEnabled" className="text-white font-medium">Metadata Pointer</label>
+                                    <label htmlFor="metadataPointerEnabled" className="text-white text-sm font-medium">Metadata Pointer</label>
                                     <ExtensionTooltip
                                         title="Metadata Pointer"
                                         description="Enables pointing to token metadata stored in an external account."
@@ -546,8 +548,8 @@ const CreateToken: FC = () => {
                         </div>
 
                         {/* Permanent Delegate Extension */}
-                        <div className="p-4 bg-neutral-800 rounded-lg">
-                            <div className="flex items-center mb-3">
+                        <div className="p-3 bg-neutral-800 rounded-lg">
+                            <div className="flex items-center mb-2">
                                 <input
                                     type="checkbox"
                                     id="permanentDelegateEnabled"
@@ -555,7 +557,7 @@ const CreateToken: FC = () => {
                                     onChange={(e) => handleChange(e, 'permanentDelegateEnabled')}
                                     className="mr-2 h-4 w-4"
                                 />
-                                <label htmlFor="permanentDelegateEnabled" className="text-white font-medium">Permanent Delegate</label>
+                                <label htmlFor="permanentDelegateEnabled" className="text-white text-sm font-medium">Permanent Delegate</label>
                                 <ExtensionTooltip
                                     title="Permanent Delegate"
                                     description="Configure a permanent delegate that can transfer tokens from any account."
@@ -565,12 +567,12 @@ const CreateToken: FC = () => {
                             {formData.permanentDelegateEnabled && (
                                 <div className="ml-6">
                                     <div className="flex flex-col">
-                                        <label className="text-sm text-gray-300 mb-1">Delegate Address (optional)</label>
+                                        <label className="text-xs text-gray-300 mb-1">Delegate Address (optional)</label>
                                         <input
                                             type="text"
                                             value={formData.permanentDelegateAddress}
                                             onChange={(e) => handleChange(e, 'permanentDelegateAddress')}
-                                            className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                            className="px-3 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded-md text-white"
                                             placeholder="Enter public key (leave empty to use your wallet)"
                                         />
                                     </div>
@@ -578,10 +580,10 @@ const CreateToken: FC = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Interest Bearing Extension */}
-                            <div className="p-4 bg-neutral-800 rounded-lg">
-                                <div className="flex items-center mb-3">
+                            <div className="p-3 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center mb-2">
                                     <input
                                         type="checkbox"
                                         id="interestBearingEnabled"
@@ -589,7 +591,7 @@ const CreateToken: FC = () => {
                                         onChange={(e) => handleChange(e, 'interestBearingEnabled')}
                                         className="mr-2 h-4 w-4"
                                     />
-                                    <label htmlFor="interestBearingEnabled" className="text-white font-medium">Interest Bearing</label>
+                                    <label htmlFor="interestBearingEnabled" className="text-white text-sm font-medium">Interest Bearing</label>
                                     <ExtensionTooltip
                                         title="Interest Bearing"
                                         description="Make your token accrue interest over time."
@@ -599,12 +601,12 @@ const CreateToken: FC = () => {
                                 {formData.interestBearingEnabled && (
                                     <div className="ml-6">
                                         <div className="flex flex-col">
-                                            <label className="text-sm text-gray-300 mb-1">Interest Rate (basis points)</label>
+                                            <label className="text-xs text-gray-300 mb-1">Interest Rate (basis points)</label>
                                             <input
                                                 type="number"
                                                 value={formData.interestRate}
                                                 onChange={(e) => handleChange(e, 'interestRate')}
-                                                className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                                className="px-3 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded-md text-white"
                                                 min="1"
                                                 max="10000"
                                             />
@@ -617,8 +619,8 @@ const CreateToken: FC = () => {
                             </div>
 
                             {/* Default Account State Extension */}
-                            <div className="p-4 bg-neutral-800 rounded-lg">
-                                <div className="flex items-center mb-3">
+                            <div className="p-3 bg-neutral-800 rounded-lg">
+                                <div className="flex items-center mb-2">
                                     <input
                                         type="checkbox"
                                         id="defaultAccountStateEnabled"
@@ -626,7 +628,7 @@ const CreateToken: FC = () => {
                                         onChange={(e) => handleChange(e, 'defaultAccountStateEnabled')}
                                         className="mr-2 h-4 w-4"
                                     />
-                                    <label htmlFor="defaultAccountStateEnabled" className="text-white font-medium">Default Account State</label>
+                                    <label htmlFor="defaultAccountStateEnabled" className="text-white text-sm font-medium">Default Account State</label>
                                     <ExtensionTooltip
                                         title="Default Account State"
                                         description="Set the default state of new token accounts."
@@ -636,11 +638,11 @@ const CreateToken: FC = () => {
                                 {formData.defaultAccountStateEnabled && (
                                     <div className="ml-6">
                                         <div className="flex flex-col">
-                                            <label className="text-sm text-gray-300 mb-1">Default State</label>
+                                            <label className="text-xs text-gray-300 mb-1">Default State</label>
                                             <select
                                                 value={formData.defaultAccountState}
                                                 onChange={(e) => handleChange(e, 'defaultAccountState')}
-                                                className="px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white"
+                                                className="px-3 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded-md text-white"
                                             >
                                                 <option value="initialized">Initialized (normal)</option>
                                                 <option value="frozen">Frozen (restricted)</option>
@@ -653,14 +655,14 @@ const CreateToken: FC = () => {
                     </div>
 
                     {/* Submit Button */}
-                    <div className="flex justify-center items-center mt-6">
+                    <div className="flex justify-center items-center mt-4">
                         <button
-                            className="text-center hover:shadow-xl hover:shadow-black/50 w-2/3 border border-[#476e34] rounded-md invoke-btn"
+                            className="text-center w-full sm:w-2/3 border border-[#476e34] rounded-md invoke-btn py-2"
                             disabled={uploading || creatingToken}
                             type="submit"
                             id="formbutton"
                         >
-                            <span className="btn-text-gradient font-bold">
+                            <span className="btn-text-gradient font-bold text-sm">
                                 {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : creatingToken ? "Creating Token..." : "Create Token-2022"}
                             </span>
                         </button>
@@ -668,9 +670,9 @@ const CreateToken: FC = () => {
                 </form>
             ) : (
                 <div className="mt-4 break-words">
-                    <p className="font-medium">Link to your new token.</p>
+                    <p className="font-medium text-sm">Link to your new token.</p>
                     <a
-                        className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500"
+                        className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500 text-xs break-all"
                         href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
                         target="_blank"
                         rel="noreferrer"

@@ -190,7 +190,6 @@ export async function createToken2022(
         createNewTokenTransaction.add(
             createInitializePermanentDelegateInstruction(
                 mintKeypair.publicKey,
-                myPublicKey,
                 delegateAddress,
                 TOKEN_2022_PROGRAM_ID
             )
@@ -222,7 +221,6 @@ export async function createToken2022(
         createNewTokenTransaction.add(
             createInitializeDefaultAccountStateInstruction(
                 mintKeypair.publicKey,
-                myPublicKey,
                 state,
                 TOKEN_2022_PROGRAM_ID
             )
