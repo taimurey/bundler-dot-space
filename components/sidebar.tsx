@@ -16,14 +16,14 @@ import CashInflowIcon from "@/components/icons/cashInflowIcon";
 import MultiSenderIcon from "@/components/icons/MultiSendIcon";
 import { MdSevereCold, MdToken } from "react-icons/md";
 import ToolsIcon from "@/components/icons/ToolsIcon";
-import { FaCoins, FaFire, FaStickyNote } from "react-icons/fa";
+import { FaCoins, FaFire, FaStickyNote, FaHome } from "react-icons/fa";
 import { GiBrainFreeze } from "react-icons/gi";
 import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
 import MevLabLogo from "./icons/JupiterLogo";
 import { GiBubblingFlask } from "react-icons/gi";
 import { LockIcon } from "lucide-react";
 import { LiaFlaskSolid } from "react-icons/lia";
-import RaydiumIcon from "./icons/RaydiumIcon";
+import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
 import GoldenPumpFunIcon from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
@@ -128,6 +128,7 @@ const Sidebar: FC = () => {
     const [isHovering, setIsHovering] = useState(false);
     // Track text visibility separately
     const [textVisible, setTextVisible] = useState(true);
+    const isHomePage = pathname === "/";
 
     // Listen for toggle event from header
     useEffect(() => {
@@ -199,24 +200,34 @@ const Sidebar: FC = () => {
     // Main navigation links (shown at the top level)
     const mainLinks = [
         {
+            href: '/',
+            title: 'Home',
+            icon: <FaHome className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Show on all pages
+        },
+        {
             href: '/minting-lab/create-token',
             title: 'Minting Lab',
             icon: <SolanaIcon className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Make visible on all pages
         },
         {
             href: '/pump-fun/create',
             title: 'PumpFun',
             icon: <PumpFunIcon className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Show on all pages
         },
         {
             href: '/raydium/create-ray-amm',
             title: 'Raydium',
             icon: <RaydiumIcon className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Show on all pages
         },
         {
             href: '/utilities/distribute-tokens',
             title: 'Utilities',
             icon: <ToolsIcon width="25" height="25" />,
+            showOnlyOnHomePage: false  // Show on all pages
         }
     ];
 
@@ -264,33 +275,33 @@ const Sidebar: FC = () => {
         },
         // Raydium links
         {
-            href: '/raydium/openbook',
-            title: 'Create OpenBook',
-            icon: <FaStickyNote className="w-5 h-5" />,
-            group: 'raydium'
+            href: "/raydium/openbook",
+            title: "Create OpenBook",
+            icon: <FaStickyNote className="w-5 h-5 bg-gradient-to-t from-blue-500 to-purple-500 text-clip rounded-lg" />,
+            group: "raydium",
         },
         {
             href: '/raydium/create-ray-amm',
             title: 'RayAMM Bundler',
-            icon: <FlaskIcon className="w-5 h-5" />,
+            icon: <RaydiumAMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-amm',
             title: 'RayAMM Manager',
-            icon: <ManageIcon className="w-7 h-7" />,
+            icon: <RaydiumAMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/create-ray-cpmm',
             title: 'RayCPMM Bundler',
-            icon: <GiBubblingFlask className="w-6 h-6" />,
+            icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-cpmm',
             title: 'RayCPMM Manager',
-            icon: <LiaFlaskSolid className="w-6 h-6" />,
+            icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         // PumpFun links
@@ -325,7 +336,6 @@ const Sidebar: FC = () => {
     const isPumpFunPage = pathname.includes('/pump-fun');
     const isRaydiumPage = pathname.includes('/raydium');
     const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/volume-generator');
-    const isHomePage = pathname === '/';
 
     // Determine which sub-links to show based on active section
     let visibleSubLinks = subLinks;
@@ -352,26 +362,24 @@ const Sidebar: FC = () => {
             onMouseLeave={() => !isLocked && setIsHovering(false)}
         >
             <div className="flex justify-end">
-                {pathname !== '/' && (
-                    <div className="flex items-center justify-center">
-                        <button
-                            onClick={() => setIsLocked(!isLocked)}
-                            type="button"
-                            className="hidden md:flex w-8 h-8 mr-1 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
-                            aria-label={isLocked ? "Unlock sidebar" : "Lock sidebar"}
-                        >
-                            <LockIcon className={`w-3 h-3 ${isLocked ? 'text-blue-400' : ''}`} />
-                        </button>
-                        <button
-                            onClick={() => handleCollapse(!isCollapsed)}
-                            type="button"
-                            className="hidden md:flex w-8 h-8 mr-3 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
-                            aria-label="Toggle sidebar"
-                        >
-                            {isCollapsed ? <RiMenuFold2Line /> : <RiMenuFoldLine />}
-                        </button>
-                    </div>
-                )}
+                <div className="flex items-center justify-center">
+                    <button
+                        onClick={() => setIsLocked(!isLocked)}
+                        type="button"
+                        className="hidden md:flex w-8 h-8 mr-1 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
+                        aria-label={isLocked ? "Unlock sidebar" : "Lock sidebar"}
+                    >
+                        <LockIcon className={`w-3 h-3 ${isLocked ? 'text-blue-400' : ''}`} />
+                    </button>
+                    <button
+                        onClick={() => handleCollapse(!isCollapsed)}
+                        type="button"
+                        className="hidden md:flex w-8 h-8 mr-3 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
+                        aria-label="Toggle sidebar"
+                    >
+                        {isCollapsed ? <RiMenuFold2Line /> : <RiMenuFoldLine />}
+                    </button>
+                </div>
             </div>
             <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center">
@@ -394,7 +402,7 @@ const Sidebar: FC = () => {
                 </div>
                 {/* Main navigation */}
                 <div className="flex flex-col gap-1 mb-4 px-2">
-                    {mainLinks.map((link, index) => {
+                    {mainLinks.filter(link => isHomePage || !link.showOnlyOnHomePage).map((link, index) => {
                         let gradientFrom, gradientTo;
 
                         if (link.href.includes('/minting-lab')) {
@@ -406,7 +414,7 @@ const Sidebar: FC = () => {
                         } else if (link.href.includes('/raydium')) {
                             gradientFrom = raydiumGradient.from;
                             gradientTo = raydiumGradient.to;
-                        } else if (link.title === '/utilities') {
+                        } else if (link.href.includes('/utilities')) {
                             gradientFrom = utilitiesGradient.from;
                             gradientTo = utilitiesGradient.to;
                         }
@@ -416,11 +424,11 @@ const Sidebar: FC = () => {
                                 key={index}
                                 href={link.href}
                                 isActive={
-                                    link.href === '/' ? isHomePage :
+                                    link.href === '/' ? pathname === '/' :
                                         (link.href.includes('/minting-lab') && isMintingLabPage) ||
                                         (link.href.includes('/pump-fun') && isPumpFunPage) ||
                                         (link.href.includes('/raydium') && isRaydiumPage) ||
-                                        (link.title === '/utilities' && isUtilsPage)
+                                        (link.href.includes('/utilities') && isUtilsPage)
                                 }
                                 title={link.title}
                                 icon={link.icon}

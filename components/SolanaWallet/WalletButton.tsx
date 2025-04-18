@@ -8,10 +8,10 @@ import { PiGearBold } from "react-icons/pi";
 
 // Utility
 const copyTextToClipboard = async (text: string) => {
-  if ('clipboard' in navigator) {
+  if ("clipboard" in navigator) {
     return await navigator.clipboard.writeText(text);
   } else {
-    return document.execCommand('copy', true, text);
+    return document.execCommand("copy", true, text);
   }
 };
 
@@ -46,11 +46,14 @@ const WalletButton: FC = () => {
         <div className="flex items-center gap-3">
           <Dialog>
             <DialogTrigger asChild>
-              <button className="flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 text-gray-200 text-sm font-medium rounded-lg w-10 h-10 transition-colors duration-200 border border-zinc-700 shadow-md">
+              <button className="flex items-center justify-center text-gray-200 text-sm font-medium rounded-lg w-10 h-10 transition-colors duration-200 border border-zinc-700 shadow-md">
                 <PiGearBold className="w-5 h-5" />
               </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Settings</DialogTitle>
+              </DialogHeader>
               <SettingsPanel />
             </DialogContent>
           </Dialog>
@@ -79,7 +82,10 @@ const WalletButton: FC = () => {
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="bg-zinc-900 border border-zinc-800 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-gray-100 font-medium text-lg">Wallet Options</DialogTitle>
+            {/* Keep existing DialogTitle since it's visible */}
+            <DialogTitle className="text-gray-100 font-medium text-lg">
+              Wallet Options
+            </DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2 mt-2">
@@ -90,7 +96,17 @@ const WalletButton: FC = () => {
               <span className="text-sm font-medium">
                 {isCopied ? "Address Copied!" : "Copy Address"}
               </span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
               </svg>
@@ -104,7 +120,17 @@ const WalletButton: FC = () => {
               }}
             >
               <span className="text-sm font-medium">Disconnect</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>

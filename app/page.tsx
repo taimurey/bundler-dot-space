@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import PumpFunIcon from "@/components/icons/PumpFunIcon";
-import RaydiumIcon from "@/components/icons/RaydiumIcon";
+import { RaydiumIcon } from "@/components/icons/RaydiumIcons";
 import SolanaIcon from "@/components/icons/SolanaIcon";
 import MultiSendIcon from "@/components/icons/MultiSendIcon";
 import { Spotlight, GridBackground } from "@/components/blocks/spotlight-new";
@@ -47,16 +47,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col relative min-h-screen overflow-hidden">
-      <GridBackground
-        className="bg-gradient-to-br from-[#6df374] to-[#505050]"
-        width={100}
-        height={100}
-      />
-      <Spotlight
-        width={720}
-        height={1680}
-        xOffset={200}
-      />
+
       <div className="flex flex-col items-center justify-center w-full h-screen relative z-10">
         <div className="w-full mx-auto flex flex-col gap-6 px-4">
           <h1 className={`text-4xl md:text-5xl font-bold text-center transition-opacity duration-500`}>

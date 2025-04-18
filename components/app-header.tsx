@@ -55,13 +55,13 @@ const AppHeader: React.FC = () => {
     <>
       <div className="fixed top-0 left-0 right-0 flex items-center justify-between px-4 z-50">
         <div className="flex items-center px-2 gap-1">
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <button onClick={handleToggleMenu} type="button" className="w-6 mr-3 md:hidden text-white">
               {openMobileMenu ? <CloseIcon /> : <MenuIcon />}
-            </button>
+            </button> */}
 
-            {/* Sidebar toggle button (visible on desktop) */}
-            {route !== '/' && (
+          {/* Sidebar toggle button (visible on desktop) */}
+          {/* {route !== '/' && (
               <button
                 onClick={handleToggleSidebar}
                 type="button"
@@ -82,7 +82,7 @@ const AppHeader: React.FC = () => {
                 </span>
               </h1>
             </Link>
-          </div>
+          </div> */}
           <HeaderLinks />
         </div>
 

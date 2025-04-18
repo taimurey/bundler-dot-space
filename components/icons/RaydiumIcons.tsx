@@ -1,5 +1,10 @@
 import React from 'react';
-
+import Image from 'next/image';
+import RaydiumAMMBuy from '@/public/RAYAMMBUY.svg'
+import RaydiumAMMSell from '@/public/RAYAMMSELL.svg'
+import RaydiumCPMMBuy from '@/public/RAYCPMMBUY.svg'
+import RaydiumCPMMSell from '@/public/RAYCPMMSELL.svg'
+import OpenBook from '@/public/openbook.svg'
 interface RaydiumIconProps {
     className?: string;
 }
@@ -86,5 +91,35 @@ const RaydiumIcon = ({ className = '' }: RaydiumIconProps) => {
     );
 };
 
+const RaydiumAMMBuyIcon = ({ className = '' }: RaydiumIconProps) => {
+    return (
+        <Image src={RaydiumAMMBuy} alt="Raydium AMM Buy" className={className} />
+    );
+};
 
-export default RaydiumIcon;
+const RaydiumAMMSellIcon = ({ className = '' }: RaydiumIconProps) => {
+    return (
+        <Image src={RaydiumAMMSell} alt="Raydium AMM Sell" className={className} />
+    );
+};
+
+const RaydiumCPMMBuyIcon = ({ className = '' }: RaydiumIconProps) => {
+    return (
+        <Image src={RaydiumCPMMBuy} alt="Raydium CPMM Buy" className={className} />
+    );
+};
+
+const RaydiumCPMMSellIcon = ({ className = '' }: RaydiumIconProps) => {
+    return (
+        <Image src={RaydiumCPMMSell} alt="Raydium CPMM Sell" className={className} />
+    );
+};
+
+const OpenBookIcon = ({ className = '' }: RaydiumIconProps) => {
+    return (
+        <Image src={OpenBook} alt="OpenBook" className={className} />
+    );
+};
+
+
+export { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon, OpenBookIcon };
