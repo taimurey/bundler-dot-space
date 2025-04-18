@@ -152,13 +152,7 @@ export function WalletButton({ className }: WalletButtonProps) {
                         Dashboard
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                        className="cursor-pointer hover:bg-zinc-800 py-2.5"
-                        onClick={() => router.push('/transfer')}
-                    >
-                        <SendHorizontal className="h-4 w-4 mr-2" />
-                        Transfer SOL
-                    </DropdownMenuItem>
+
 
                     {!isDemoWallet && (
                         <DropdownMenuItem

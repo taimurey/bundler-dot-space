@@ -221,3 +221,6 @@ export function TransferDialog({
         </Dialog>
     );
 }
+
+// Export the component for ease of use
+export default TransferDialog;

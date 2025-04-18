@@ -226,60 +226,6 @@ const WalletButton: FC = () => {
                     <polyline points="9 18 15 12 9 6"></polyline>
                   </svg>
                 </button>
-
-                <button
-                  className="flex items-center justify-between bg-zinc-800 hover:bg-zinc-700 text-gray-200 rounded-lg py-3 px-4 transition-colors duration-200 border border-zinc-700"
-                  onClick={() => {
-                    router.push('/transfer');
-                    setShowModal(false);
-                  }}
-                >
-                  <span className="text-sm font-medium flex items-center">
-                    <SendHorizontalIcon className="h-4 w-4 mr-2" />
-                    Transfer SOL
-                  </span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-
-                {!isDemoWallet && (
-                  <button
-                    className="flex items-center justify-between bg-zinc-800 hover:bg-zinc-700 text-gray-200 rounded-lg py-3 px-4 transition-colors duration-200 border border-zinc-700"
-                    onClick={() => {
-                      window.open(`https://explorer.solana.com/address/${authState.user?.walletAddress}?cluster=devnet`, "_blank");
-                      setShowModal(false);
-                    }}
-                  >
-                    <span className="text-sm font-medium flex items-center">
-                      <ExternalLinkIcon className="h-4 w-4 mr-2" />
-                      View on Explorer
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </button>
-                )}
               </>
             )}
 

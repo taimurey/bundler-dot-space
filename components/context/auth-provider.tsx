@@ -16,12 +16,21 @@ import { googleLogout } from "@react-oauth/google"
 import { jwtDecode } from "jwt-decode"
 import { createSolanaWallet as createTurnkeyWallet, getSolanaBalance } from "@/lib/services/solana-wallet"
 
+// Define wallet type
+export interface Wallet {
+    id: string;
+    address: string;
+    name: string;
+    balance?: number;
+}
+
 // Define types
 export type User = {
     email: string;
     id: string;
     walletAddress?: string;
     balance?: number;
+    wallets?: Wallet[];
     session?: {
         authClient: AuthClient;
     };
@@ -50,6 +59,8 @@ interface AuthContextType {
     logout: () => Promise<void>;
     createSolanaWallet: (userId: string) => Promise<string | undefined>;
     fetchWalletBalance: (address: string) => Promise<void>;
+    importWallet: (name: string, privateKey: string) => Promise<Wallet | undefined>;
+    createNewWallet: (name: string) => Promise<Wallet | undefined>;
 }
 
 const initialState: AuthState = {
@@ -65,6 +76,8 @@ const AuthContext = createContext<AuthContextType>({
     logout: async () => { },
     createSolanaWallet: async () => undefined,
     fetchWalletBalance: async () => { },
+    importWallet: async () => undefined,
+    createNewWallet: async () => undefined,
 })
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -81,6 +94,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // If user has a wallet, fetch the balance
                 if (userSession.walletAddress) {
                     fetchWalletBalance(userSession.walletAddress);
+                }
+
+                // If user has multiple wallets, update their balances
+                if (userSession.wallets && userSession.wallets.length > 0) {
+                    userSession.wallets.forEach(wallet => {
+                        if (wallet.address) {
+                            fetchWalletBalance(wallet.address);
+                        }
+                    });
                 }
             }
         };
@@ -104,7 +126,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             const balance = await getSolanaBalance(address);
-            const updatedUser = { ...state.user, balance };
+
+            // Update the main wallet balance if it matches
+            const updatedUser = { ...state.user };
+            if (updatedUser.walletAddress === address) {
+                updatedUser.balance = balance;
+            }
+
+            // Also update in wallets array if it exists
+            if (updatedUser.wallets) {
+                updatedUser.wallets = updatedUser.wallets.map(wallet => {
+                    if (wallet.address === address) {
+                        return { ...wallet, balance };
+                    }
+                    return wallet;
+                });
+            }
+
             await setStorageValue(STORAGE_KEY_USER_SESSION, updatedUser);
             setState(prev => ({ ...prev, user: updatedUser }));
         } catch (error) {
@@ -114,6 +152,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const setUser = useCallback(async (user: User | null) => {
         if (user) {
+            // Initialize wallets array if it doesn't exist
+            if (!user.wallets) {
+                user.wallets = [];
+            }
+
             // Store user in local storage
             await setStorageValue(STORAGE_KEY_USER_SESSION, user);
 
@@ -125,7 +168,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 try {
                     const walletAddress = await createSolanaWallet(user.id);
                     if (walletAddress) {
-                        const updatedUser = { ...user, walletAddress };
+                        const updatedUser = {
+                            ...user,
+                            walletAddress,
+                            // Add to wallets array as well
+                            wallets: [
+                                ...(user.wallets || []),
+                                {
+                                    id: "main",
+                                    address: walletAddress,
+                                    name: "Axiom Main"
+                                }
+                            ]
+                        };
+
                         await setStorageValue(STORAGE_KEY_USER_SESSION, updatedUser);
                         setState(prev => ({ ...prev, user: updatedUser }));
 
@@ -138,6 +194,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             } else if (user.walletAddress) {
                 // Fetch balance for existing wallet
                 fetchWalletBalance(user.walletAddress);
+
+                // Add main wallet to wallets array if not already there
+                if (!user.wallets.some(w => w.address === user.walletAddress)) {
+                    const updatedUser = {
+                        ...user,
+                        wallets: [
+                            ...(user.wallets || []),
+                            {
+                                id: "main",
+                                address: user.walletAddress,
+                                name: "Axiom Main"
+                            }
+                        ]
+                    };
+                    await setStorageValue(STORAGE_KEY_USER_SESSION, updatedUser);
+                    setState(prev => ({ ...prev, user: updatedUser }));
+                }
             }
         } else {
             // Remove user from local storage
@@ -160,6 +233,96 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (error: any) {
             setError(error.message || "Failed to create wallet");
             return undefined;
+        }
+    };
+
+    // Import a wallet
+    const importWallet = async (name: string, privateKey: string): Promise<Wallet | undefined> => {
+        if (!state.user) return undefined;
+
+        try {
+            setLoading(true);
+
+            // In a real implementation, you would:
+            // 1. Validate the private key
+            // 2. Derive the public address from the private key
+            // 3. Save the wallet securely
+
+            // For demo, we're simulating the process
+            const mockAddress = `imported-${privateKey.slice(0, 6)}...${privateKey.slice(-4)}`;
+
+            const newWallet: Wallet = {
+                id: `wallet-${Date.now()}`,
+                address: mockAddress,
+                name: name || "Imported Wallet",
+                balance: Math.random() * 2 // Mock balance for demo
+            };
+
+            // Update user with new wallet
+            const updatedUser = {
+                ...state.user,
+                wallets: [
+                    ...(state.user.wallets || []),
+                    newWallet
+                ]
+            };
+
+            await setStorageValue(STORAGE_KEY_USER_SESSION, updatedUser);
+            setState(prev => ({ ...prev, user: updatedUser, loading: false }));
+
+            toast.success("Wallet imported successfully");
+            return newWallet;
+
+        } catch (error: any) {
+            setError(error.message || "Failed to import wallet");
+            return undefined;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Create a new wallet
+    const createNewWallet = async (name: string): Promise<Wallet | undefined> => {
+        if (!state.user) return undefined;
+
+        try {
+            setLoading(true);
+
+            // In a real implementation, you would use Turnkey to create a new wallet
+            // Here we're simulating it
+            const userId = state.user.id;
+            const walletId = `wallet-${Date.now()}`;
+
+            // Mock address for demo purposes
+            const mockAddress = `${userId.slice(0, 4)}-${walletId.slice(-6)}...${Date.now().toString().slice(-4)}`;
+
+            const newWallet: Wallet = {
+                id: walletId,
+                address: mockAddress,
+                name: name || "New Wallet",
+                balance: 0
+            };
+
+            // Update user with new wallet
+            const updatedUser = {
+                ...state.user,
+                wallets: [
+                    ...(state.user.wallets || []),
+                    newWallet
+                ]
+            };
+
+            await setStorageValue(STORAGE_KEY_USER_SESSION, updatedUser);
+            setState(prev => ({ ...prev, user: updatedUser, loading: false }));
+
+            toast.success("Wallet created successfully");
+            return newWallet;
+
+        } catch (error: any) {
+            setError(error.message || "Failed to create new wallet");
+            return undefined;
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -250,7 +413,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 loginWithGoogle,
                 logout,
                 createSolanaWallet,
-                fetchWalletBalance
+                fetchWalletBalance,
+                importWallet,
+                createNewWallet
             }}
         >
             {children}
