@@ -16,6 +16,8 @@ export interface PageMetadata {
     title: string;
     description?: string;
     section?: string; // e.g. "Minting Lab", "Bundler Lab"
+    keywords?: string;
+    imageUrl?: string;
 }
 
 type HeaderLayoutProps = {

@@ -1,9 +1,5 @@
-import React from 'react'
+import PumpFunClient from "./pump-fun-client";
 
-const index = () => {
-    return (
-        <div>index</div>
-    )
+export default function PumpFunPage() {
+    return <PumpFunClient />;
 }
-
-export default index;
