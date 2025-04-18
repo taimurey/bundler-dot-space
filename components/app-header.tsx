@@ -12,7 +12,7 @@ import SwapIcon from '@/components/icons/SwapIcon';
 import LiquidityIcon from '@/components/icons/LiquidityIcon';
 import { usePathname } from 'next/navigation';
 import HeaderLinks from './HeaderLinks';
-import WalletButton from './SolanaWallet/WalletButton';
+import { WalletButton } from './Wallet/WalletButton';
 
 export const headerLinks = [
   {
@@ -90,7 +90,7 @@ const AppHeader: React.FC = () => {
           <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
             <DiscordIcon width="40" height="40" />
           </a>
-          {/* <WalletButton /> */}
+          <WalletButton />
         </div>
       </div>
 

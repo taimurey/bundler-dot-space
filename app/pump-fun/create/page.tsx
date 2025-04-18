@@ -67,9 +67,7 @@ const LiquidityHandlerRaydium = () => {
 
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
 
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        throw new Error('NFT_STORAGE is not defined');
-    }
+
 
     const [formData, setFormData] = useState<{
         coinname: string;

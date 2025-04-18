@@ -9,7 +9,7 @@ import HeaderLinks from "./HeaderLinks";
 import { GridBackground } from "./blocks/spotlight-new";
 import { Spotlight } from "./blocks/spotlight-new";
 import { HeroPattern } from "@/components/ui/HeroPattern";
-// Page metadata interface
+
 export interface PageMetadata {
     title: string;
     description?: string;
@@ -65,7 +65,6 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                         xOffset={200}
                     />
                 </div>
-
                 {/* Actual content - above background */}
                 <main className="flex-1 overflow-auto relative z-10 h-full">
                     {/* Header section */}
@@ -76,14 +75,12 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                                 {typeof metadata === 'string' ? metadata : metadata.title}
                             </h1>
                         )}
-
                         {/* Show HeaderLinks on homepage */}
                         {isHomePage && (
                             <div className="mr-auto">
                                 <HeaderLinks />
                             </div>
                         )}
-
                         {/* Always show wallet button and discord link */}
                         <div className="flex items-center gap-2">
                             {isHomePage && (
@@ -94,7 +91,6 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                             <WalletButton />
                         </div>
                     </div>
-
                     {children}
                 </main>
             </div>

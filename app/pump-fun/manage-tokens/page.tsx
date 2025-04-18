@@ -31,9 +31,7 @@ const PumpfunSell = () => {
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [Mode, setMode] = useState(1);
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        throw new Error('NFT_STORAGE is not defined');
-    }
+
 
 
     const [formData, setFormData] = useState<{

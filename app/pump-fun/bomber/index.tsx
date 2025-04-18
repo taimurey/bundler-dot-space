@@ -22,9 +22,7 @@ export type BalanceType = {
 export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const VolumeCommentBomb = () => {
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        throw new Error('NFT_STORAGE is not defined');
-    }
+
 
     const [formData, setFormData] = useState({
         signerkeypair: '',

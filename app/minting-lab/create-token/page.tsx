@@ -36,9 +36,7 @@ const CreateToken: FC = () => {
     const [tokenMintAddress, setTokenMintAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [image, setImage] = useState<string>("");
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        console.warn('NFT_STORAGE is not defined');
-    }
+
     const [uploading, setUploading] = useState(false);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [creatingToken, setCreatingToken] = useState(false);
