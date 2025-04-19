@@ -25,7 +25,7 @@ import { LockIcon } from "lucide-react";
 import { LiaFlaskSolid } from "react-icons/lia";
 import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
-import GoldenPumpFunIcon from "./icons/GoldenPumpIcon";
+import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
@@ -282,38 +282,50 @@ const Sidebar: FC = () => {
         },
         {
             href: '/raydium/create-ray-amm',
-            title: 'RayAMM Bundler',
+            title: 'AMM Bundler',
             icon: <RaydiumAMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-amm',
-            title: 'RayAMM Manager',
+            title: 'AMM Manager',
             icon: <RaydiumAMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/create-ray-cpmm',
-            title: 'RayCPMM Bundler',
+            title: 'CPMM Bundler',
             icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-cpmm',
-            title: 'RayCPMM Manager',
+            title: 'CPMM Manager',
             icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         // PumpFun links
         {
             href: '/pump-fun/create',
-            title: 'PumpFun Bundler',
+            title: 'Bundler',
             icon: <PumpFunIcon className="w-6 h-6 rotate-180" />,
             group: 'pump-fun'
         },
         {
+            href: '/pump-fun/bump-bot',
+            title: 'Bump Bot',
+            icon: <PumpFunBumpBotIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
+            href: '/pump-fun/desalinator',
+            title: 'Desalinator',
+            icon: <PumpFunDesalinatorIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
             href: '/pump-fun/manage-tokens',
-            title: 'PumpFun Manager',
+            title: 'Manager',
             icon: <GoldenPumpFunIcon className="w-6 h-6" />,
             group: 'pump-fun'
         },

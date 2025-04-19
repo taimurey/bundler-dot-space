@@ -1,4 +1,7 @@
+import Image from 'next/image';
 import React from 'react';
+import desalinatorIcon from '@/public/Desal.svg';
+import bumpBotIcon from '@/public/Bump.svg';
 
 interface GoldenPumpFunIconProps {
     className?: string;
@@ -42,6 +45,18 @@ const GoldenPumpFunIcon = ({ className = '' }: GoldenPumpFunIconProps) => {
                 </clipPath>
             </defs>
         </svg>
+    );
+};
+
+export const PumpFunDesalinatorIcon = ({ className }: { className?: string }) => {
+    return (
+        <Image src={desalinatorIcon} alt="PumpFun Desalinator" width={24} height={24} className={className} />
+    );
+};
+
+export const PumpFunBumpBotIcon = ({ className }: { className?: string }) => {
+    return (
+        <Image src={bumpBotIcon} alt="PumpFun Bump Bot" width={24} height={24} className={className} />
     );
 };
 

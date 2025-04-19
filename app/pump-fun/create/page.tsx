@@ -468,12 +468,12 @@ const LiquidityHandlerRaydium = () => {
     }, []);
 
     return (
-        <div className="flex justify-center w-full container mx-auto p-20">
+        <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative" >
             <form>
                 <div className="">
                     <div className="">
                         <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
+                            <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                                 <div>
                                     <p className='font-bold text-[25px]'>Bundle Mode</p>
                                     <p className=' text-[12px] text-[#96989c] '>Create a pump-fun token and ghost wallet buys in one go</p>
