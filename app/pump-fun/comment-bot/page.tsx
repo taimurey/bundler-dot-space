@@ -1,25 +1,19 @@
 'use client';
 
 import React, { ChangeEvent, useState } from 'react';
-import { BN } from 'bn.js';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '@/components/header-layout';
-import {
-    MAINNET_PROGRAM_ID,
-} from '@raydium-io/raydium-sdk';
 import { toast } from "sonner";
 import WalletsDrawer from '@/components/sidebar-drawer';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 
-const ZERO = new BN(0)
-type BN = typeof ZERO
+
 
 export type BalanceType = {
     balance: number;
     publicKey: string;
 };
 
-export const PROGRAMIDS = MAINNET_PROGRAM_ID;
 
 const VolumeCommentBomb = () => {
 
