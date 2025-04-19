@@ -25,7 +25,7 @@ import { LockIcon } from "lucide-react";
 import { LiaFlaskSolid } from "react-icons/lia";
 import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
-import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
+import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunCommentBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
@@ -315,6 +315,12 @@ const Sidebar: FC = () => {
             href: '/pump-fun/bump-bot',
             title: 'Bump Bot',
             icon: <PumpFunBumpBotIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
+            href: '/pump-fun/comment-bot',
+            title: 'Comment Bot',
+            icon: <PumpFunCommentBotIcon className="w-6 h-6" />,
             group: 'pump-fun'
         },
         {

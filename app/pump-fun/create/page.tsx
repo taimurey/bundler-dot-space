@@ -545,10 +545,10 @@ const LiquidityHandlerRaydium = () => {
                                         onClick={vanityAddressGenerator}
                                     >
                                         {isLoading ? (
-                                            <>
-                                                <span className="italic font-i ellipsis">Generating..</span>
-                                                <FaSpinner />
-                                            </>
+                                            <div className='flex justify-center items-center gap-2'>
+                                                <span className="italic font-i">Generating</span>
+                                                <FaSpinner className='animate-spin' />
+                                            </div>
                                         ) : (
                                             'Generate'
                                         )}
