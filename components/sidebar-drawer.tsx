@@ -73,7 +73,7 @@ const WalletsDrawer: React.FC = () => {
                     <p className='p-2 font-light text-sm  border-[#f5ac41] border-b'>Use Wallets for Selling Features
                         <span className='font-bold font-sans  ml-1 mb-4 relative text-xs text-red-500 border border-[#535353] bg-black px-2 rounded-2xl'>BETA</span>
                     </p>
-                    <div className='flex flex-col gap-4 py-4'>
+                    <div className='flex flex-col gap-4 py-4 overflow-y-auto custom-scrollbar max-h-[70vh]'>
                         {DeployerWallets?.map((item: Profile, index: number) => (
                             <div
                                 key={index}

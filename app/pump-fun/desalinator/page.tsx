@@ -12,9 +12,9 @@ import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { getHeaderLayout } from '@/components/header-layout';
 import { Slider } from "@/components/ui/slider";
 import { FaCoins, FaSpinner, FaSync } from "react-icons/fa";
-import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
 import { ClipLoader } from "react-spinners";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import { truncate } from '@/components/sidebar-drawer';
 
 const ZERO = new BN(0);
 type BN = typeof ZERO;
@@ -465,9 +465,6 @@ const Desalinator = () => {
                     </div>
                 </div>
             </form>
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 };

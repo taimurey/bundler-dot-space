@@ -66,7 +66,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                     />
                 </div>
                 {/* Actual content - above background */}
-                <main className="flex-1 overflow-auto relative z-10 h-full">
+                <main className="flex-1 overflow-auto relative z-10 h-full pb-10 custom-scrollbar">
                     {/* Header section */}
                     <div className={`flex items-center justify-end px-4 py-2 `}>
                         {/* Show title if we have metadata and not on homepage */}

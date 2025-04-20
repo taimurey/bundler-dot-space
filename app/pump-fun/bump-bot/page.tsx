@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { getHeaderLayout } from '@/components/header-layout';
-import WalletsDrawer from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -338,9 +337,6 @@ const BumpBot = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
             </div>
         </div>
     );

@@ -4,7 +4,6 @@ import React, { ChangeEvent, useState } from 'react';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '@/components/header-layout';
 import { toast } from "sonner";
-import WalletsDrawer from '@/components/sidebar-drawer';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
 
@@ -140,9 +139,7 @@ const VolumeCommentBomb = () => {
                     </div>
                 </div>
             </form >
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
+            {/* WalletsDrawer removed from here */}
         </div >
     );
 }

@@ -24,7 +24,6 @@ import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { BundleToast } from '@/components/bundler-toasts';
 import base58 from 'bs58';
 import { ApibundleSend } from '@/components/instructions/DistributeTokens/bundler';
-import WalletsDrawer from '@/components/sidebar-drawer';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import assert from 'assert';
@@ -212,8 +211,8 @@ const CPMMManager = () => {
                             <button
                                 type="button"
                                 className={`flex-1 px-6 py-3 text-base font-medium rounded-md transition-all duration-200 ${activeTab === 'Liquidity'
-                                        ? 'bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] text-black shadow-lg'
-                                        : 'bg-[#0c0e11] text-white border border-neutral-600 hover:border-neutral-400'
+                                    ? 'bg-gradient-to-r from-[#5be2a3] to-[#ff9a03] text-black shadow-lg'
+                                    : 'bg-[#0c0e11] text-white border border-neutral-600 hover:border-neutral-400'
                                     }`}
                                 onClick={() => setActiveTab('Liquidity')}
                             >
@@ -222,8 +221,8 @@ const CPMMManager = () => {
                             <button
                                 type="button"
                                 className={`flex-1 px-6 py-3 text-base font-medium rounded-md transition-all duration-200 ${activeTab === 'Sell'
-                                        ? 'bg-gradient-to-r from-[#e2c95b] to-[#03ff03] text-black shadow-lg'
-                                        : 'bg-[#0c0e11] text-white border border-neutral-600 hover:border-neutral-400'
+                                    ? 'bg-gradient-to-r from-[#e2c95b] to-[#03ff03] text-black shadow-lg'
+                                    : 'bg-[#0c0e11] text-white border border-neutral-600 hover:border-neutral-400'
                                     }`}
                                 onClick={() => setActiveTab('Sell')}
                             >
@@ -486,9 +485,6 @@ const CPMMManager = () => {
                     </div>
                 </div>
             </form>
-            <div className='absolute -top-[95px] right-0 min-h-screen '>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 };

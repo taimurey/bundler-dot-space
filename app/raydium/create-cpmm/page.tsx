@@ -14,7 +14,6 @@ import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import { truncate } from '@/components/sidebar-drawer';
 import { BalanceType } from '@/components/types/solana-types';
 import { getKeypairFromBs58 } from '@/components/instructions/pump-bundler/misc';
-import WalletsDrawer from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { randomColor } from '@/components/utils/random-color';
@@ -521,9 +520,6 @@ const CPMMPoolCreator = () => {
                     </div>
                 </div>
             </form>
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 };

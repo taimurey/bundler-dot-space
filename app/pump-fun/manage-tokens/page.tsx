@@ -13,7 +13,7 @@ import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { toast } from "sonner";
 import { BundleToast } from '@/components/bundler-toasts';
 import { BalanceType } from '@/components/types/solana-types';
-import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
+import { truncate } from '@/components/sidebar-drawer';
 import { PumpSeller } from '@/components/instructions/pump-bundler/PumpSeller';
 import WalletInput from '@/components/instructions/pump-bundler/wallet-input';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
@@ -414,9 +414,6 @@ const PumpfunSell = () => {
                     </div>
                 </div>
             </form >
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
         </div >
     );
 }

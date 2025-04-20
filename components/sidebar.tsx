@@ -515,7 +515,7 @@ const Sidebar: FC = () => {
                             }
                         />
 
-                        <div className="flex flex-col gap-1 mt-2 px-2 overflow-hidden">
+                        <div className="flex flex-col gap-1 mt-2 px-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
                             {visibleSubLinks.map((link, index) => {
                                 let gradientFrom, gradientTo;
 

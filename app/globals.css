@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
@@ -113,4 +118,63 @@ body {
 .settings__connect-btn {
   @apply font-bold rounded-lg bg-[#2c3135] border-[#00ffdd34] border duration-300 ease-in-out;
   isolation: isolate;
+}
+
+/* Add customized scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5b6075;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6c7188;
+}
+
+::-webkit-scrollbar-corner {
+  background: #0d1117;
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #5b6075 #0d1117;
+}
+
+/* Custom scrollbar class for specific elements */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #5b6075;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6c7188;
+}
+
+/* For edge/IE compatibility */
+@supports (-ms-overflow-style: none) {
+
+  /* Edge specific scrollbar styling could go here */
+  html {
+    -ms-overflow-style: scrollbar;
+  }
 }

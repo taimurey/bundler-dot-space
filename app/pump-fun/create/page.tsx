@@ -18,7 +18,7 @@ import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler"
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';
 import { calculateBuyTokensAndNewReserves, loadSessionLookupTable } from "@/components/instructions/pump-bundler/misc";
-import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
+import { truncate } from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { BalanceType } from "@/components/types/solana-types";
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
@@ -1080,9 +1080,6 @@ const LiquidityHandlerRaydium = () => {
                     </div>
                 </div>
             </form >
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
         </div >
     );
 }

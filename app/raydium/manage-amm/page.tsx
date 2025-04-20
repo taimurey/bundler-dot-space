@@ -25,7 +25,6 @@ import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { BundleToast } from '@/components/bundler-toasts';
 import base58 from 'bs58';
 import { ApibundleSend } from '@/components/instructions/DistributeTokens/bundler';
-import WalletsDrawer from '@/components/sidebar-drawer';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import assert from 'assert';
@@ -1058,9 +1057,6 @@ const RaydiumManager = () => {
                     </div> */}
                 </div>
             </form>
-            <div className='absolute -top-[95px] right-0 min-h-screen '>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 }
