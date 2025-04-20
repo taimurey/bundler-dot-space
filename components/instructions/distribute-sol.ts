@@ -88,7 +88,7 @@ export async function distributeSOL(
     for (let i = 0; i < encodedTxns.length; i += 5) {
         const batch = encodedTxns.slice(i, i + 5);
 
-        const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
+        const response = await fetch('https://api.bundler.space/send-bundle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

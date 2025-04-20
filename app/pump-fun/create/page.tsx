@@ -5,8 +5,8 @@ import { BN } from 'bn.js';
 import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
-import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { Connection } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL, AddressLookupTableProgram } from '@solana/web3.js';
+import { Connection, Transaction } from '@solana/web3.js';
 import base58 from 'bs58';
 import axios from 'axios';
 import { toast } from "sonner";
@@ -17,19 +17,22 @@ import { randomColor } from '@/components/utils/random-color';
 import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';
-import { calculateBuyTokensAndNewReserves } from "@/components/instructions/pump-bundler/misc";
+import { calculateBuyTokensAndNewReserves, loadSessionLookupTable } from "@/components/instructions/pump-bundler/misc";
 import WalletsDrawer, { truncate } from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { BalanceType } from "@/components/types/solana-types";
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { UpdatedInputField } from '@/components/detailed-field';
-import { Transaction } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 import { VersionedTransaction } from "@solana/web3.js";
 import { getGlobalStateData } from "@/components/instructions/pump-bundler/global-state";
 import { getHeaderLayout } from "@/components/header-layout";
 import { FaSpinner } from "react-icons/fa";
+import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import { generateCreateAluIx, generateExtendAluIx } from "@/components/instructions/pump-bundler/instructions";
+import { bundleWalletEntry } from "@/components/instructions/pump-bundler/types";
+
 interface WorkerResult {
     secretKey: Uint8Array;
     publicKey: string;
@@ -64,8 +67,12 @@ const LiquidityHandlerRaydium = () => {
     // const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
-
+    const [isJitoBundle, setIsJitoBundle] = useState(false);
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
+    const [lutAddress, setLutAddress] = useState<string>('');
+    const [isLutCreated, setIsLutCreated] = useState(false);
+    const [isCreatingLut, setIsCreatingLut] = useState(false);
+    const [lutLogs, setLutLogs] = useState<string[]>([]);
 
 
 
@@ -88,6 +95,7 @@ const LiquidityHandlerRaydium = () => {
         BundleTip: string;
         TransactionTip: string;
         BlockEngineSelection: string;
+        lutAddress?: string;
     }>({
         coinname: '',
         symbol: '',
@@ -107,6 +115,7 @@ const LiquidityHandlerRaydium = () => {
         BundleTip: '0.01',
         TransactionTip: '0.00001',
         BlockEngineSelection: BlockEngineLocation[2],
+        lutAddress: '',
     });
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
@@ -189,7 +198,7 @@ const LiquidityHandlerRaydium = () => {
                     // Convert Uint8Array to an array of numbers
                     const imageArray = Array.from(imageUint8Array);
 
-                    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+                    const response = await fetch('https://api.bundler.space/upload-image', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -268,6 +277,12 @@ const LiquidityHandlerRaydium = () => {
         setDeployerWallets([]);
         localStorage.removeItem("deployerwallets");
 
+        // Check if we're in LUT mode and the LUT has been created
+        if (Mode === 20 && !isLutCreated) {
+            toast.error('You must create a Look-Up Table (LUT) before deploying');
+            return;
+        }
+
         const tokenMetadata: TokenMetadata = {
             name: formData.coinname,
             symbol: formData.symbol,
@@ -288,7 +303,51 @@ const LiquidityHandlerRaydium = () => {
 
         let bundler = '';
         try {
-            bundler = await PumpBundler(connection, formData, tokenKeypair, tokenMetadata);
+            // Add LUT address to formData if we're in LUT mode
+            if (Mode === 20) {
+                if (!isLutCreated || !lutAddress) {
+                    toast.error('You must create a Look-Up Table (LUT) before deploying in 20 Wallet mode');
+                    return;
+                }
+
+                // Store the LUT address for reference, but we'll pass it as a separate parameter
+                setFormData(prevState => ({
+                    ...prevState,
+                    lutAddress: lutAddress,
+                }));
+
+                // Use the same API but pass the LUT info separately
+                bundler = await PumpBundler(
+                    connection,
+                    formData,
+                    tokenKeypair,
+                    tokenMetadata
+                );
+
+                // Optionally make a separate API call to register the LUT with the backend
+                try {
+                    const lutRegistrationResponse = await fetch('https://api.bundler.space/register-lut', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            lutAddress: lutAddress,
+                            mintAddress: tokenKeypair.publicKey.toString(),
+                            walletCount: wallets.length
+                        })
+                    });
+
+                    if (!lutRegistrationResponse.ok) {
+                        console.warn('LUT registration might have failed, but deployment proceeded');
+                    }
+                } catch (lutError) {
+                    console.error('Error registering LUT:', lutError);
+                    // Continue anyway since the main operation succeeded
+                }
+            } else {
+                bundler = await PumpBundler(connection, formData, tokenKeypair, tokenMetadata);
+            }
 
             toast(
                 () => (
@@ -347,10 +406,10 @@ const LiquidityHandlerRaydium = () => {
                 allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
             }
 
-            const balances = await Promise.all(
+            // Check balances for wallet-input wallets
+            const walletBalances = await Promise.all(
                 wallets.map(async (wallet) => {
                     try {
-                        console.log('wallet:', wallet.wallet);
                         const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
                         const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
                         return { balance, publicKey: keypair.publicKey.toString() };
@@ -361,12 +420,7 @@ const LiquidityHandlerRaydium = () => {
                 })
             );
 
-            setFormData(prevState => ({
-                ...prevState,
-                buyerextraWallets: wallets.map(wallet => wallet.wallet),
-            }));
-
-            allBalances = [...allBalances, ...balances];
+            allBalances = [...allBalances, ...walletBalances];
             setBalances(allBalances);
         };
 
@@ -466,6 +520,100 @@ const LiquidityHandlerRaydium = () => {
             tokenKeypair: bs58.encode(tokenMint.secretKey),
         }));
     }, []);
+
+    const createLUT = async () => {
+        if (!formData.deployerPrivateKey) {
+            toast.error('Deployer private key is required');
+            return;
+        }
+
+        if (wallets.length === 0) {
+            toast.error('Please add wallets before creating a LUT');
+            return;
+        }
+
+        setIsCreatingLut(true);
+        setLutLogs(prev => [...prev, 'Starting LUT creation...']);
+
+        try {
+            const deployerKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
+
+            // Create LUT
+            const { ix: createLutIx, address: lookupTableAddress } = await generateCreateAluIx(connection, deployerKeypair);
+            setLutLogs(prev => [...prev, `Created LUT with address: ${lookupTableAddress.toString()}`]);
+
+            // Create transaction for LUT creation
+            const createLutTx = new Transaction().add(createLutIx);
+            const createLutTxId = await connection.sendTransaction(createLutTx, [deployerKeypair]);
+            setLutLogs(prev => [...prev, `LUT creation transaction sent: ${createLutTxId}`]);
+
+            // Wait for confirmation
+            await connection.confirmTransaction(createLutTxId);
+            setLutLogs(prev => [...prev, 'LUT creation confirmed']);
+
+            // Prepare for extend instruction
+            setLutAddress(lookupTableAddress.toString());
+
+            // Convert wallets to bundleWalletEntry format
+            const bundleWallets: bundleWalletEntry[] = [
+                { privateKey: formData.deployerPrivateKey, sol: 0 },
+                ...wallets.map(entry => ({
+                    privateKey: entry.wallet,
+                    sol: typeof entry.solAmount === 'string' ? parseFloat(entry.solAmount) : entry.solAmount || 0
+                }))
+            ];
+
+            // The mint key we'll use (even if it's just a placeholder for now)
+            const mintKey = new PublicKey(formData.tokenKeypairpublicKey || Keypair.generate().publicKey);
+
+            // The maximum number of addresses per extension transaction (to stay under the 5 instruction limit)
+            // 20 is a safe number; the actual limit depends on transaction complexity
+            const MAX_ADDRESSES_PER_BATCH = 20;
+
+            // Split the addresses into batches
+            const addressBatches = [];
+            for (let i = 1; i < bundleWallets.length; i += MAX_ADDRESSES_PER_BATCH) {
+                addressBatches.push(bundleWallets.slice(i, i + MAX_ADDRESSES_PER_BATCH));
+            }
+
+            setLutLogs(prev => [...prev, `Extending LUT with ${bundleWallets.length - 1} addresses in ${addressBatches.length} batch(es)`]);
+
+            // Process each batch
+            for (let batchIndex = 0; batchIndex < addressBatches.length; batchIndex++) {
+                const batchWallets = [bundleWallets[0], ...addressBatches[batchIndex]]; // Include deployer in each batch
+
+                // Generate the extend instruction for this batch
+                const extendIx = generateExtendAluIx(
+                    deployerKeypair,
+                    batchWallets,
+                    mintKey,
+                    lookupTableAddress
+                );
+
+                // Create and send transaction
+                const extendLutTx = new Transaction().add(extendIx);
+                const extendLutTxId = await connection.sendTransaction(extendLutTx, [deployerKeypair]);
+                setLutLogs(prev => [...prev, `LUT extension batch ${batchIndex + 1}/${addressBatches.length} sent: ${extendLutTxId}`]);
+
+                // Wait for confirmation
+                await connection.confirmTransaction(extendLutTxId);
+                setLutLogs(prev => [...prev, `LUT extension batch ${batchIndex + 1}/${addressBatches.length} confirmed`]);
+            }
+
+            // Load the LUT to verify
+            const lutAccount = await loadSessionLookupTable(connection, lookupTableAddress.toString());
+            setLutLogs(prev => [...prev, `LUT loaded with ${lutAccount.state.addresses.length} addresses`]);
+
+            setIsLutCreated(true);
+            toast.success(`LUT created successfully with address: ${lookupTableAddress.toString()}`);
+        } catch (error) {
+            console.error('Error creating LUT:', error);
+            setLutLogs(prev => [...prev, `Error: ${error instanceof Error ? error.message : 'Unknown error'}`]);
+            toast.error(`Failed to create LUT: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsCreatingLut(false);
+        }
+    };
 
     return (
         <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative" >
@@ -601,6 +749,108 @@ const LiquidityHandlerRaydium = () => {
                                             }}
                                         />
                                     )}
+                                    {Mode === 20 && (
+                                        <div className="space-y-4 w-full border border-zinc-400 border-dashed rounded-xl p-4">
+                                            <h3 className="text-lg font-semibold text-white">20 Wallet Mode</h3>
+                                            <p className="text-sm text-gray-400">
+                                                This mode allows you to use up to 20 wallets with a Look-Up Table (LUT) for efficient transactions.
+                                            </p>
+
+                                            <WalletInput
+                                                wallets={wallets}
+                                                setWallets={setWallets}
+                                                Mode={Mode}
+                                                maxWallets={20}
+                                                onChange={(walletData) => {
+                                                    setFormData(prevState => ({
+                                                        ...prevState,
+                                                        buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                        buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                                    }));
+                                                }}
+                                                onWalletsUpdate={(walletData) => {
+                                                    console.log('Updated 20-wallet data:', walletData.map(entry => ({
+                                                        wallet: entry.wallet,
+                                                        solAmount: entry.solAmount,
+                                                        lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                                    })));
+                                                }}
+                                            />
+
+                                            {wallets.length > 0 && !isLutCreated && (
+                                                <div className="mt-4">
+                                                    <button
+                                                        type="button"
+                                                        className="w-full p-2 font-semibold bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-md hover:from-blue-600 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        disabled={isCreatingLut || wallets.length === 0}
+                                                        onClick={createLUT}
+                                                    >
+                                                        {isCreatingLut ? (
+                                                            <div className="flex justify-center items-center gap-2">
+                                                                <span>Creating LUT...</span>
+                                                                <FaSpinner className="animate-spin" />
+                                                            </div>
+                                                        ) : (
+                                                            "Create Look-Up Table (LUT)"
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {isLutCreated && (
+                                                <div className="flex flex-col gap-2 mt-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-green-400 font-medium">✓ LUT Created</span>
+                                                        <a
+                                                            href={`https://solscan.io/account/${lutAddress}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-blue-400 hover:text-blue-300"
+                                                        >
+                                                            View on Solscan
+                                                        </a>
+                                                    </div>
+                                                    <InputField
+                                                        id="lutAddress"
+                                                        label="LUT Address"
+                                                        value={lutAddress}
+                                                        onChange={() => { }}
+                                                        placeholder="LUT Address"
+                                                        type="text"
+                                                        disabled={true}
+                                                        required={false}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4 max-h-40 overflow-y-auto bg-[#101010] rounded-md p-2">
+                                                <h4 className="text-sm font-medium text-gray-300 mb-2">LUT Creation Logs:</h4>
+                                                {lutLogs.length > 0 ? (
+                                                    <div className="space-y-1 text-xs">
+                                                        {lutLogs.map((log, index) => (
+                                                            <div key={index} className="text-gray-400">{log}</div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-xs text-gray-500 italic">No logs yet. Add wallets and create LUT to see logs here.</div>
+                                                )}
+                                            </div>
+                                            <div className='justify-center'>
+                                                <button
+                                                    className="text-center w-full invoke-btn"
+                                                    type="submit"
+                                                    id="formbutton"
+                                                    onClick={createLUT}
+
+                                                >
+                                                    <span className="btn-text-gradient font-bold">
+                                                        Create LUT
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    )}
                                 </div>
 
                                 <div className='flex flex-col gap-2' id="tokeninfo">
@@ -718,52 +968,13 @@ const LiquidityHandlerRaydium = () => {
                                             />
                                         </div>
                                     )}
-                                    <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
-
-                                        <div className="w-full">
-                                            <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
-                                                Block Engine
-                                            </label>
-                                            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                                                <select
-                                                    id="BlockEngineSelection"
-                                                    value={formData.BlockEngineSelection}
-                                                    onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
-                                                    required={true}
-                                                    className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                                                >
-                                                    <option value="" disabled>
-                                                        Block Engine Location(Closest to you)
-                                                    </option>
-                                                    {BlockEngineLocation.map((option, index) => (
-                                                        <option key={index} value={option}>
-                                                            {option}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className='flex justify-end items-end gap-2'>
-                                            <InputField
-                                                id="BundleTip"
-                                                value={formData.BundleTip}
-                                                onChange={(e) => handleChange(e, 'BundleTip')}
-                                                placeholder="0.01"
-                                                type="number"
-                                                label="Bundle Tip"
-                                                required={true}
-                                            />
-                                            <InputField
-                                                id="TransactionTip"
-                                                value={formData.TransactionTip}
-                                                onChange={(e) => handleChange(e, 'TransactionTip')}
-                                                placeholder="0.0001"
-                                                type="number"
-                                                label="Txn Tip (SOL)"
-                                                required={true}
-                                            />
-                                        </div>
-                                    </div>
+                                    <JitoBundleSelection
+                                        isJitoBundle={isJitoBundle}
+                                        setIsJitoBundle={setIsJitoBundle}
+                                        formData={formData}
+                                        handleChange={handleChange}
+                                        handleSelectionChange={handleSelectionChange}
+                                    />
                                     <div className='justify-center'>
                                         <button
                                             className="text-center w-full invoke-btn"
@@ -789,8 +1000,8 @@ const LiquidityHandlerRaydium = () => {
                             <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
                                 <div>
                                     <div>
-                                        <p className='font-bold text-[25px]'>Predicted Parameters</p>
-                                        <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
+                                        <p className='font-bold text-[25px]'>Status Panel</p>
+                                        <p className=' text-[12px] text-[#96989c] '>Real-time information and logs</p>
                                     </div>
                                     <div className='w-full'>
                                         <label className="block mt-5 text-base text-white font-semibold" >
@@ -818,18 +1029,51 @@ const LiquidityHandlerRaydium = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    {/* <OutputField
-                                        id="totalmintaddress"
-                                        label="Mint Address:"
-                                        value={formData.coinname}
-                                        latedisplay={true}
-                                    /> */}
-                                    {/* <OutputField
-                                        id='bundleError'
-                                        label='Bundle Error'
-                                        value={BundleError}
-                                        latedisplay={true}
-                                    /> */}
+
+                                    {Mode === 20 && lutAddress && (
+                                        <div className='w-full mt-5'>
+                                            <label className="block text-base text-white font-semibold">
+                                                LUT Status:
+                                            </label>
+                                            <div className="mt-2 p-2 bg-[#101010] rounded-md">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-gray-300">Address:</span>
+                                                    <a
+                                                        href={`https://solscan.io/account/${lutAddress}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-400 hover:underline"
+                                                    >
+                                                        {truncate(lutAddress, 4, 4)}
+                                                    </a>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span className="text-sm text-gray-300">Status:</span>
+                                                    <span className={`text-sm ${isLutCreated ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {isLutCreated ? 'Active' : 'Not Created'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span className="text-sm text-gray-300">Wallets:</span>
+                                                    <span className="text-sm text-gray-300">
+                                                        {wallets.length} / 20
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span className="text-sm text-gray-300">Last Updated:</span>
+                                                    <span className="text-sm text-gray-300">
+                                                        {new Date().toLocaleTimeString()}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span className="text-sm text-gray-300">Note:</span>
+                                                    <span className="text-xs text-gray-500 italic max-w-[60%] text-right">
+                                                        LUT enables efficient transactions with up to 20 wallets
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -846,6 +1090,7 @@ const LiquidityHandlerRaydium = () => {
 const modeOptions = [
     { value: 1, label: "Wallet Mode" },
     { value: 5, label: "Wallet Mode" },
+    { value: 20, label: "Wallet Mode" },
 ];
 
 

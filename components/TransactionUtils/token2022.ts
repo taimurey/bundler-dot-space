@@ -314,7 +314,7 @@ export async function createToken2022(
 // Reuse the metadata upload function
 export async function uploadMetaData(metadata: any) {
     console.log("Uploading metadata", metadata);
-    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-json', {
+    const response = await fetch('https://api.bundler.space/upload-json', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

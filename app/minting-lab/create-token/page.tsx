@@ -79,7 +79,7 @@ const CreateToken: FC = () => {
                     // Convert Uint8Array to an array of numbers
                     const imageArray = Array.from(imageUint8Array);
 
-                    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+                    const response = await fetch('https://api.bundler.space/upload-image', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

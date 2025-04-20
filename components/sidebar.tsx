@@ -218,7 +218,7 @@ const Sidebar: FC = () => {
             showOnlyOnHomePage: false  // Show on all pages
         },
         {
-            href: '/raydium/create-ray-amm',
+            href: '/raydium/create-amm',
             title: 'Raydium',
             icon: <RaydiumIcon className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
@@ -281,7 +281,7 @@ const Sidebar: FC = () => {
             group: "raydium",
         },
         {
-            href: '/raydium/create-ray-amm',
+            href: '/raydium/create-amm',
             title: 'AMM Bundler',
             icon: <RaydiumAMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
@@ -293,7 +293,7 @@ const Sidebar: FC = () => {
             group: 'raydium'
         },
         {
-            href: '/raydium/create-ray-cpmm',
+            href: '/raydium/create-cpmm',
             title: 'CPMM Bundler',
             icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
@@ -342,12 +342,12 @@ const Sidebar: FC = () => {
             icon: <MultiSenderIcon />,
             group: 'utils'
         },
-        {
-            href: '/utilities/volume-generator',
-            title: 'Volume Generator',
-            icon: <CashInflowIcon />,
-            group: 'utils'
-        }
+        // {
+        //     href: '/utilities/volume-generator',
+        //     title: 'Volume Generator',
+        //     icon: <CashInflowIcon />,
+        //     group: 'utils'
+        // }
     ];
 
     const isMintingLabPage = pathname.includes('/minting-lab');
@@ -371,7 +371,7 @@ const Sidebar: FC = () => {
         visibleSubLinks = [];
     }
 
-    const showAllPortfolios = pathname.includes('/');
+    const showAllPortfolios = true;
 
     return (
         <div
@@ -460,7 +460,7 @@ const Sidebar: FC = () => {
                 </div>
 
                 {/* Wallet section (maintained as original) */}
-                {showAllPortfolios && !pathname.startsWith('/minting-lab') && isExpanded && textVisible && (
+                {showAllPortfolios && isExpanded && textVisible && (
                     <div className="mb-4 px-2 overflow-hidden transition-all duration-300 ease-in-out">
                         <div
                             className="mx-1 mb-2 py-1 px-3 rounded-xl flex justify-start items-center 
@@ -482,7 +482,7 @@ const Sidebar: FC = () => {
                 )}
 
                 {/* Collapsed wallet button */}
-                {showAllPortfolios && !pathname.startsWith('/minting-lab') && (!isExpanded || !textVisible) && (
+                {showAllPortfolios && (!isExpanded || !textVisible) && (
                     <div className="mb-4 px-2 flex justify-center">
                         <div
                             className="p-2 rounded-xl flex justify-center items-center 

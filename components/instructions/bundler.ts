@@ -2,7 +2,7 @@ export async function ApibundleSend(
     bundle: any,
     blockengine: string,
 ) {
-    const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
+    const response = await fetch('https://api.bundler.space/send-bundle', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

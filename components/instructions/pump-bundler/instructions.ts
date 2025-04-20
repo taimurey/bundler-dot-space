@@ -71,7 +71,7 @@ interface CreateApiresponse {
 
 
 
-const API_BASE_URL = 'https://mevarik-deployer.xyz:2791/api';
+const API_BASE_URL = 'https://api.bundler.space/api';
 
 interface ApiResponse {
     success: boolean;

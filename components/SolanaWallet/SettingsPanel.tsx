@@ -25,8 +25,6 @@ import { toast } from "sonner";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import debounce from "lodash.debounce";
-// import { useRouter } from "next/router";
-import AppHeader from "../app-header";
 import { truncate } from "../sidebar-drawer";
 
 // type SettingPanelProps = {
@@ -101,9 +99,6 @@ const SettingsPanel = () => {
 
   return (
     <div>
-      <div className="md:hidden border-b border-neutral-700 pb-3 space-y-2 flex-col flex ">
-        <AppHeader />/
-      </div>
       <div className="mb-4 relative z-50">
         <div className="space-y-1.5">
           <h3 className="text-transparent bg-clip-text serum-gradient text-custom-green text-xs">
@@ -117,15 +112,12 @@ const SettingsPanel = () => {
                     key={cluster.endpoint}
                     onClick={() => setCluster(cluster)}
                     className={`${isActiveCluster(cluster) ? "bg-[#161a1b]" : ""
-                      } hover:border-custom-green-300 border p-2 border-[#7a7a7a] cursor-pointer rounded-md`}
+                      } hover:border-custom-green-300 grid grid-cols-2 border p-2 border-[#7a7a7a] cursor-pointer rounded-md`}
                   >
                     <div>
                       <h2 className="text-sm font-medium text-white">
                         {cluster.label}
                       </h2>
-                      {/* <p className="text-xs font-light text-slate-400">
-                        {cluster.endpoint}
-                      </p> */}
                     </div>
                   </li>
                 );
