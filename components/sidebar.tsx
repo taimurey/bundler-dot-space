@@ -3,26 +3,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { FC, useState, useEffect } from "react";
 import React from 'react';
 import TokenIcon from "@/components/icons/TokenIcon";
-import MarketIcon from "@/components/icons/MarketIcon";
 import Link from "next/link";
-import FlaskIcon from "@/components/icons/FlaskIcon";
-import ManageIcon from "@/components/icons/ManageIcon";
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import VirusIcon from "@/components/icons/VirusIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import ManagerIcon from "@/components/icons/ManagerIcon";
-import { TbPillFilled } from "react-icons/tb";
-import CashInflowIcon from "@/components/icons/cashInflowIcon";
-import MultiSenderIcon from "@/components/icons/MultiSendIcon";
-import { MdSevereCold, MdToken } from "react-icons/md";
+import { MdSevereCold } from "react-icons/md";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import { FaCoins, FaFire, FaStickyNote, FaHome } from "react-icons/fa";
-import { GiBrainFreeze } from "react-icons/gi";
+import { GiBrainFreeze, GiSpawnNode } from "react-icons/gi";
 import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
 import MevLabLogo from "./icons/JupiterLogo";
-import { GiBubblingFlask } from "react-icons/gi";
 import { LockIcon } from "lucide-react";
-import { LiaFlaskSolid } from "react-icons/lia";
 import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
 import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunCommentBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
@@ -339,7 +331,7 @@ const Sidebar: FC = () => {
         {
             href: '/utilities/distribute-tokens',
             title: 'Token Distributor',
-            icon: <MultiSenderIcon />,
+            icon: <GiSpawnNode className="w-5 h-5" />,
             group: 'utils'
         },
         // {

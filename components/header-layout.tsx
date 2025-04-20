@@ -83,9 +83,6 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                         )}
                         {/* Always show wallet button and discord link */}
                         <div className="flex items-center gap-2">
-                            <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
-                                <DiscordIcon width="40" height="40" />
-                            </a>
                             <WalletButton />
                         </div>
                     </div>

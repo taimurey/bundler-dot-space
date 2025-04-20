@@ -3,8 +3,6 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { KeyIcon, LogInIcon, CopyIcon, CheckIcon, LayoutDashboardIcon, SendHorizontalIcon, ExternalLinkIcon, LogOutIcon, AlertTriangleIcon } from "lucide-react";
 import { FC, useState, useCallback } from "react";
-import SettingsPanel from "./SettingsPanel";
-import { PiGearBold } from "react-icons/pi";
 import { useAuth } from "../context/auth-provider";
 import AuthModal from "../Auth/AuthModal";
 import { useRouter } from "next/navigation";
@@ -82,20 +80,6 @@ const WalletButton: FC = () => {
     <>
       <div className="relative flex justify-end px-4 text-md">
         <div className="flex items-center gap-3">
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="flex items-center justify-center text-gray-200 text-sm font-medium rounded-lg w-10 h-10 transition-colors duration-200 border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 shadow-md">
-                <PiGearBold className="w-5 h-5" />
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Settings</DialogTitle>
-              </DialogHeader>
-              <SettingsPanel />
-            </DialogContent>
-          </Dialog>
-
           <button
             onClick={handleConnectClick}
             className="font-medium select-none"
