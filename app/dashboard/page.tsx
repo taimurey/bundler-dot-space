@@ -13,6 +13,7 @@ import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import TransferDialog from "@/components/Wallet/TransferDialog"
+import { useSolana } from "@/components/SolanaWallet/SolanaContext"
 
 export default function Dashboard() {
     const { state, fetchWalletBalance, importWallet, createNewWallet } = useAuth()
@@ -25,6 +26,7 @@ export default function Dashboard() {
     const [privateKey, setPrivateKey] = useState("")
     const [walletName, setWalletName] = useState("")
     const [newWalletAddress, setNewWalletAddress] = useState("")
+    const { cluster } = useSolana()
 
     // Redirect to home if not logged in
     useEffect(() => {
@@ -117,6 +119,10 @@ export default function Dashboard() {
 
     // Check if we're using a demo wallet (contains '...')
     const isDemoWallet = state.user?.walletAddress?.includes('...');
+
+    const openExplorer = (address: string) => {
+        window.open(`https://solscan.io/account/${address}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`, "_blank")
+    }
 
     if (state.loading || !state.user) {
         return (
@@ -382,9 +388,7 @@ export default function Dashboard() {
                                         <Button
                                             variant="outline"
                                             className="border-zinc-700 text-white"
-                                            onClick={() => {
-                                                window.open(`https://explorer.solana.com/address/${selectedWallet.address}?cluster=devnet`, "_blank")
-                                            }}
+                                            onClick={() => openExplorer(selectedWallet.address)}
                                         >
                                             <ExternalLink className="h-4 w-4 mr-2" />
                                             View on Explorer

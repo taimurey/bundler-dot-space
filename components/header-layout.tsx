@@ -42,7 +42,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
     return (
         <div className="flex flex-1 h-full overflow-hidden relative">
             {/* Sidebar - highest z-index to stay above background */}
-            <div className="relative hidden md:block h-full z-20">
+            <div className="relative hidden md:block h-full">
                 <Sidebar />
             </div>
 

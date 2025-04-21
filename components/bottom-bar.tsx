@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { FaBook, FaDiscord, FaXTwitter } from 'react-icons/fa6';
 import { IoDocumentText } from 'react-icons/io5';
 import SolanaIcon from './icons/SolanaIcon';
-import { FaBitcoin } from 'react-icons/fa';
+import { FaBitcoin, FaWallet } from 'react-icons/fa';
 import { SiEthereum } from 'react-icons/si';
 import { CLUSTERS, CUSTOM_RPC_CLUSTER, SolanaCluster, useSolana } from './SolanaWallet/SolanaContext';
 import { Check, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import DraggableTray from './DraggableTray';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -375,36 +376,42 @@ const BottomBar: React.FC = () => {
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 h-8 backdrop-blur-sm border-t border-[#5b6075]/30 flex items-center justify-between px-4 z-20">
-            {/* Crypto Prices */}
-            <div className="flex items-center gap-4 text-xs">
-                {renderCryptoPrice('btc', <FaBitcoin className="w-4 h-4 text-yellow-500" />, 'text-yellow-500')}
-                {renderCryptoPrice('eth', <SiEthereum className="w-4 h-4 text-gray-500" />, 'text-gray-500')}
-                {renderCryptoPrice('sol', <SolanaIcon className="w-4 h-4 text-emerald-400" />, 'text-emerald-400')}
-            </div>
+        <div className="fixed bottom-0 left-0 right-0 bg-[#0a0b10] py-2 border-t border-neutral-800 px-4 z-10">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                    {renderCryptoPrice('btc', <FaBitcoin className="w-4 h-4 text-[#f2a900]" />, 'text-[#f2a900]')}
+                    {renderCryptoPrice('eth', <SiEthereum className="w-4 h-4 text-[#627eea]" />, 'text-[#627eea]')}
+                    {renderCryptoPrice('sol', <SolanaIcon className="w-4 h-4 text-emerald-400" />, 'text-emerald-400')}
+                    {/* <DraggableTray icon={<FaWallet className="w-4 h-4" />} buttonName="Wallets"
+                        trayHeader={<div className="flex items-center gap-2">
+                            <span className="text-xs">Wallets</span>
+                        </div>} /> */}
+                </div>
 
-            {/* Right Side Icons */}
-            <div className="flex items-center space-x-3">
-                {/* Network Selector Dropdown */}
-                {renderNetworkSelector()}
+                {/* Wallet Tray Component */}
 
-                {/* Server Status */}
-                {renderServerStatus()}
+                <div className="flex items-center space-x-3">
+                    {/* Network Selector Dropdown */}
+                    {renderNetworkSelector()}
 
-                <Link href="https://twitter.com/bundlerdotspace" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                    <FaXTwitter className="w-4 h-4" title="Twitter" />
-                </Link>
-                <Link href="https://discord.gg/HGFf7NNHrp" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                    <FaDiscord className="w-4 h-4" title="Discord" />
-                </Link>
-                <Link href="https://docs.bundler.space" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                    <span className='flex items-center gap-2'>
-                        <FaBook className="w-4 h-4" title="Docs" />
-                        <span className='text-xs'>
-                            Docs
+                    {/* Server Status */}
+                    {renderServerStatus()}
+
+                    <Link href="https://twitter.com/bundlerdotspace" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                        <FaXTwitter className="w-4 h-4" title="Twitter" />
+                    </Link>
+                    <Link href="https://discord.gg/HGFf7NNHrp" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                        <FaDiscord className="w-4 h-4" title="Discord" />
+                    </Link>
+                    <Link href="https://docs.bundler.space" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                        <span className='flex items-center gap-2'>
+                            <FaBook className="w-4 h-4" title="Docs" />
+                            <span className='text-xs'>
+                                Docs
+                            </span>
                         </span>
-                    </span>
-                </Link>
+                    </Link>
+                </div>
             </div>
         </div>
     );

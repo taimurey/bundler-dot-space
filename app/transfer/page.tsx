@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, ExternalLink, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { transferSOL } from "@/lib/services/solana-wallet"
+import { useSolana } from "@/components/SolanaWallet/SolanaContext"
 
 export default function TransferPage() {
     const { state, fetchWalletBalance } = useAuth()
@@ -20,6 +21,7 @@ export default function TransferPage() {
     const [recipientError, setRecipientError] = useState("")
     const [amountError, setAmountError] = useState("")
     const [txId, setTxId] = useState<string | null>(null)
+    const { cluster } = useSolana()
 
     // Check if we're using a demo wallet
     const isDemoWallet = state.user?.walletAddress?.includes('...');
@@ -87,6 +89,11 @@ export default function TransferPage() {
         }
     };
 
+    // View on Explorer
+    const viewOnExplorer = (txId: string) => {
+        window.open(`https://solscan.io/tx/${txId}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`, "_blank")
+    }
+
     if (state.loading || !state.user) {
         return (
             <div className="flex items-center justify-center min-h-[80vh]">
@@ -153,11 +160,11 @@ export default function TransferPage() {
                             {!isDemoWallet && txId && !txId.startsWith('demo-') && (
                                 <Button
                                     variant="outline"
-                                    className="border-zinc-700 text-white"
-                                    onClick={() => window.open(`https://explorer.solana.com/tx/${txId}?cluster=devnet`, "_blank")}
+                                    className="flex-1 text-xs"
+                                    onClick={() => viewOnExplorer(txId)}
                                 >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    View Transaction on Explorer
+                                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                                    View on Solscan
                                 </Button>
                             )}
 

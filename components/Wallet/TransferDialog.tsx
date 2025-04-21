@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { transferSOL } from "@/lib/services/solana-wallet";
 import { useAuth } from "@/components/context/auth-provider";
+import { useSolana } from "@/components/SolanaWallet/SolanaContext"
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 interface TransferDialogProps {
     open: boolean;
@@ -39,6 +41,9 @@ export function TransferDialog({
     const [amount, setAmount] = useState("");
     const [recipientError, setRecipientError] = useState("");
     const [amountError, setAmountError] = useState("");
+    const { connection } = useConnection()
+    const { publicKey, sendTransaction } = useWallet()
+    const { cluster } = useSolana()
 
     const validateInputs = () => {
         let isValid = true;
@@ -84,7 +89,7 @@ export function TransferDialog({
             setAmount("");
 
             // Open the transaction in explorer
-            window.open(`https://explorer.solana.com/tx/${txId}?cluster=devnet`, "_blank");
+            handleExplorerLink(txId);
         } catch (error) {
             console.error("Transfer error:", error);
             toast.error("There was an error processing your transaction. Please try again.");
@@ -92,6 +97,11 @@ export function TransferDialog({
             setIsLoading(false);
         }
     };
+
+    // Handle Explorer link click
+    const handleExplorerLink = (txId: string) => {
+        window.open(`https://solscan.io/tx/${txId}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`, "_blank");
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

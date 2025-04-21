@@ -6,6 +6,7 @@ import { FC, useState, useCallback } from "react";
 import { useAuth } from "../context/auth-provider";
 import AuthModal from "../Auth/AuthModal";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Utility
 const copyTextToClipboard = async (text: string) => {
@@ -99,8 +100,9 @@ const WalletButton: FC = () => {
               </div>
             ) : wallet.connected && wallet.publicKey ? (
               // Connected with wallet
-              <div className="flex items-center bg-gradient-to-r from-indigo-800 to-indigo-900 text-gray-100 border border-indigo-700 rounded-lg px-4 py-2.5 shadow-lg hover:shadow-indigo-900/20 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200">
-                <span className="text-sm">
+              <div className="flex items-center bg-gradient-to-r from-indigo-800 to-indigo-900 text-gray-100 border border-indigo-700 rounded-lg px-3 py-2 shadow-lg hover:shadow-indigo-900/20 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200">
+                <span className="text-sm flex items-center gap-2">
+                  <Image src={wallet.wallet?.adapter?.icon || ""} alt="Wallet Icon" width={25} height={25} />
                   {`${wallet.publicKey.toString().slice(0, 4)}...${wallet.publicKey.toString().slice(-4)}`}
                 </span>
               </div>

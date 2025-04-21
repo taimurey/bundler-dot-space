@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, Wallet, RefreshCw, ExternalLink, Copy, CheckCircle2, LayoutDashboard, SendHorizontal, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSolana } from "@/components/SolanaWallet/SolanaContext"
 
 import {
     DropdownMenu,
@@ -23,6 +24,7 @@ interface WalletButtonProps {
 export function WalletButton({ className }: WalletButtonProps) {
     const router = useRouter()
     const { state, logout, fetchWalletBalance } = useAuth()
+    const { cluster } = useSolana()
     const [showTransferDialog, setShowTransferDialog] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isCopying, setIsCopying] = useState(false)
@@ -152,15 +154,13 @@ export function WalletButton({ className }: WalletButtonProps) {
                         Dashboard
                     </DropdownMenuItem>
 
-
-
                     {!isDemoWallet && (
                         <DropdownMenuItem
                             className="cursor-pointer hover:bg-zinc-800 py-2.5"
-                            onClick={() => window.open(`https://explorer.solana.com/address/${state.user?.walletAddress}?cluster=devnet`, "_blank")}
+                            onClick={() => window.open(`https://solscan.io/account/${state.user?.walletAddress}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`, "_blank")}
                         >
                             <ExternalLink className="h-4 w-4 mr-2" />
-                            View on Explorer
+                            View on Solscan
                         </DropdownMenuItem>
                     )}
 

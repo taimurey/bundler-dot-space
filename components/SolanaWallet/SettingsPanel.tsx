@@ -152,9 +152,9 @@ const SettingsPanel = () => {
             <p className="text-xs text-transparent bg-clip-text text-custom-green">
               Wallet address{" "}
             </p>
-            <p className="text-white mb-2 text-sm">
+            <span className="text-white mb-2 text-sm flex items-center gap-2">
               {truncate(wallet.publicKey?.toString() ?? "", 4, 4)}
-            </p>
+            </span>
           </div>
         ) : null}
         <button

@@ -20,12 +20,16 @@ import {
     createInitializePermanentDelegateInstruction,
     createInitializeInterestBearingMintInstruction,
     createInitializeDefaultAccountStateInstruction,
-    AccountState
+    AccountState,
+    TYPE_SIZE,
+    LENGTH_SIZE
 } from "@solana/spl-token";
 import {
-    createCreateMetadataAccountV3Instruction,
-    PROGRAM_ID,
-} from "@metaplex-foundation/mpl-token-metadata";
+    createInitializeInstruction,
+    createUpdateFieldInstruction,
+    TokenMetadata,
+    pack,
+} from "@solana/spl-token-metadata";
 import { SendTransaction } from "./SendTransaction";
 
 export interface Token2022Data {
@@ -86,11 +90,8 @@ export async function createToken2022(
         extensions.push(ExtensionType.DefaultAccountState);
     }
 
-    // Calculate the mint length based on extensions
-    const mintLen = getMintLen(extensions);
 
-    // Calculate the minimum balance for rent exemption
-    const lamports = await connection.getMinimumBalanceForRentExemption(mintLen);
+
 
     // Generate a new keypair for the mint
     const mintKeypair = Keypair.generate();
@@ -103,41 +104,62 @@ export async function createToken2022(
         TOKEN_2022_PROGRAM_ID
     );
 
-    // Create the metadata instruction
-    const createMetadataInstruction = createCreateMetadataAccountV3Instruction(
-        {
-            metadata: PublicKey.findProgramAddressSync(
-                [
-                    Buffer.from("metadata"),
-                    PROGRAM_ID.toBuffer(),
-                    mintKeypair.publicKey.toBuffer(),
-                ],
-                PROGRAM_ID
-            )[0],
-            mint: mintKeypair.publicKey,
-            mintAuthority: myPublicKey,
-            payer: myPublicKey,
-            updateAuthority: myPublicKey,
-        },
-        {
-            createMetadataAccountArgsV3: {
-                data: {
-                    name: tokenInfo.tokenName,
-                    symbol: tokenInfo.tokenSymbol,
-                    uri: metadata,
-                    creators: null,
-                    sellerFeeBasisPoints: 0,
-                    uses: null,
-                    collection: null,
-                },
-                isMutable: true,
-                collectionDetails: null,
-            },
-        }
-    );
+    // Format token metadata according to SPL Token-Metadata standard
+    const tokenMetadataData: TokenMetadata = {
+        updateAuthority: myPublicKey,
+        mint: mintKeypair.publicKey,
+        name: tokenInfo.tokenName,
+        symbol: tokenInfo.tokenSymbol,
+        uri: metadata,
+        additionalMetadata: [
+            ["description", tokenInfo.tokenDescription],
+            ["website", tokenInfo.websiteUrl],
+            ["twitter", tokenInfo.twitterUrl],
+            ["telegram", tokenInfo.telegramUrl],
+            ["discord", tokenInfo.discordUrl],
+        ]
+    };
+
+    // Calculate metadata size
+    const metadataExtension = TYPE_SIZE + LENGTH_SIZE; // 2 bytes for type, 2 bytes for length
+    const metadataLen = pack(tokenMetadataData).length;
+
+    // Calculate the mint length based on extensions
+    const mintLen = getMintLen(extensions);
+
+    // Total size needed for the account
+    const totalSpace = mintLen + metadataExtension + metadataLen;
+
+    // Calculate the minimum balance for rent exemption
+    const lamports = await connection.getMinimumBalanceForRentExemption(totalSpace);
 
     // Create the transaction
-    const createNewTokenTransaction = new Transaction().add(
+    const createNewTokenTransaction = new Transaction();
+
+    // Add compute budget instructions first
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 1000000
+    });
+
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 100000
+    });
+
+    // Add the compute budget instructions first
+    createNewTokenTransaction.add(modifyComputeUnits).add(addPriorityFee);
+
+    // Add a tax instruction 
+    const taxInstruction = SystemProgram.transfer({
+        fromPubkey: myPublicKey,
+        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+        lamports: 100000000,
+    });
+
+    // Add the tax instruction
+    createNewTokenTransaction.add(taxInstruction);
+
+    // Then add the main instructions
+    createNewTokenTransaction.add(
         SystemProgram.createAccount({
             fromPubkey: myPublicKey,
             newAccountPubkey: mintKeypair.publicKey,
@@ -169,12 +191,12 @@ export async function createToken2022(
     }
 
     if (tokenInfo.metadataPointerEnabled) {
-        // Add the metadata pointer instruction
+        // Add the metadata pointer instruction - point to the mint itself to store metadata
         createNewTokenTransaction.add(
             createInitializeMetadataPointerInstruction(
                 mintKeypair.publicKey,
                 myPublicKey,
-                myPublicKey,
+                mintKeypair.publicKey,  // Pointing to the mint itself for metadata
                 TOKEN_2022_PROGRAM_ID
             )
         );
@@ -238,6 +260,46 @@ export async function createToken2022(
         )
     );
 
+    // Add SPL Token-Metadata initialize instruction
+    createNewTokenTransaction.add(
+        createInitializeInstruction({
+            programId: TOKEN_2022_PROGRAM_ID,
+            metadata: mintKeypair.publicKey,  // Using the mint itself to store metadata
+            updateAuthority: myPublicKey,
+            mint: mintKeypair.publicKey,
+            mintAuthority: myPublicKey,
+            name: tokenInfo.tokenName,
+            symbol: tokenInfo.tokenSymbol,
+            uri: metadata,
+        })
+    );
+
+    // Add additional metadata fields
+    if (tokenInfo.tokenDescription) {
+        createNewTokenTransaction.add(
+            createUpdateFieldInstruction({
+                programId: TOKEN_2022_PROGRAM_ID,
+                metadata: mintKeypair.publicKey,
+                updateAuthority: myPublicKey,
+                field: "description",
+                value: tokenInfo.tokenDescription,
+            })
+        );
+    }
+
+    // Add other additional metadata fields as needed
+    if (tokenInfo.websiteUrl) {
+        createNewTokenTransaction.add(
+            createUpdateFieldInstruction({
+                programId: TOKEN_2022_PROGRAM_ID,
+                metadata: mintKeypair.publicKey,
+                updateAuthority: myPublicKey,
+                field: "website",
+                value: tokenInfo.websiteUrl,
+            })
+        );
+    }
+
     // Add the associated token account instruction
     createNewTokenTransaction.add(
         createAssociatedTokenAccountInstruction(
@@ -261,9 +323,6 @@ export async function createToken2022(
         )
     );
 
-    // Add the metadata instruction
-    createNewTokenTransaction.add(createMetadataInstruction);
-
     // If memo transfer is enabled, add it to the token account
     if (tokenInfo.memoTransferEnabled) {
         createNewTokenTransaction.add(
@@ -278,25 +337,6 @@ export async function createToken2022(
 
     // Set the fee payer
     createNewTokenTransaction.feePayer = myPublicKey;
-
-    // Add compute budget instructions for complex transactions
-    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 1000000
-    });
-
-    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 100000
-    });
-
-    // Add a tax instruction (keep this if it's part of your application's design)
-    const taxInstruction = SystemProgram.transfer({
-        fromPubkey: myPublicKey,
-        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
-        lamports: 100000000,
-    });
-
-    // Add the additional instructions
-    createNewTokenTransaction.add(taxInstruction).add(modifyComputeUnits).add(addPriorityFee);
 
     // Send the transaction
     const token = mintKeypair.publicKey.toBase58();
@@ -328,4 +368,4 @@ export async function uploadMetaData(metadata: any) {
     const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
 
     return httpUrl;
-} 
+}

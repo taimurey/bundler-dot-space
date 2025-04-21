@@ -5,10 +5,12 @@ import { Loader2, Copy, CheckCircle2, RefreshCw } from "lucide-react"
 import { useAuth } from "../context/auth-provider"
 import { toast } from "sonner"
 import { Button } from "../ui/button"
+import { useSolana } from "@/components/SolanaWallet/SolanaContext"
 
 export default function UserInfo() {
     const { state, fetchWalletBalance } = useAuth()
     const { user } = state
+    const { cluster } = useSolana()
     const [isCopying, setIsCopying] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -141,12 +143,12 @@ export default function UserInfo() {
                 <div className="space-y-2">
                     {user.walletAddress && (
                         <a
-                            href={`https://explorer.solana.com/address/${user.walletAddress}?cluster=devnet`}
+                            className="text-blue-500 text-xs hover:underline"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block rounded-md bg-zinc-800 p-2 text-center text-sm text-white hover:bg-zinc-700"
+                            href={`https://solscan.io/account/${user.walletAddress}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`}
                         >
-                            View Wallet on Solana Explorer
+                            View on Solscan
                         </a>
                     )}
                 </div>
