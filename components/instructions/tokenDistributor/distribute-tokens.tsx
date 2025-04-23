@@ -1,10 +1,12 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey, Signer, SystemProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, Signer, SystemProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { distributeRandomly } from "../randomgen";
 import { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddressSync, getMint, } from "@solana/spl-token";
 import base58 from "bs58";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { tipAccounts } from "../pump-bundler/constants";
 import { getKeypairFromBs58 } from "../pump-bundler/misc";
+import { toast } from "sonner";
+import { sendJitoBundleClient } from "../jito-bundler/sendJitoBundleClient";
 
 interface TokenMultisenderFormData {
     tokenMintAddress: string;
@@ -14,6 +16,7 @@ interface TokenMultisenderFormData {
     BundleTip: string;
     TransactionTip: string;
     BlockEngineSelection: string;
+    fromPrivateKey: string;
 }
 
 export async function distributetokens(
@@ -106,22 +109,37 @@ export async function distributetokens(
     const encodedTxns = BundleTxns.map(txn => base58.encode(txn.serialize()));
 
     // Send transactions in batches of 5
+    const bundleIds: string[] = [];
     for (let i = 0; i < encodedTxns.length; i += 5) {
         const batch = encodedTxns.slice(i, i + 5);
 
-        const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ blockengine: `https://${FormData.BlockEngineSelection}`, txns: batch }),
-        });
+        try {
+            const senderKeypair = Keypair.fromSecretKey(base58.decode(FormData.fromPrivateKey));
 
-        if (!response.ok) {
-            throw new Error(`Failed to send transactions: ${await response.text()}`);
+            // Send the bundle and get the bundle ID
+            const bundlePromise = sendJitoBundleClient(
+                `https://${FormData.BlockEngineSelection}`,
+                senderKeypair,
+                connection,
+                batch,
+                parseFloat(FormData.BundleTip || "0.01") * LAMPORTS_PER_SOL
+            );
+
+            // Use toast.promise with proper type handling
+            toast.promise(bundlePromise, {
+                loading: 'Sending token distribution bundle to Jito...',
+                success: (data) => `Token distribution bundle sent! ID: ${data.slice(0, 8)}...`,
+                error: (err) => `Failed to send token distribution: ${err.message}`
+            });
+
+            // Await the promise separately to get the return value
+            const bundleId = await bundlePromise;
+            console.log("Bundle sent with ID:", bundleId);
+            bundleIds.push(bundleId);
+        } catch (error) {
+            console.error("Error in sendBundle:", error);
+            throw error;
         }
-
-        console.log("Bundle sent successfully:", await response.text());
     }
 
     return "All bundles sent successfully";

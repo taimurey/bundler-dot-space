@@ -12,7 +12,7 @@ const Token2022Component = dynamic(
 const CreateToken2022Page: FC = () => {
     return (
         <div className="w-full max-w-4xl mx-auto p-4 py-10">
-            <div className="bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-lg shadow-md">
+            <div className="bg-[#0c0e11] bg-opacity-70 border border-neutral-500/40 rounded-sm shadow-md">
                 <Token2022Component />
             </div>
         </div>

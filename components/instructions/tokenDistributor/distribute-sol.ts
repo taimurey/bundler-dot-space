@@ -1,107 +1,155 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { getKeypairFromBs58 } from "../pump-bundler/misc";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
+import { toast } from "sonner";
 import base58 from "bs58";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 import { tipAccounts } from "../pump-bundler/constants";
 import { distributeRandomly } from '../randomgen';
 
 interface SOLMultisenderFormData {
-    feePayerWallet: string;
-    SendingWallet: string;
-    RecievingWallets: string[];
-    BundleTip: string;
-    TransactionTip: string;
+    addresses: string[];
+    amounts: number[];
+    distribution: string;
+    minAmount?: number;
+    maxAmount?: number;
+    totalAmount?: number;
     BlockEngineSelection: string;
+    BundleTip: string;
 }
 
-export async function distributeSOL(
+/**
+ * Prepares transaction objects for SOL distribution without signing them
+ * @param connection Solana connection
+ * @param fromPubkey Sender's public key
+ * @param formData Distribution form data
+ * @returns Array of unsigned VersionedTransaction objects
+ */
+export async function prepareDistributeSolTransactions(
     connection: Connection,
-    FormData: SOLMultisenderFormData,
-) {
-    const feePayer = getKeypairFromBs58(FormData.feePayerWallet)!;
-    const sendSOLWallet = getKeypairFromBs58(FormData.SendingWallet)!;
-
-    // Fetch SOL balance of the sending wallet
-    const solBalance = await connection.getBalance(sendSOLWallet.publicKey);
-
-    // Distribute SOL randomly
-    const randomamount = distributeRandomly(
-        solBalance,
-        FormData.RecievingWallets.length,
-        (0.0001 * LAMPORTS_PER_SOL), // Minimum amount per recipient
-        (1000000000 * LAMPORTS_PER_SOL) // Maximum amount per recipient
-    );
-
-    console.log("Total SOL to distribute:", randomamount.reduce((a, b) => a + b, 0) / LAMPORTS_PER_SOL);
-    console.log("SOL distribution amounts:", randomamount.map(lamports => lamports / LAMPORTS_PER_SOL));
-
-    // Prepare transfer instructions
-    const transferInstructions: TransactionInstruction[] = [];
-
-    for (let i = 0; i < FormData.RecievingWallets.length; i++) {
-        const recipient = new PublicKey(FormData.RecievingWallets[i]);
-        const amount = randomamount[i];
-
-        // Create SOL transfer instruction
-        const transferInstruction = SystemProgram.transfer({
-            fromPubkey: sendSOLWallet.publicKey,
-            toPubkey: recipient,
-            lamports: amount,
-        });
-
-        transferInstructions.push(transferInstruction);
-    }
-
-    // Bundle transactions
-    const BundleTxns: VersionedTransaction[] = [];
+    fromPubkey: PublicKey,
+    formData: SOLMultisenderFormData
+): Promise<VersionedTransaction[]> {
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    const transactions: VersionedTransaction[] = [];
 
-    // Process instructions in chunks of 5 transfers
-    for (let i = 0; i < transferInstructions.length; i += 5) {
-        const chunk = transferInstructions.slice(i, i + 5);
+    // Create transactions
+    for (let i = 0; i < formData.addresses.length; i++) {
+        try {
+            const receiverAddress = new PublicKey(formData.addresses[i]);
+            const amount = formData.amounts[i] * LAMPORTS_PER_SOL;
 
-        // Add tip instruction to the last chunk
-        if (i + 5 >= transferInstructions.length) {
-            const tipInstruction = SystemProgram.transfer({
-                fromPubkey: feePayer.publicKey,
-                toPubkey: new PublicKey(tipAccounts[0]),
-                lamports: Number(FormData.BundleTip) * LAMPORTS_PER_SOL,
+            const transferIx = SystemProgram.transfer({
+                fromPubkey: fromPubkey,
+                toPubkey: receiverAddress,
+                lamports: amount
             });
-            chunk.push(tipInstruction);
+
+            const messageV0 = new TransactionMessage({
+                payerKey: fromPubkey,
+                recentBlockhash,
+                instructions: [transferIx]
+            }).compileToV0Message();
+
+            const tx = new VersionedTransaction(messageV0);
+            transactions.push(tx);
+        } catch (error) {
+            console.error(`Error creating transaction for ${formData.addresses[i]}:`, error);
+            throw error;
         }
-
-        // Create and sign the transaction
-        const txn = new TransactionMessage({
-            payerKey: feePayer.publicKey,
-            recentBlockhash: recentBlockhash,
-            instructions: chunk,
-        }).compileToV0Message();
-
-        const versionedTxn = new VersionedTransaction(txn);
-        versionedTxn.sign([feePayer, sendSOLWallet]);
-        BundleTxns.push(versionedTxn);
     }
 
-    // Encode transactions
-    const encodedTxns = BundleTxns.map(txn => base58.encode(txn.serialize()));
+    // Add a tip transaction at the end
+    if (parseFloat(formData.BundleTip) > 0) {
+        try {
+            const tipAmount = parseFloat(formData.BundleTip) * LAMPORTS_PER_SOL;
+            const tipIx = SystemProgram.transfer({
+                fromPubkey: fromPubkey,
+                toPubkey: new PublicKey(tipAccounts[0]),
+                lamports: tipAmount
+            });
 
-    // Send transactions in batches of 5
-    for (let i = 0; i < encodedTxns.length; i += 5) {
-        const batch = encodedTxns.slice(i, i + 5);
+            const messageV0 = new TransactionMessage({
+                payerKey: fromPubkey,
+                recentBlockhash,
+                instructions: [tipIx]
+            }).compileToV0Message();
 
-        const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ blockengine: `https://${FormData.BlockEngineSelection}`, txns: batch }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to send transactions: ${await response.text()}`);
+            const tipTx = new VersionedTransaction(messageV0);
+            transactions.push(tipTx);
+        } catch (error) {
+            console.error("Error creating tip transaction:", error);
+            // Continue without the tip transaction
         }
-
-        console.log("Bundle sent successfully:", await response.text());
     }
 
-    return "All bundles sent successfully";
+    return transactions;
+}
+
+/**
+ * Distributes SOL to multiple addresses using client-side transaction signing
+ * @param connection Solana connection
+ * @param wallet Wallet context for signing
+ * @param formData Distribution form data
+ * @returns Array of bundle IDs
+ */
+export async function distributeSol(
+    connection: Connection,
+    wallet: WalletContextState,
+    formData: SOLMultisenderFormData
+): Promise<string[]> {
+    if (!wallet.publicKey || !wallet.signAllTransactions) {
+        throw new Error("Wallet not connected or doesn't support signing");
+    }
+
+    const bundleIds: string[] = [];
+    const transactions = await prepareDistributeSolTransactions(connection, wallet.publicKey, formData);
+
+    // Sign all transactions
+    try {
+        const signedTransactions = await wallet.signAllTransactions(transactions);
+
+        // Encode transactions
+        const encodedTxns = signedTransactions.map(tx => base58.encode(tx.serialize()));
+
+        // Send transactions in batches of 5
+        for (let i = 0; i < encodedTxns.length; i += 5) {
+            const batch = encodedTxns.slice(i, i + 5);
+
+            try {
+                // Make a request to the server-side API
+                const response = await fetch('/api/jito-bundle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        blockEngineUrl: `https://${formData.BlockEngineSelection}`,
+                        rpcEndpoint: connection.rpcEndpoint,
+                        transactions: batch,
+                        tipAmount: parseFloat(formData.BundleTip || "0.01") * LAMPORTS_PER_SOL
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send Jito bundle');
+                }
+
+                // Show success message
+                toast.success(`SOL distribution bundle sent! ID: ${data.bundleId.slice(0, 8)}...`);
+                bundleIds.push(data.bundleId);
+
+            } catch (error) {
+                console.error("Error in sendBundle:", error);
+                toast.error(`Failed to send bundle: ${error instanceof Error ? error.message : String(error)}`);
+                throw error;
+            }
+        }
+    } catch (error) {
+        console.error("Error signing transactions:", error);
+        toast.error(`Failed to sign transactions: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+    }
+
+    return bundleIds;
 }

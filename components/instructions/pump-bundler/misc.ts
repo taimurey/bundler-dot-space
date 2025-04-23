@@ -132,7 +132,7 @@ export function generateWallets(signerKeypair: Keypair, defaultSolAmount: number
     return emptyWalletsObject;
 }
 
-export const TAX_WALLET = new PublicKey("GeQVgDTixeGXCX3WgL2CyEofsZQUBXTzDD5Ab8Y3DjQ8");
+export const TAX_WALLET = new PublicKey("3GgqBX8MyUNCqgDHp2Qdr5Sxk41cvLJPiDMiXJUUu6tb");
 
 const calculateFee = (amount: BN, feeBasisPoints: BN): BN => {
     return amount.mul(feeBasisPoints).div(new BN(10000));

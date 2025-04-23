@@ -25,10 +25,10 @@ import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { BundleToast } from '@/components/bundler-toasts';
 import base58 from 'bs58';
 import { ApibundleSend } from '@/components/instructions/DistributeTokens/bundler';
-import WalletsDrawer from '@/components/sidebar-drawer';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import assert from 'assert';
+import { TAX_WALLET } from '@/components/instructions/pump-bundler/misc';
 
 const RaydiumManager = () => {
     const { connection } = useConnection();
@@ -185,7 +185,7 @@ const RaydiumManager = () => {
 
         const taxInstruction = SystemProgram.transfer({
             fromPubkey: publicKey,
-            toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+            toPubkey: TAX_WALLET,
             lamports: minLamports,
         });
 
@@ -439,7 +439,7 @@ const RaydiumManager = () => {
                 const minLamports = 250000000;
                 const taxInstruction = SystemProgram.transfer({
                     fromPubkey: publicKey,
-                    toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+                    toPubkey: TAX_WALLET,
                     lamports: minLamports,
                 });
 
@@ -1058,9 +1058,6 @@ const RaydiumManager = () => {
                     </div> */}
                 </div>
             </form>
-            <div className='absolute -top-[95px] right-0 min-h-screen '>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 }

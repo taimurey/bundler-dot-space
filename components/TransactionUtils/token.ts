@@ -22,6 +22,7 @@ import {
     PROGRAM_ID,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { SendTransaction } from "./SendTransaction";
+import { TAX_WALLET } from "../instructions/pump-bundler/misc";
 
 export interface TokenData {
     tokenName: string;
@@ -122,7 +123,7 @@ export async function createToken(tokenInfo: TokenData, connection: Connection, 
 
     const taxInstruction = SystemProgram.transfer({
         fromPubkey: myPublicKey,
-        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+        toPubkey: TAX_WALLET,
         lamports: 100000000,
     });
 
@@ -163,7 +164,7 @@ export async function createToken(tokenInfo: TokenData, connection: Connection, 
 
 export async function uploadMetaData(metadata: any) {
     console.log("Uploading metadata", metadata);
-    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-json', {
+    const response = await fetch('https://api.bundler.space/upload-json', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

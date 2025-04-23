@@ -48,35 +48,101 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
 
         Papa.parse<string[]>(file, {
             complete: function (results: ParseResult) {
-                const walletData = results.data.slice(1).map(row => ({
-                    wallet: row[1], // Assuming the wallet address is in the second column
-                    solAmount: ''
-                }));
-
                 const walletSet: WalletEntry[] = [];
-                walletData.forEach((element) => {
-                    if (element.wallet === '' || element.wallet === 'wallet' || element.wallet === undefined) {
+
+                // Process each row in the CSV file
+                results.data.forEach((row, rowIndex) => {
+                    // Skip header rows or empty rows
+                    if (rowIndex === 0 || row.length === 0 || !row[0]) {
                         return;
                     }
+
                     try {
-                        // Validate the wallet address
-                        new PublicKey(element.wallet);
-                        walletSet.push(element);
+                        let privateKey = '';
+                        let solAmount = '';
+
+                        // First column might be a private key directly
+                        if (row[0] && row[0].length > 30) {
+                            try {
+                                // Try to decode as a private key
+                                const keypair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[0])));
+                                privateKey = row[0];
+
+                                // Check if second column contains a SOL amount
+                                if (row[1] && !isNaN(Number(row[1]))) {
+                                    solAmount = row[1];
+                                }
+                            } catch (e) {
+                                // Not a valid private key in column 1
+                            }
+                        }
+
+                        // If first column wasn't a valid private key, check second or third column
+                        if (!privateKey) {
+                            // Check if first column is a public key
+                            try {
+                                new PublicKey(row[0]); // Validate as a public key
+
+                                // Second column might be the private key
+                                if (row[1] && row[1].length > 30) {
+                                    try {
+                                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[1])));
+                                        privateKey = row[1];
+
+                                        // If third column exists, it might be the SOL amount
+                                        if (row[2] && !isNaN(Number(row[2]))) {
+                                            solAmount = row[2];
+                                        }
+                                    } catch (e) {
+                                        // Not a valid private key in column 2
+                                    }
+                                }
+
+                                // If second column is a number, check third column for private key
+                                if (!privateKey && row[1] && !isNaN(Number(row[1]))) {
+                                    solAmount = row[1];
+
+                                    if (row[2] && row[2].length > 30) {
+                                        try {
+                                            Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[2])));
+                                            privateKey = row[2];
+                                        } catch (e) {
+                                            // Not a valid private key in column 3
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // First column is not a valid public key
+                            }
+                        }
+
+                        // If we found a valid private key, add it to our wallet set
+                        if (privateKey) {
+                            walletSet.push({
+                                wallet: privateKey,
+                                solAmount: solAmount
+                            });
+                        } else {
+                            console.warn(`No valid private key found in row ${rowIndex + 1}`);
+                        }
                     } catch (err) {
-                        toast.error(`Invalid wallet address: ${element.wallet}`);
+                        console.error(`Error processing row ${rowIndex + 1}:`, err);
                     }
                 });
 
+                if (walletSet.length === 0) {
+                    toast.error('No valid private keys found in the CSV file');
+                    return;
+                }
+
                 if (walletSet.length > maxWallets) {
-                    setError(`Only the first ${maxWallets} wallets were imported`);
+                    setError(`Only the first ${maxWallets} wallets will be used`);
                     walletSet.splice(maxWallets);
                 }
 
-                if (walletSet.length > 0) {
-                    toast.success('Wallets Loaded Successfully');
-                    setWallets(walletSet);
-                    notifyChange(walletSet);
-                }
+                toast.success(`${walletSet.length} wallets loaded successfully`);
+                setWallets(walletSet);
+                notifyChange(walletSet);
             },
             error: function (err: any) {
                 setError(`Error parsing CSV file: ${err.message}`);

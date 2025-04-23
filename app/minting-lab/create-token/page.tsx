@@ -1,20 +1,21 @@
 "use client"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createImageFromInitials } from "../../../components/helpers/common/createImage";
+import { createImageFromInitials } from "@/components/helpers/common/createImage";
 import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
+import { useSolana } from "@/components/SolanaWallet/SolanaContext";
 import { toast } from "sonner";
-import { UpdatedInputField } from "../../../components/FieldComponents/UpdatedInputfield";
-import { createToken } from "../../../components/TransactionUtils/token";
-import { LinkToast, TransactionToast } from "../../../components/common/Toasts/TransactionToast";
-import ImageUploadIcon from "../../../components/icons/imageuploadIcon";
+import { UpdatedInputField } from "@/components/FieldComponents/UpdatedInputfield";
+import { createToken } from "@/components/TransactionUtils/token";
+import { LinkToast, TransactionToast } from "@/components/common/Toasts/TransactionToast";
+import ImageUploadIcon from "@/components/icons/imageuploadIcon";
 import { FaDiscord, FaTelegram, FaTwitter, FaGlobe } from "react-icons/fa";
+import TokenMetadataView, { TokenMetadata } from "@/components/TokenMetadataView";
 
 const CreateToken: FC = () => {
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
-    const { networkConfiguration } = useNetworkConfiguration();
+    const { cluster } = useSolana();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         tokenName: "",
@@ -36,9 +37,8 @@ const CreateToken: FC = () => {
     const [tokenMintAddress, setTokenMintAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [image, setImage] = useState<string>("");
-    if (!process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN) {
-        console.warn('NFT_STORAGE is not defined');
-    }
+    const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata | null>(null);
+
     const [uploading, setUploading] = useState(false);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [creatingToken, setCreatingToken] = useState(false);
@@ -81,7 +81,7 @@ const CreateToken: FC = () => {
                     // Convert Uint8Array to an array of numbers
                     const imageArray = Array.from(imageUint8Array);
 
-                    const response = await fetch('https://mevarik-deployer.xyz:2791/upload-image', {
+                    const response = await fetch('https://api.bundler.space/upload-image', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ const CreateToken: FC = () => {
             setCreatingToken(false);
             return;
         }
-        const TokenMetadata: any = {
+        const TokenMetadata: TokenMetadata = {
             "name": formData.tokenName,
             "symbol": formData.tokenSymbol,
             "image": uploadedImageUrl,
@@ -154,6 +154,9 @@ const CreateToken: FC = () => {
         if (formData.telegramUrl) {
             TokenMetadata.telegram = formData.telegramUrl;
         }
+        if (formData.discordUrl) {
+            TokenMetadata.discord = formData.discordUrl;
+        }
 
         console.log(TokenMetadata, "TokenMetadata")
         toast.info("Creating token...");
@@ -161,6 +164,7 @@ const CreateToken: FC = () => {
             const { signature, token } = await createToken(formData, connection, TokenMetadata, publicKey, sendTransaction);
 
             setTokenMintAddress(token);
+            setTokenMetadata(TokenMetadata);
 
             toast(
                 () => (<TransactionToast
@@ -176,7 +180,7 @@ const CreateToken: FC = () => {
                     <div className="flex justify-between items-center">
                         <p className="text-white">Mint Address</p>
                         <a
-                            href={`https://solscan.io/account/${token}`}
+                            href={`https://solscan.io/account/${token}${cluster.network !== 'mainnet-beta' ? `?cluster=${cluster.network}` : ''}`}
                             target="_blank"
                             rel="noreferrer"
                             className="text-blue-500"
@@ -190,8 +194,15 @@ const CreateToken: FC = () => {
 
         }
         catch (error: any) {
-            toast.error("Error creating the token");
             console.error(error);
+            // Check if it's a user rejection error
+            if (error.message && error.message.includes('User rejected')) {
+                toast.error("Transaction was rejected by the user");
+            } else if (error.message) {
+                toast.error(`Error: ${error.message}`);
+            } else {
+                toast.error("Error creating the token");
+            }
         } finally {
             // Set the creatingToken state to false
             setCreatingToken(false);
@@ -216,7 +227,16 @@ const CreateToken: FC = () => {
                         </div>
                     )}
 
-                    {!tokenMintAddress ? (
+                    {tokenMintAddress && tokenMetadata ? (
+                        <div className="p-6">
+                            <TokenMetadataView
+                                tokenMetadata={tokenMetadata}
+                                tokenMintAddress={tokenMintAddress}
+                                network={cluster.network}
+                                isToken2022={false}
+                            />
+                        </div>
+                    ) : (
                         <>
                             <form action="" className="p-4 flex flex-col gap-4">
                                 <div className="mb-2">
@@ -419,18 +439,6 @@ const CreateToken: FC = () => {
                                 </div>
                             </form>
                         </>
-                    ) : (
-                        <div className="p-4 break-words">
-                            <p className="font-medium text-sm">Link to your new token.</p>
-                            <a
-                                className="cursor-pointer font-medium text-purple-500 hover:text-indigo-500 text-xs break-all"
-                                href={`https://explorer.solana.com/address/${tokenMintAddress}?cluster=${networkConfiguration}`}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {tokenMintAddress}
-                            </a>
-                        </div>
                     )}
                 </div>
             </div>

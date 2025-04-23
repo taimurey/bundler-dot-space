@@ -6,7 +6,6 @@ import { Keypair } from '@solana/web3.js';
 import base58 from 'bs58';
 import { InputField } from '@/components/ui/input-field';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
-import WalletsDrawer from '@/components/sidebar-drawer';
 
 
 const ZERO = new BN(0)
@@ -189,9 +188,6 @@ const Swap = () => {
 
                 </div>
             </form>
-            <div className='absolute -top-[70px] right-0 h-screen'>
-                <WalletsDrawer />
-            </div>
         </div>
     );
 }

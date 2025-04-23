@@ -3,29 +3,21 @@ import { usePathname, useRouter } from "next/navigation";
 import { FC, useState, useEffect } from "react";
 import React from 'react';
 import TokenIcon from "@/components/icons/TokenIcon";
-import MarketIcon from "@/components/icons/MarketIcon";
 import Link from "next/link";
-import FlaskIcon from "@/components/icons/FlaskIcon";
-import ManageIcon from "@/components/icons/ManageIcon";
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
 import VirusIcon from "@/components/icons/VirusIcon";
 import { DetailedHTMLProps, AnchorHTMLAttributes } from 'react';
 import ManagerIcon from "@/components/icons/ManagerIcon";
-import { TbPillFilled } from "react-icons/tb";
-import CashInflowIcon from "@/components/icons/cashInflowIcon";
-import MultiSenderIcon from "@/components/icons/MultiSendIcon";
-import { MdSevereCold, MdToken } from "react-icons/md";
+import { MdSevereCold } from "react-icons/md";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import { FaCoins, FaFire, FaStickyNote, FaHome } from "react-icons/fa";
-import { GiBrainFreeze } from "react-icons/gi";
+import { GiBrainFreeze, GiSpawnNode } from "react-icons/gi";
 import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
 import MevLabLogo from "./icons/JupiterLogo";
-import { GiBubblingFlask } from "react-icons/gi";
 import { LockIcon } from "lucide-react";
-import { LiaFlaskSolid } from "react-icons/lia";
 import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
-import GoldenPumpFunIcon from "./icons/GoldenPumpIcon";
+import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunCommentBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
@@ -218,7 +210,7 @@ const Sidebar: FC = () => {
             showOnlyOnHomePage: false  // Show on all pages
         },
         {
-            href: '/raydium/create-ray-amm',
+            href: '/raydium/create-amm',
             title: 'Raydium',
             icon: <RaydiumIcon className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
@@ -281,61 +273,85 @@ const Sidebar: FC = () => {
             group: "raydium",
         },
         {
-            href: '/raydium/create-ray-amm',
-            title: 'RayAMM Bundler',
+            href: '/raydium/create-amm',
+            title: 'AMM Bundler',
             icon: <RaydiumAMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-amm',
-            title: 'RayAMM Manager',
+            title: 'AMM Manager',
             icon: <RaydiumAMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
-            href: '/raydium/create-ray-cpmm',
-            title: 'RayCPMM Bundler',
+            href: '/raydium/create-cpmm',
+            title: 'CPMM Bundler',
             icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         {
             href: '/raydium/manage-cpmm',
-            title: 'RayCPMM Manager',
+            title: 'CPMM Manager',
             icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
         // PumpFun links
         {
             href: '/pump-fun/create',
-            title: 'PumpFun Bundler',
+            title: 'Bundler',
             icon: <PumpFunIcon className="w-6 h-6 rotate-180" />,
             group: 'pump-fun'
         },
         {
+            href: '/pump-fun/bump-bot',
+            title: 'Bump Bot',
+            icon: <PumpFunBumpBotIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
+            href: '/pump-fun/comment-bot',
+            title: 'Comment Bot',
+            icon: <PumpFunCommentBotIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
+            href: '/pump-fun/desalinator',
+            title: 'Desalinator',
+            icon: <PumpFunDesalinatorIcon className="w-6 h-6" />,
+            group: 'pump-fun'
+        },
+        {
             href: '/pump-fun/manage-tokens',
-            title: 'PumpFun Manager',
+            title: 'Manager',
             icon: <GoldenPumpFunIcon className="w-6 h-6" />,
             group: 'pump-fun'
         },
         // Utility links
         {
-            href: '/utilities/distribute-tokens',
-            title: 'Token Distributor',
-            icon: <MultiSenderIcon />,
+            href: '/utilities/distribute-sol',
+            title: 'SOL Distributor',
+            icon: <SolanaIcon className="w-5 h-5" />,
             group: 'utils'
         },
         {
-            href: '/utilities/volume-generator',
-            title: 'Volume Generator',
-            icon: <CashInflowIcon />,
+            href: '/utilities/distribute-tokens',
+            title: 'Token Distributor',
+            icon: <GiSpawnNode className="w-5 h-5" />,
             group: 'utils'
-        }
+        },
+        // {
+        //     href: '/utilities/volume-generator',
+        //     title: 'Volume Generator',
+        //     icon: <CashInflowIcon />,
+        //     group: 'utils'
+        // }
     ];
 
     const isMintingLabPage = pathname.includes('/minting-lab');
     const isPumpFunPage = pathname.includes('/pump-fun');
     const isRaydiumPage = pathname.includes('/raydium');
-    const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/volume-generator');
+    const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/distribute-sol');
 
     // Determine which sub-links to show based on active section
     let visibleSubLinks = subLinks;
@@ -353,7 +369,7 @@ const Sidebar: FC = () => {
         visibleSubLinks = [];
     }
 
-    const showAllPortfolios = pathname.includes('/');
+    const showAllPortfolios = true;
 
     return (
         <div
@@ -442,7 +458,7 @@ const Sidebar: FC = () => {
                 </div>
 
                 {/* Wallet section (maintained as original) */}
-                {showAllPortfolios && !pathname.startsWith('/minting-lab') && isExpanded && textVisible && (
+                {showAllPortfolios && isExpanded && textVisible && (
                     <div className="mb-4 px-2 overflow-hidden transition-all duration-300 ease-in-out">
                         <div
                             className="mx-1 mb-2 py-1 px-3 rounded-xl flex justify-start items-center 
@@ -464,7 +480,7 @@ const Sidebar: FC = () => {
                 )}
 
                 {/* Collapsed wallet button */}
-                {showAllPortfolios && !pathname.startsWith('/minting-lab') && (!isExpanded || !textVisible) && (
+                {showAllPortfolios && (!isExpanded || !textVisible) && (
                     <div className="mb-4 px-2 flex justify-center">
                         <div
                             className="p-2 rounded-xl flex justify-center items-center 
@@ -497,7 +513,7 @@ const Sidebar: FC = () => {
                             }
                         />
 
-                        <div className="flex flex-col gap-1 mt-2 px-2 overflow-hidden">
+                        <div className="flex flex-col gap-1 mt-2 px-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
                             {visibleSubLinks.map((link, index) => {
                                 let gradientFrom, gradientTo;
 

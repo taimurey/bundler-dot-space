@@ -27,6 +27,9 @@ import { TransactionToast, LinkToast } from "../../../components/common/Toasts/T
 import { BlockEngineLocation, InputField } from "@/components/ui/input-field";
 import { FaInfoCircle } from "react-icons/fa";
 import WalletAddressInput, { WalletEntry } from "@/components/instructions/pump-bundler/wallet-input";
+import JitoBundleSelection from "@/components/ui/jito-bundle-selection";
+import base58 from "bs58";
+import { sendJitoBundleClient } from "@/components/instructions/jito-bundler/sendJitoBundleClient";
 
 // Tooltip component for additional information
 const Tooltip: FC<{ title: string; description: string }> = ({ title, description }) => {
@@ -67,7 +70,7 @@ const TokenDistributor: FC = () => {
     const [selectedToken, setSelectedToken] = useState("");
     const [walletEntries, setWalletEntries] = useState<WalletEntry[]>([]);
     const [bundleStatus, setBundleStatus] = useState("");
-
+    const [isJitoBundle, setIsJitoBundle] = useState(false);
     // Fetch user's tokens
     useEffect(() => {
         if (!publicKey) return;
@@ -224,8 +227,9 @@ const TokenDistributor: FC = () => {
 
     const [formData, setFormData] = useState({
         BlockEngineSelection: "",
-        BundleTip: 0.01,
-        TransactionTip: 0.0001
+        BundleTip: "0.01",
+        TransactionTip: "0.0001",
+        senderPrivateKey: ""
     });
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
@@ -404,34 +408,40 @@ const TokenDistributor: FC = () => {
                 setBundleStatus("Sending transactions bundle...");
 
                 try {
-                    const response = await fetch('https://mevarik-deployer.xyz:2791/send-bundle', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            blockengine: `https://ny.mainnet.block-engine.jito.wtf`,
-                            txns: serializedTransactions
-                        })
-                    });
+                    // Replace the API call with sendJitoBundle
+                    const senderKeypair = Keypair.fromSecretKey(
+                        base58.decode(formData.senderPrivateKey)
+                    );
 
-                    if (!response.ok) {
-                        const message = await response.text();
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
-                    }
+                    const bundlePromise = sendJitoBundleClient(
+                        "https://ny.mainnet.block-engine.jito.wtf",
+                        senderKeypair,
+                        connection,
+                        serializedTransactions,
+                        0.01 * LAMPORTS_PER_SOL
+                    );
 
-                    const result = await response.json();
+                    const bundleUuid = await toast.promise(
+                        bundlePromise,
+                        {
+                            loading: 'Sending transaction bundle to Jito...',
+                            success: (data) => `Bundle sent successfully! ID: ${data.slice(0, 8)}...`,
+                            error: (err) => `Failed to send bundle: ${err.message}`
+                        }
+                    );
 
-                    // Show success toast with signature
+                    // Show success toast with explorer link
                     toast(
                         () => (
                             <LinkToast
-                                link={`https://solscan.io/tx/${result.signature}`}
-                                message={"Bundle sent successfully!"}
+                                link={`https://explorer.jito.wtf/bundle/${bundleUuid}`}
+                                message={"View Bundle Details"}
                             />
                         ),
-                        { duration: 5000 }
+                        { duration: 10000 }
                     );
+
+                    console.log("Bundle sent with ID:", bundleUuid);
                 } catch (error: any) {
                     console.error("Error sending bundle:", error);
                     toast.error(`Error sending bundle: ${error.message}`);
@@ -550,80 +560,13 @@ const TokenDistributor: FC = () => {
                     )}
 
 
-                    <div className='flex justify-end items-end gap-2 border rounded-lg p-4 mt-4 border-gray-600'>
-
-                        <div className="w-full">
-                            <div className="flex items-center">
-                                <label className="block mt-5 text-base text-white font-semibold" htmlFor="BlockEngineSelection">
-                                    Block Engine
-                                </label>
-                                <Tooltip
-                                    title="Block Engine Location"
-                                    description="Select the Block Engine location closest to you for better performance. This affects how quickly your transactions will be processed."
-                                />
-                            </div>
-                            <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                                <select
-                                    id="BlockEngineSelection"
-                                    value={formData.BlockEngineSelection}
-                                    onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
-                                    required={true}
-                                    className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                                >
-                                    <option value="" disabled>
-                                        Block Engine Location(Closest to you)
-                                    </option>
-                                    {BlockEngineLocation.map((option, index) => (
-                                        <option key={index} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div className='flex justify-end items-end gap-2'>
-                            <div>
-                                <div className="flex items-center">
-                                    <label className="block text-sm text-white font-medium" htmlFor="BundleTip">
-                                        Bundle Tip
-                                    </label>
-                                    <Tooltip
-                                        title="Bundle Tip"
-                                        description="The tip amount in SOL for the entire bundle. This incentivizes validators to include your bundle in a block."
-                                    />
-                                </div>
-                                <InputField
-                                    id="BundleTip"
-                                    value={formData.BundleTip.toString()}
-                                    onChange={(e) => handleChange(e, 'BundleTip')}
-                                    placeholder="0.01"
-                                    type="number"
-                                    label=""
-                                    required={true}
-                                />
-                            </div>
-                            <div>
-                                <div className="flex items-center">
-                                    <label className="block text-sm text-white font-medium" htmlFor="TransactionTip">
-                                        Txn Tip (SOL)
-                                    </label>
-                                    <Tooltip
-                                        title="Transaction Tip"
-                                        description="The tip amount in SOL applied to each transaction in the bundle."
-                                    />
-                                </div>
-                                <InputField
-                                    id="TransactionTip"
-                                    value={formData.TransactionTip.toString()}
-                                    onChange={(e) => handleChange(e, 'TransactionTip')}
-                                    placeholder="0.0001"
-                                    type="number"
-                                    label=""
-                                    required={true}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <JitoBundleSelection
+                        isJitoBundle={isJitoBundle}
+                        setIsJitoBundle={setIsJitoBundle}
+                        formData={formData}
+                        handleChange={handleChange}
+                        handleSelectionChange={handleSelectionChange}
+                    />
                     <div className="mt-6">
                         <button
                             type="button"

@@ -5,6 +5,7 @@ import "./globals.css";
 // Import Solana wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
 import ClientLayout from "../components/client-layout";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -49,10 +50,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get the Google OAuth client ID from environment variables
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID || "";
+
   return (
     <html lang="en" className="dark">
       <body className={`${poppins.className} antialiased`}>
-        <ClientLayout>{children}</ClientLayout>
+        <GoogleOAuthProvider clientId={googleClientId}>
+          <ClientLayout>{children}</ClientLayout>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

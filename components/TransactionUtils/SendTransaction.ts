@@ -23,7 +23,7 @@ export async function SendTransaction(
 
         transaction.sign(...signers);
 
-        signature = await sendTransaction(transaction, connection);
+        signature = await sendTransaction(transaction, connection, { skipPreflight: true });
 
         await connection.confirmTransaction(signature, 'confirmed');
         // notify({ type: 'success', message: 'Transaction successful!', txid: signature });

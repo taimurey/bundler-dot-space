@@ -23,165 +23,99 @@ export async function generateCreatePumpTokenIx(
     coinname: string,
     symbol: string,
     metadataURI: string,
+    pumpProgram: Program,
 ): Promise<TransactionInstruction> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/create-token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                wallet: mainSigner.publicKey.toString(),
-                mint: token.publicKey.toString(),
-                metadata: {
-                    name: coinname,
-                    symbol: symbol,
-                    uri: metadataURI,
-                }
-            }),
-        });
+    const bondingCurvePda = getBondingCurve(token.publicKey, pumpProgram.programId);
+    const bondingCurveAta = getAssociatedTokenAddressSync(token.publicKey, bondingCurvePda, true);
+    const metadataPda = getMetadataPda(token.publicKey);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result: CreateApiresponse = await response.json();
-
-        if (!result.success || !result.data?.instructions || result.data.instructions.length === 0) {
-            throw new Error(result.message || 'Failed to generate create token instruction');
-        }
-
-        // Convert the instruction string back to a TransactionInstruction
-        const instruction = parseInstructionFromString(result.data.instructions[0]);
-
-        return instruction;
-    } catch (error) {
-        console.error('Error generating create token instruction:', error);
-        throw error;
-    }
+    const createIx = await pumpProgram.methods.create(
+        coinname,
+        symbol,
+        metadataURI,
+    ).accounts({
+        mint: token.publicKey,
+        mintAuthority: MINT_AUTH,
+        bondingCurve: bondingCurvePda,
+        associatedBondingCurve: bondingCurveAta,
+        global: GLOBAL_STATE,
+        mplTokenMetadata: metaplexMetadata,
+        metadata: metadataPda,
+        user: mainSigner.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+        eventAuthority: EVENT_AUTH,
+        program: pumpProgram.programId,
+    }).instruction();
+    return createIx;
 }
 
-interface CreateApiresponse {
-    success: boolean;
-    message: string;
-    data?: {
-        instructions: string[];
-    };
-}
-
-
-
-const API_BASE_URL = 'https://mevarik-deployer.xyz:2791/api';
-
-interface ApiResponse {
-    success: boolean;
-    message: string;
-    instructions?: string[];
-}
 
 export async function generateBuyIx(
     token: PublicKey,
-    amount: BN,
-    maxSolAmount: BN,
+    amount: any,
+    maxSolAmount: any,
     mainSigner: Keypair,
-): Promise<TransactionInstruction> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/buy-token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                wallet: mainSigner.publicKey.toString(),
-                mint: token.toString(),
-                amount: maxSolAmount.toNumber() / 1e9, // Convert lamports to SOL
-            }),
-        });
+    pumpProgram: Program,
+) {
+    const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);
+    const bondingCurveAta = getAssociatedTokenAddressSync(token, bondingCurvePda, true);
+    const signerAta = getAssociatedTokenAddressSync(token, mainSigner.publicKey, true);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const buyIx = await pumpProgram.methods.buy(
+        new BN(amount),
+        new BN(maxSolAmount),
+    ).accounts({
+        global: GLOBAL_STATE,
+        feeRecipient: FEE_RECEPIENT,
+        mint: token,
+        bondingCurve: bondingCurvePda,
+        associatedBondingCurve: bondingCurveAta,
+        associatedUser: signerAta,
+        user: mainSigner.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+        eventAuthority: EVENT_AUTH,
+        program: pumpProgram.programId,
+    }).instruction();
 
-        const data: ApiResponse = await response.json();
-
-        if (!data.success || !data.instructions || data.instructions.length === 0) {
-            throw new Error(data.message || 'Failed to generate buy instruction');
-        }
-
-        // Convert the instruction string back to a TransactionInstruction
-        // You'll need to implement this conversion based on your instruction format
-        const instruction = parseInstructionFromString(data.instructions[0]);
-
-        return instruction;
-    } catch (error) {
-        console.error('Error generating buy instruction:', error);
-        throw error;
-    }
+    return buyIx;
 }
 
-export async function generateSellIx(
+export async function generatedSellIx(
     token: PublicKey,
     mainSigner: Keypair,
     amount: BN,
     minSolAmount: BN,
-): Promise<TransactionInstruction> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/sell-token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                wallet: mainSigner.publicKey.toString(),
-                mint: token.toString(),
-                amount: amount.toNumber(),  // Token amount for sell
-            }),
-        });
+    pumpProgram: Program
+) {
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);
+    const bondingCurveAta = getAssociatedTokenAddressSync(token, bondingCurvePda, true);
+    const signerAta = getAssociatedTokenAddressSync(token, mainSigner.publicKey, true);
 
-        const data: ApiResponse = await response.json();
+    const SellIx = await pumpProgram.methods.sell(
+        amount,
+        minSolAmount,
+    ).accounts({
+        global: GLOBAL_STATE,
+        feeRecipient: FEE_RECEPIENT,
+        mint: token,
+        bondingCurve: bondingCurvePda,
+        associatedBondingCurve: bondingCurveAta,
+        associatedUser: signerAta,
+        user: mainSigner.publicKey,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        eventAuthority: EVENT_AUTH,
+        program: pumpProgram.programId,
+    }).instruction();
 
-        if (!data.success || !data.instructions || data.instructions.length === 0) {
-            throw new Error(data.message || 'Failed to generate sell instruction');
-        }
-
-        // Convert the instruction string back to a TransactionInstruction
-        const instruction = parseInstructionFromString(data.instructions[0]);
-
-        return instruction;
-    } catch (error) {
-        console.error('Error generating sell instruction:', error);
-        throw error;
-    }
-}
-
-// Helper function to parse instruction string back to TransactionInstruction
-function parseInstructionFromString(instructionStr: string): TransactionInstruction {
-    // You'll need to implement this based on how your backend serializes instructions
-    // This is a placeholder implementation
-    try {
-        const instructionData = JSON.parse(instructionStr);
-        return new TransactionInstruction({
-            programId: new PublicKey(instructionData.programId),
-            keys: instructionData.keys.map((key: any) => ({
-                pubkey: new PublicKey(key.pubkey),
-                isSigner: key.isSigner,
-                isWritable: key.isWritable,
-            })),
-            data: Buffer.from(instructionData.data, 'base64'),
-        });
-    } catch (error) {
-        console.error('Error parsing instruction:', error);
-        throw new Error('Failed to parse instruction from server response');
-    }
-}
-
-// Helper function to format large numbers for API requests
-function formatAmount(amount: BN): number {
-    return amount.toNumber() / 1e9; // Adjust decimal places based on your token's decimals
+    return SellIx;
 }
 
 export async function generatedBuyMultipleIx(

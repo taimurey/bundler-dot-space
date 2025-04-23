@@ -6,7 +6,6 @@ import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transa
 import { BN } from "bn.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import base58 from "bs58";
-import { ApibundleSend } from "../bundler";
 import { generateBuyIx } from "./instructions";
 import { Liquidity, TxVersion } from '@raydium-io/raydium-sdk';
 import { calculateBuyTokensAndNewReserves } from "./misc";
@@ -19,63 +18,63 @@ export async function PumpVolumeGenerator(
     tokenMint: string,
     BlockEngineSelection: string,
     tip: string,
-): Promise<string> {
+) {
 
-    const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(keypair), AnchorProvider.defaultOptions()));
-    const mintaddress = new PublicKey(tokenMint);
-    const balance = await connection.getBalance(keypair.publicKey);
+    // const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(keypair), AnchorProvider.defaultOptions()));
+    // const mintaddress = new PublicKey(tokenMint);
+    // const balance = await connection.getBalance(keypair.publicKey);
 
-    const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
-        keypair.publicKey,
-        getAssociatedTokenAddressSync(mintaddress, keypair.publicKey),
-        keypair.publicKey,
-        new PublicKey(keypair.publicKey),
-    ))
+    // const ataIx = (createAssociatedTokenAccountIdempotentInstruction(
+    //     keypair.publicKey,
+    //     getAssociatedTokenAddressSync(mintaddress, keypair.publicKey),
+    //     keypair.publicKey,
+    //     new PublicKey(keypair.publicKey),
+    // ))
 
-    const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
+    // const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
 
-    const tempBondingCurveData = {
-        virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
-        virtualSolReserves: globalStateData.initialVirtualSolReserves,
-        realTokenReserves: globalStateData.initialRealTokenReserves,
-    }
+    // const tempBondingCurveData = {
+    //     virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
+    //     virtualSolReserves: globalStateData.initialVirtualSolReserves,
+    //     realTokenReserves: globalStateData.initialRealTokenReserves,
+    // }
 
-    const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(balance), tempBondingCurveData);
-    const devMaxSol = new BN((balance + ((balance * 0.5))))
-    const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote.tokenAmount, devMaxSol, keypair);
+    // const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(balance), tempBondingCurveData);
+    // const devMaxSol = new BN((balance + ((balance * 0.5))))
+    // const buyerBuyIx = await generateBuyIx(mintaddress, devBuyQuote.tokenAmount, devMaxSol, keypair);
 
 
-    const buyerIxs = [ataIx, buyerBuyIx];
+    // const buyerIxs = [ataIx, buyerBuyIx];
 
-    const tipIxs = SystemProgram.transfer({
-        fromPubkey: fundingWallet.publicKey,
-        toPubkey: new PublicKey(tipAccounts[0]),
-        lamports: Number(tip) * LAMPORTS_PER_SOL,
-    });
+    // const tipIxs = SystemProgram.transfer({
+    //     fromPubkey: fundingWallet.publicKey,
+    //     toPubkey: new PublicKey(tipAccounts[0]),
+    //     lamports: Number(tip) * LAMPORTS_PER_SOL,
+    // });
 
-    buyerIxs.push(tipIxs);
+    // buyerIxs.push(tipIxs);
 
-    const buyerTx = new VersionedTransaction(
-        new TransactionMessage({
-            payerKey: keypair.publicKey,
-            recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-            instructions: buyerIxs,
-        }).compileToV0Message());
+    // const buyerTx = new VersionedTransaction(
+    //     new TransactionMessage({
+    //         payerKey: keypair.publicKey,
+    //         recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+    //         instructions: buyerIxs,
+    //     }).compileToV0Message());
 
-    buyerTx.sign([keypair]);
+    // buyerTx.sign([keypair]);
 
-    const EncodedbundledTxns = base58.encode(buyerTx.serialize());
+    // const EncodedbundledTxns = base58.encode(buyerTx.serialize());
 
-    const bundledata = {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "sendBundle",
-        params: [EncodedbundledTxns]
-    };
+    // const bundledata = {
+    //     jsonrpc: "2.0",
+    //     id: 1,
+    //     method: "sendBundle",
+    //     params: [EncodedbundledTxns]
+    // };
 
-    const response = await ApibundleSend(bundledata, BlockEngineSelection);
+    // const response = await ApibundleSend(bundledata, BlockEngineSelection);
 
-    return response;
+    // return response;
 }
 
 export async function build_swap_instructions({ connection, poolKeys, tokenAccountRawInfos_Swap, inputTokenAmount, minAmountOut }: any, BuyerPublicKey: PublicKey) {

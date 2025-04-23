@@ -9,7 +9,7 @@ import HeaderLinks from "./HeaderLinks";
 import { GridBackground } from "./blocks/spotlight-new";
 import { Spotlight } from "./blocks/spotlight-new";
 import { HeroPattern } from "@/components/ui/HeroPattern";
-// Page metadata interface
+
 export interface PageMetadata {
     title: string;
     description?: string;
@@ -42,7 +42,7 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
     return (
         <div className="flex flex-1 h-full overflow-hidden relative">
             {/* Sidebar - highest z-index to stay above background */}
-            <div className="relative hidden md:block h-full z-20">
+            <div className="relative hidden md:block h-full">
                 <Sidebar />
             </div>
 
@@ -65,9 +65,8 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                         xOffset={200}
                     />
                 </div>
-
                 {/* Actual content - above background */}
-                <main className="flex-1 overflow-auto relative z-10 h-full">
+                <main className="flex-1 overflow-auto relative z-10 h-full pb-10 custom-scrollbar">
                     {/* Header section */}
                     <div className={`flex items-center justify-end px-4 py-2 `}>
                         {/* Show title if we have metadata and not on homepage */}
@@ -76,25 +75,17 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                                 {typeof metadata === 'string' ? metadata : metadata.title}
                             </h1>
                         )}
-
                         {/* Show HeaderLinks on homepage */}
                         {isHomePage && (
                             <div className="mr-auto">
                                 <HeaderLinks />
                             </div>
                         )}
-
                         {/* Always show wallet button and discord link */}
                         <div className="flex items-center gap-2">
-                            {isHomePage && (
-                                <a href='https://discord.gg/HGFf7NNHrp' target='_blank' rel='noreferrer' className=''>
-                                    <DiscordIcon width="40" height="40" />
-                                </a>
-                            )}
                             <WalletButton />
                         </div>
                     </div>
-
                     {children}
                 </main>
             </div>
