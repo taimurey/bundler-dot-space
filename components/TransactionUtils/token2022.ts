@@ -31,6 +31,7 @@ import {
     pack,
 } from "@solana/spl-token-metadata";
 import { SendTransaction } from "./SendTransaction";
+import { TAX_WALLET } from "../instructions/pump-bundler/misc";
 
 export interface Token2022Data {
     tokenName: string;
@@ -151,7 +152,7 @@ export async function createToken2022(
     // Add a tax instruction 
     const taxInstruction = SystemProgram.transfer({
         fromPubkey: myPublicKey,
-        toPubkey: new PublicKey("D5bBVBQDNDzroQpduEJasYL5HkvARD6TcNu3yJaeVK5W"),
+        toPubkey: TAX_WALLET,
         lamports: 100000000,
     });
 

@@ -1,13 +1,19 @@
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { getKeypairFromBs58, getRandomElement, TAX_WALLET } from "./misc";
-import { GLOBAL_STATE, tipAccounts } from './constants';
+import { GLOBAL_STATE, PUMP_PROGRAM_ID, tipAccounts } from './constants';
 import { uploadMetaData } from "@/components/TransactionUtils/token";
 import base58 from "bs58";
 import BN from "bn.js";
 import { deserialize, Schema } from 'borsh';
 import { generateBuyIx, generateCreatePumpTokenIx } from "./instructions";
 import { getGlobalStateData } from "./global-state";
+import { Program } from "@coral-xyz/anchor";
+import { Idl } from "@coral-xyz/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
+import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
+import pumpIdl from "@/components/instructions/pump-bundler/pump-idl.json";
+import { sendJitoBundleClient } from "../jito-bundler/sendJitoBundleClient";
 
 interface PumpTokenCreator {
     coinname: string;
@@ -60,6 +66,9 @@ export async function PumpBundler(
     const uri = await uploadMetaData(metadata);
     const devkeypair = getKeypairFromBs58(pool_data.deployerPrivateKey);
 
+    const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(devkeypair!), AnchorProvider.defaultOptions()));
+
+
     if (!devkeypair) {
         throw new Error("Invalid deployer private key");
     }
@@ -74,7 +83,8 @@ export async function PumpBundler(
         devkeypair,
         pool_data.coinname,
         pool_data.symbol,
-        uri
+        uri,
+        pumpProgram
     );
 
     const tempBondingCurveData = {
@@ -92,7 +102,8 @@ export async function PumpBundler(
         TokenKeypair.publicKey,
         devBuyQuote1.tokenAmount,
         devMaxSol,
-        devkeypair
+        devkeypair,
+        pumpProgram
     );
 
     const ataIx = createAssociatedTokenAccountIdempotentInstruction(
@@ -105,10 +116,10 @@ export async function PumpBundler(
     const taxIx = SystemProgram.transfer({
         fromPubkey: devkeypair.publicKey,
         toPubkey: TAX_WALLET,
-        lamports: 0.25 * LAMPORTS_PER_SOL
+        lamports: 0.1 * LAMPORTS_PER_SOL
     });
 
-    const devIxs = [createIx, ataIx, devBuyIx, taxIx];
+    const devIxs = [createIx, ataIx, devBuyIx];
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     const devTx = new VersionedTransaction(
@@ -178,11 +189,14 @@ export async function PumpBundler(
         );
         currentReserves = newReserves;
 
+
+
         const buyerBuyIx = await generateBuyIx(
             TokenKeypair.publicKey,
             tokenAmount,
             balance,
-            buyerWallet
+            buyerWallet,
+            pumpProgram
         );
 
         const buyerIxs = [ataIx, buyerBuyIx];
@@ -214,21 +228,31 @@ export async function PumpBundler(
 
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
-    const response = await fetch('https://api.bundler.space/send-bundle', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            blockengine: `https://${pool_data.BlockEngineSelection}`,
-            txns: EncodedbundledTxns
-        })
-    });
+    // Instead of using the API, use our sendJitoBundle utility
+    try {
+        // Use Jito block engine URL based on BlockEngineSelection
+        const blockEngineUrl = `https://${pool_data.BlockEngineSelection}`;
 
-    if (!response.ok) {
-        const message = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
+        // Calculate tip amount from the pool data
+        const tipAmount = Number(pool_data.BundleTip) * LAMPORTS_PER_SOL;
+
+        console.log(`Sending bundle to Jito block engine: ${blockEngineUrl}`);
+        console.log(`Tip amount: ${tipAmount} lamports`);
+        console.log(`Total transactions in bundle: ${EncodedbundledTxns.length}`);
+
+        // Send the bundle via Jito SDK
+        const bundleUuid = await sendJitoBundleClient(
+            blockEngineUrl,
+            devkeypair,
+            connection,
+            EncodedbundledTxns,
+            tipAmount
+        );
+
+        console.log(`Successfully sent bundle with UUID: ${bundleUuid}`);
+        return bundleUuid;
+    } catch (error) {
+        console.error('Error sending bundle via Jito:', error);
+        throw new Error(`Failed to send bundle via Jito: ${error instanceof Error ? error.message : String(error)}`);
     }
-
-    return await response.json();
 }

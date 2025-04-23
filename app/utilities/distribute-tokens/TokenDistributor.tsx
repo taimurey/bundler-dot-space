@@ -28,6 +28,8 @@ import { BlockEngineLocation, InputField } from "@/components/ui/input-field";
 import { FaInfoCircle } from "react-icons/fa";
 import WalletAddressInput, { WalletEntry } from "@/components/instructions/pump-bundler/wallet-input";
 import JitoBundleSelection from "@/components/ui/jito-bundle-selection";
+import base58 from "bs58";
+import { sendJitoBundleClient } from "@/components/instructions/jito-bundler/sendJitoBundleClient";
 
 // Tooltip component for additional information
 const Tooltip: FC<{ title: string; description: string }> = ({ title, description }) => {
@@ -226,7 +228,8 @@ const TokenDistributor: FC = () => {
     const [formData, setFormData] = useState({
         BlockEngineSelection: "",
         BundleTip: "0.01",
-        TransactionTip: "0.0001"
+        TransactionTip: "0.0001",
+        senderPrivateKey: ""
     });
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
@@ -405,34 +408,40 @@ const TokenDistributor: FC = () => {
                 setBundleStatus("Sending transactions bundle...");
 
                 try {
-                    const response = await fetch('https://api.bundler.space/send-bundle', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            blockengine: `https://ny.mainnet.block-engine.jito.wtf`,
-                            txns: serializedTransactions
-                        })
-                    });
+                    // Replace the API call with sendJitoBundle
+                    const senderKeypair = Keypair.fromSecretKey(
+                        base58.decode(formData.senderPrivateKey)
+                    );
 
-                    if (!response.ok) {
-                        const message = await response.text();
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
-                    }
+                    const bundlePromise = sendJitoBundleClient(
+                        "https://ny.mainnet.block-engine.jito.wtf",
+                        senderKeypair,
+                        connection,
+                        serializedTransactions,
+                        0.01 * LAMPORTS_PER_SOL
+                    );
 
-                    const result = await response.json();
+                    const bundleUuid = await toast.promise(
+                        bundlePromise,
+                        {
+                            loading: 'Sending transaction bundle to Jito...',
+                            success: (data) => `Bundle sent successfully! ID: ${data.slice(0, 8)}...`,
+                            error: (err) => `Failed to send bundle: ${err.message}`
+                        }
+                    );
 
-                    // Show success toast with signature
+                    // Show success toast with explorer link
                     toast(
                         () => (
                             <LinkToast
-                                link={`https://solscan.io/tx/${result.signature}`}
-                                message={"Bundle sent successfully!"}
+                                link={`https://explorer.jito.wtf/bundle/${bundleUuid}`}
+                                message={"View Bundle Details"}
                             />
                         ),
-                        { duration: 5000 }
+                        { duration: 10000 }
                     );
+
+                    console.log("Bundle sent with ID:", bundleUuid);
                 } catch (error: any) {
                     console.error("Error sending bundle:", error);
                     toast.error(`Error sending bundle: ${error.message}`);

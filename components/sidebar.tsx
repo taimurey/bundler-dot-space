@@ -329,6 +329,12 @@ const Sidebar: FC = () => {
         },
         // Utility links
         {
+            href: '/utilities/distribute-sol',
+            title: 'SOL Distributor',
+            icon: <SolanaIcon className="w-5 h-5" />,
+            group: 'utils'
+        },
+        {
             href: '/utilities/distribute-tokens',
             title: 'Token Distributor',
             icon: <GiSpawnNode className="w-5 h-5" />,
@@ -345,7 +351,7 @@ const Sidebar: FC = () => {
     const isMintingLabPage = pathname.includes('/minting-lab');
     const isPumpFunPage = pathname.includes('/pump-fun');
     const isRaydiumPage = pathname.includes('/raydium');
-    const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/volume-generator');
+    const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/distribute-sol');
 
     // Determine which sub-links to show based on active section
     let visibleSubLinks = subLinks;

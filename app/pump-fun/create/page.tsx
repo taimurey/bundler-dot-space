@@ -297,33 +297,41 @@ const LiquidityHandlerRaydium = () => {
 
         setDeployerWallets(setsideWallets);
         localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
-        toast.info('Please wait, bundle acceptance may take a few seconds');
+        toast.info('Please wait, sending bundle directly to Jito...');
 
-        const tokenKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.tokenKeypair)));
-
-        let bundler = '';
+        let bundleData = '';
         try {
-            // Add LUT address to formData if we're in LUT mode
-            if (Mode === 20) {
-                if (!isLutCreated || !lutAddress) {
-                    toast.error('You must create a Look-Up Table (LUT) before deploying in 20 Wallet mode');
-                    return;
-                }
+            // Instead of calling PumpBundler directly, call the API endpoint
+            const tokenKeypairSecret = formData.tokenKeypair;
 
-                // Store the LUT address for reference, but we'll pass it as a separate parameter
-                setFormData(prevState => ({
-                    ...prevState,
-                    lutAddress: lutAddress,
-                }));
+            // Call the server API endpoint
+            const response = await fetch('/api/pump-bundler', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    formData: {
+                        ...formData,
+                        Mode,
+                        lutAddress: Mode === 20 ? lutAddress : undefined
+                    },
+                    tokenKeypairSecret,
+                    tokenMetadata,
+                    rpcEndpoint: cluster.endpoint,
+                }),
+            });
 
-                // Use the same API but pass the LUT info separately
-                bundler = await PumpBundler(
-                    connection,
-                    formData,
-                    tokenKeypair,
-                    tokenMetadata
-                );
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error from server');
+            }
 
+            const responseData = await response.json();
+            bundleData = responseData.bundleUuid || responseData;
+
+            // If we're in LUT mode, register the LUT with the backend
+            if (Mode === 20 && lutAddress) {
                 // Optionally make a separate API call to register the LUT with the backend
                 try {
                     const lutRegistrationResponse = await fetch('https://api.bundler.space/register-lut', {
@@ -333,7 +341,7 @@ const LiquidityHandlerRaydium = () => {
                         },
                         body: JSON.stringify({
                             lutAddress: lutAddress,
-                            mintAddress: tokenKeypair.publicKey.toString(),
+                            mintAddress: Keypair.fromSecretKey(new Uint8Array(base58.decode(tokenKeypairSecret))).publicKey.toString(),
                             walletCount: wallets.length
                         })
                     });
@@ -345,20 +353,18 @@ const LiquidityHandlerRaydium = () => {
                     console.error('Error registering LUT:', lutError);
                     // Continue anyway since the main operation succeeded
                 }
-            } else {
-                bundler = await PumpBundler(connection, formData, tokenKeypair, tokenMetadata);
             }
 
             toast(
                 () => (
-                    <BundleToast txSig={bundler} message={'Bundle ID:'} />
+                    <BundleToast txSig={bundleData} message={'Jito Bundle ID:'} />
                 ),
                 { duration: 5000 }
             );
 
             toast(
                 () => (
-                    <TransactionToast txSig={tokenKeypair.publicKey.toString()} message={'Mint:'} />
+                    <TransactionToast txSig={Keypair.fromSecretKey(new Uint8Array(base58.decode(tokenKeypairSecret))).publicKey.toString()} message={'Mint:'} />
                 ),
                 { duration: 5000 }
             );

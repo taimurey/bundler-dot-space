@@ -4,6 +4,7 @@ import { tipAccounts } from "./constants";
 import { getKeypairFromBs58, getRandomElement } from "./misc";
 import base58 from "bs58";
 import BN from "bn.js";
+import { sendJitoBundleClient } from "../jito-bundler/sendJitoBundleClient";
 
 interface WalletEntry {
     wallet: string;
@@ -128,7 +129,7 @@ export async function PumpSeller(
 
                 // Send the bundle when 5 transactions are ready
                 if (bundleTxn.length === 5) {
-                    await sendBundle(bundleTxn, BlockEngineSelection, bundleResults);
+                    await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
                     bundleTxn.length = 0;
                 }
             } catch (error) {
@@ -140,7 +141,7 @@ export async function PumpSeller(
 
     // Send any remaining transactions in the last bundle
     if (bundleTxn.length > 0) {
-        await sendBundle(bundleTxn, BlockEngineSelection, bundleResults);
+        await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
     }
 
     return bundleResults;
@@ -149,32 +150,31 @@ export async function PumpSeller(
 async function sendBundle(
     bundleTxn: VersionedTransaction[],
     BlockEngineSelection: string,
-    bundleResults: string[]
+    bundleResults: string[],
+    tipKeypair: Keypair,
+    connection: Connection,
+    BundleTip: string
 ): Promise<void> {
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
-    console.log('Sending bundle:', EncodedbundledTxns);
 
     try {
-        const response = await fetch('https://api.bundler.space/send-bundle', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                blockengine: `https://${BlockEngineSelection}`,
-                txns: EncodedbundledTxns
-            }),
-        });
+        // Use our direct Jito SDK integration
+        const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
 
-        if (!response.ok) {
-            const message = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, message: ${message}`);
-        }
+        const bundlePromise = sendJitoBundleClient(
+            `https://${BlockEngineSelection}`,
+            tipKeypair,
+            connection,
+            EncodedbundledTxns,
+            tipAmount
+        );
 
-        const result = await response.json();
-        bundleResults.push(result);
+        const bundleUuid = await bundlePromise;
+
+        console.log(`Successfully sent selling bundle with ID: ${bundleUuid}`);
+        bundleResults.push(bundleUuid);
     } catch (error) {
-        console.error('Error sending bundle:', error);
-        throw error;
+        console.error('Error sending bundle via Jito:', error);
+        throw new Error(`Failed to send selling bundle: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
