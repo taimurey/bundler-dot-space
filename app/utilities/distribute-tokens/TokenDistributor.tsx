@@ -70,7 +70,7 @@ const TokenDistributor: FC = () => {
     const [selectedToken, setSelectedToken] = useState("");
     const [walletEntries, setWalletEntries] = useState<WalletEntry[]>([]);
     const [bundleStatus, setBundleStatus] = useState("");
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
     // Fetch user's tokens
     useEffect(() => {
         if (!publicKey) return;

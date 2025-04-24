@@ -6,7 +6,7 @@ import {
     MAINNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk';
 import { Keypair, LAMPORTS_PER_SOL, AddressLookupTableProgram } from '@solana/web3.js';
-import { Connection, Transaction } from '@solana/web3.js';
+import { Connection, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import base58 from 'bs58';
 import axios from 'axios';
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ import { randomColor } from '@/components/utils/random-color';
 import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';
-import { calculateBuyTokensAndNewReserves, loadSessionLookupTable } from "@/components/instructions/pump-bundler/misc";
+import { calculateBuyTokensAndNewReserves } from "@/components/instructions/pump-bundler/misc";
 import { truncate } from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { BalanceType } from "@/components/types/solana-types";
@@ -25,13 +25,11 @@ import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { UpdatedInputField } from '@/components/detailed-field';
 import { PublicKey } from "@solana/web3.js";
-import { VersionedTransaction } from "@solana/web3.js";
-import { getGlobalStateData } from "@/components/instructions/pump-bundler/global-state";
 import { getHeaderLayout } from "@/components/header-layout";
 import { FaSpinner } from "react-icons/fa";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
-import { generateCreateAluIx, generateExtendAluIx } from "@/components/instructions/pump-bundler/instructions";
 import { bundleWalletEntry } from "@/components/instructions/pump-bundler/types";
+import PumpFunSDK from '@/components/instructions/pump-bundler/pumpfun-interface';
 
 interface WorkerResult {
     secretKey: Uint8Array;
@@ -67,12 +65,16 @@ const LiquidityHandlerRaydium = () => {
     // const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [buyerMaxSolPercentage, setbuyerMaxSolPercentage] = React.useState('');
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
     const [lutAddress, setLutAddress] = useState<string>('');
     const [isLutCreated, setIsLutCreated] = useState(false);
     const [isCreatingLut, setIsCreatingLut] = useState(false);
     const [lutLogs, setLutLogs] = useState<string[]>([]);
+    const [bundleResult, setBundleResult] = useState<any>(null);
+    const [bundleId, setBundleId] = useState<string>('');
+    const [bundleLogs, setBundleLogs] = useState<string[]>([]);
+    const [bundleStatus, setBundleStatus] = useState<'idle' | 'sending' | 'confirmed' | 'rejected'>('idle');
 
 
 
@@ -298,99 +300,130 @@ const LiquidityHandlerRaydium = () => {
         setDeployerWallets(setsideWallets);
         localStorage.setItem("deployerwallets", JSON.stringify(setsideWallets));
         toast.info('Please wait, sending bundle directly to Jito...');
+        setBundleStatus('sending');
+        setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Initiating bundle submission...`]);
 
-        let bundleData = '';
         try {
-            // Instead of calling PumpBundler directly, call the API endpoint
-            const tokenKeypairSecret = formData.tokenKeypair;
+            // Get the token keypair from base58 string
+            const tokenKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.tokenKeypair)));
 
-            // Call the server API endpoint
-            const response = await fetch('/api/pump-bundler', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    formData: {
-                        ...formData,
-                        Mode,
-                        lutAddress: Mode === 20 ? lutAddress : undefined
-                    },
-                    tokenKeypairSecret,
-                    tokenMetadata,
-                    rpcEndpoint: cluster.endpoint,
-                }),
-            });
+            setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Token mint: ${tokenKeypair.publicKey.toString()}`]);
+            setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Building and sending transactions...`]);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error from server');
-            }
+            // Call the PumpBundler function which returns a bundle ID string and possibly a result
+            const bundleResponse = await PumpBundler(
+                connection,
+                formData,
+                tokenKeypair,
+                tokenMetadata,
+            );
 
-            const responseData = await response.json();
-            bundleData = responseData.bundleUuid || responseData;
+            const bundleId = bundleResponse.bundleId;
+            const result = bundleResponse.bundleResult;
 
-            // If we're in LUT mode, register the LUT with the backend
-            if (Mode === 20 && lutAddress) {
-                // Optionally make a separate API call to register the LUT with the backend
-                try {
-                    const lutRegistrationResponse = await fetch('https://api.bundler.space/register-lut', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            lutAddress: lutAddress,
-                            mintAddress: Keypair.fromSecretKey(new Uint8Array(base58.decode(tokenKeypairSecret))).publicKey.toString(),
-                            walletCount: wallets.length
-                        })
-                    });
+            // Store the bundleId for reference
+            const bundleData = bundleId;
 
-                    if (!lutRegistrationResponse.ok) {
-                        console.warn('LUT registration might have failed, but deployment proceeded');
+            // Store the bundle info in state for the status panel
+            setBundleId(bundleId);
+            setBundleResult(result);
+            setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Bundle sent successfully with ID: ${bundleId.substring(0, 8)}...`]);
+
+            if (result) {
+                if (result.rejected) {
+                    setBundleStatus('rejected');
+                    if (result.rejected.simulationFailure) {
+                        const failure = result.rejected.simulationFailure;
+                        const txSig = failure.txSignature.substring(0, 8) + '...';
+                        const errorMsg = failure.msg.split(': ').pop() || "Unknown error";
+                        setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Bundle rejected: Simulation failure`]);
+                        setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Transaction ${txSig} failed: ${errorMsg}`]);
+                    } else {
+                        setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Bundle rejected: ${JSON.stringify(result.rejected)}`]);
                     }
-                } catch (lutError) {
-                    console.error('Error registering LUT:', lutError);
-                    // Continue anyway since the main operation succeeded
+                } else if (result.confirmed) {
+                    setBundleStatus('confirmed');
+                    setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Bundle confirmed by Jito!`]);
+                    if (result.confirmed.landedInSlot) {
+                        setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Landed in slot: ${result.confirmed.landedInSlot}`]);
+                    }
                 }
             }
 
+            // Display toast for the bundle ID
             toast(
                 () => (
-                    <BundleToast txSig={bundleData} message={'Jito Bundle ID:'} />
+                    <BundleToast txSig={bundleId} message={'Jito Bundle ID:'} />
                 ),
                 { duration: 5000 }
             );
 
+            // Display toast for the mint
             toast(
                 () => (
-                    <TransactionToast txSig={Keypair.fromSecretKey(new Uint8Array(base58.decode(tokenKeypairSecret))).publicKey.toString()} message={'Mint:'} />
+                    <TransactionToast txSig={tokenKeypair.publicKey.toString()} message={'Mint:'} />
                 ),
                 { duration: 5000 }
             );
+
+            // If we have a bundle result, display it
+            if (result) {
+                if (result.rejected) {
+                    // Bundle was rejected - display the error
+                    let errorMsg = "Bundle rejected";
+
+                    // Extract simulation failure message if present
+                    if (result.rejected.simulationFailure) {
+                        const failure = result.rejected.simulationFailure;
+                        errorMsg = `Transaction failed: ${failure.msg.split(': ').pop() || "Unknown error"}`;
+
+                        toast.error(errorMsg, { duration: 8000 });
+                    } else {
+                        toast.error("Bundle rejected by Jito: " + JSON.stringify(result.rejected), { duration: 8000 });
+                    }
+                } else if (result.confirmed) {
+                    // Bundle was confirmed
+                    toast.success("Bundle confirmed by Jito!", { duration: 5000 });
+                }
+            }
         } catch (error) {
             console.log('Error:', error);
+            setBundleStatus('rejected');
+            setBundleLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - Error: ${error instanceof Error ? error.message : String(error)}`]);
+
             if (axios.isAxiosError(error)) {
                 if (error.response?.status === 500) {
-                    toast.error(`${error.response.data}`);
+                    toast.error(`Server error: ${error.response.data}`);
                 } else {
-                    toast.error('Unknown error occurred');
+                    toast.error(`API error: ${error.message}`);
                 }
             } else if (error instanceof Error) {
+                // Properly stringify the full error object for display
+                const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+                console.error('Full error details:', errorDetails);
+
+                // Try to extract detailed information from the error message
                 const errorMessage = error.message;
-                const jsonStart = errorMessage.indexOf('{');
-                if (jsonStart !== -1) {
+                // Check if the message contains JSON
+                if (errorMessage.includes('{') && errorMessage.includes('}')) {
                     try {
-                        const errorData = JSON.parse(errorMessage.slice(jsonStart));
-                        toast.error(errorData.error);
+                        // Find the JSON part of the message
+                        const jsonStart = errorMessage.indexOf('{');
+                        const jsonEnd = errorMessage.lastIndexOf('}') + 1;
+                        const jsonPart = errorMessage.substring(jsonStart, jsonEnd);
+                        const errorData = JSON.parse(jsonPart);
+
+                        // Display detailed error from the JSON
+                        toast.error(`Error: ${errorData.error || JSON.stringify(errorData)}`);
                     } catch (e) {
-                        toast.error(errorMessage);
+                        // If JSON parsing fails, show the original error
+                        toast.error(`Error: ${errorMessage}`);
                     }
                 } else {
-                    toast.error(errorMessage);
+                    toast.error(`Error: ${errorMessage}`);
                 }
             } else {
-                toast.error('An unknown error occurred');
+                toast.error(`Unknown error: ${String(error)}`);
             }
         }
     };
@@ -484,16 +517,15 @@ const LiquidityHandlerRaydium = () => {
     React.useEffect(() => {
         const amountsCalculation = async () => {
             try {
+
+                const pumpFunSDK = new PumpFunSDK(connection, Keypair.generate());
                 // Fetch global state data directly
-                const globalStateData = await getGlobalStateData(
-                    connection,
-                    new PublicKey(GLOBAL_STATE)
-                );
+                const globalStateData = await pumpFunSDK.getGlobalAccount();
 
                 const tempBondingCurveData = {
-                    virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
-                    virtualSolReserves: globalStateData.initialVirtualSolReserves,
-                    realTokenReserves: globalStateData.initialRealTokenReserves,
+                    virtualTokenReserves: globalStateData?.initialVirtualTokenReserves,
+                    virtualSolReserves: globalStateData?.initialVirtualSolReserves,
+                    realTokenReserves: globalStateData?.initialRealTokenReserves,
                 };
 
                 const devBuyQuote = calculateBuyTokensAndNewReserves(
@@ -544,74 +576,126 @@ const LiquidityHandlerRaydium = () => {
         try {
             const deployerKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
 
-            // Create LUT
-            const { ix: createLutIx, address: lookupTableAddress } = await generateCreateAluIx(connection, deployerKeypair);
-            setLutLogs(prev => [...prev, `Created LUT with address: ${lookupTableAddress.toString()}`]);
+            // Get the current slot for LUT creation
+            const currentSlot = await connection.getSlot();
+            setLutLogs(prev => [...prev, `Current slot: ${currentSlot}`]);
+
+            // Step 1: Create the lookup table
+            const [createLutIx, lookupTableAddress] = AddressLookupTableProgram.createLookupTable({
+                authority: deployerKeypair.publicKey,
+                payer: deployerKeypair.publicKey,
+                recentSlot: currentSlot
+            });
+
+            setLutLogs(prev => [...prev, `Creating LUT with address: ${lookupTableAddress.toString()}`]);
 
             // Create transaction for LUT creation
-            const createLutTx = new Transaction().add(createLutIx);
-            const createLutTxId = await connection.sendTransaction(createLutTx, [deployerKeypair]);
+            const recentBlockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
+            const createMessage = new TransactionMessage({
+                payerKey: deployerKeypair.publicKey,
+                recentBlockhash,
+                instructions: [createLutIx]
+            }).compileToV0Message();
+
+            const createLutTx = new VersionedTransaction(createMessage);
+            createLutTx.sign([deployerKeypair]);
+
+            const createLutTxId = await connection.sendTransaction(createLutTx);
             setLutLogs(prev => [...prev, `LUT creation transaction sent: ${createLutTxId}`]);
 
             // Wait for confirmation
             await connection.confirmTransaction(createLutTxId);
             setLutLogs(prev => [...prev, 'LUT creation confirmed']);
 
-            // Prepare for extend instruction
+            // Set LUT address
             setLutAddress(lookupTableAddress.toString());
 
-            // Convert wallets to bundleWalletEntry format
-            const bundleWallets: bundleWalletEntry[] = [
-                { privateKey: formData.deployerPrivateKey, sol: 0 },
-                ...wallets.map(entry => ({
-                    privateKey: entry.wallet,
-                    sol: typeof entry.solAmount === 'string' ? parseFloat(entry.solAmount) : entry.solAmount || 0
-                }))
-            ];
+            // Wait a bit to ensure LUT is available
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // The mint key we'll use (even if it's just a placeholder for now)
-            const mintKey = new PublicKey(formData.tokenKeypairpublicKey || Keypair.generate().publicKey);
+            // Step 2: Prepare addresses to add to the LUT
+            const addresses = wallets.map(entry => {
+                try {
+                    return Keypair.fromSecretKey(new Uint8Array(base58.decode(entry.wallet))).publicKey;
+                } catch (error) {
+                    console.error('Invalid wallet private key:', error);
+                    throw new Error('Invalid wallet private key');
+                }
+            });
 
-            // The maximum number of addresses per extension transaction (to stay under the 5 instruction limit)
-            // 20 is a safe number; the actual limit depends on transaction complexity
-            const MAX_ADDRESSES_PER_BATCH = 20;
-
-            // Split the addresses into batches
-            const addressBatches = [];
-            for (let i = 1; i < bundleWallets.length; i += MAX_ADDRESSES_PER_BATCH) {
-                addressBatches.push(bundleWallets.slice(i, i + MAX_ADDRESSES_PER_BATCH));
+            // Add deployer address if not included
+            if (!addresses.some(addr => addr.equals(deployerKeypair.publicKey))) {
+                addresses.unshift(deployerKeypair.publicKey);
             }
 
-            setLutLogs(prev => [...prev, `Extending LUT with ${bundleWallets.length - 1} addresses in ${addressBatches.length} batch(es)`]);
+            // Add mint address
+            const mintKey = new PublicKey(formData.tokenKeypairpublicKey || Keypair.generate().publicKey);
+            if (!addresses.some(addr => addr.equals(mintKey))) {
+                addresses.push(mintKey);
+            }
+
+            setLutLogs(prev => [...prev, `Extending LUT with ${addresses.length} addresses`]);
+
+            // Split addresses into batches (maximum 30 addresses per extension to stay under transaction limits)
+            const MAX_ADDRESSES_PER_BATCH = 30;
+            const addressBatches = [];
+            for (let i = 0; i < addresses.length; i += MAX_ADDRESSES_PER_BATCH) {
+                addressBatches.push(addresses.slice(i, i + MAX_ADDRESSES_PER_BATCH));
+            }
 
             // Process each batch
             for (let batchIndex = 0; batchIndex < addressBatches.length; batchIndex++) {
-                const batchWallets = [bundleWallets[0], ...addressBatches[batchIndex]]; // Include deployer in each batch
+                const batchAddresses = addressBatches[batchIndex];
 
-                // Generate the extend instruction for this batch
-                const extendIx = generateExtendAluIx(
-                    deployerKeypair,
-                    batchWallets,
-                    mintKey,
-                    lookupTableAddress
-                );
+                // Step 3: Extend the lookup table with addresses
+                const extendLutIx = AddressLookupTableProgram.extendLookupTable({
+                    payer: deployerKeypair.publicKey,
+                    authority: deployerKeypair.publicKey,
+                    lookupTable: lookupTableAddress,
+                    addresses: batchAddresses
+                });
 
-                // Create and send transaction
-                const extendLutTx = new Transaction().add(extendIx);
-                const extendLutTxId = await connection.sendTransaction(extendLutTx, [deployerKeypair]);
+                // Create transaction for LUT extension
+                const extendRecentBlockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
+                const extendMessage = new TransactionMessage({
+                    payerKey: deployerKeypair.publicKey,
+                    recentBlockhash: extendRecentBlockhash,
+                    instructions: [extendLutIx]
+                }).compileToV0Message();
+
+                const extendLutTx = new VersionedTransaction(extendMessage);
+                extendLutTx.sign([deployerKeypair]);
+
+                const extendLutTxId = await connection.sendTransaction(extendLutTx);
                 setLutLogs(prev => [...prev, `LUT extension batch ${batchIndex + 1}/${addressBatches.length} sent: ${extendLutTxId}`]);
 
                 // Wait for confirmation
                 await connection.confirmTransaction(extendLutTxId);
                 setLutLogs(prev => [...prev, `LUT extension batch ${batchIndex + 1}/${addressBatches.length} confirmed`]);
+
+                // Small delay between batches
+                if (batchIndex < addressBatches.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
             }
 
-            // Load the LUT to verify
-            const lutAccount = await loadSessionLookupTable(connection, lookupTableAddress.toString());
-            setLutLogs(prev => [...prev, `LUT loaded with ${lutAccount.state.addresses.length} addresses`]);
+            // Step 4: Verify the LUT by fetching it
+            const lookupTableAccount = await connection.getAddressLookupTable(lookupTableAddress);
+            if (!lookupTableAccount.value) {
+                throw new Error('Failed to fetch lookup table after creation');
+            }
+
+            const addressCount = lookupTableAccount.value.state.addresses.length;
+            setLutLogs(prev => [...prev, `LUT verified with ${addressCount} addresses`]);
 
             setIsLutCreated(true);
-            toast.success(`LUT created successfully with address: ${lookupTableAddress.toString()}`);
+            setFormData(prevState => ({
+                ...prevState,
+                lutAddress: lookupTableAddress.toString()
+            }));
+
+            toast.success(`LUT created successfully with ${addressCount} addresses`);
+
         } catch (error) {
             console.error('Error creating LUT:', error);
             setLutLogs(prev => [...prev, `Error: ${error instanceof Error ? error.message : 'Unknown error'}`]);
@@ -1077,6 +1161,97 @@ const LiquidityHandlerRaydium = () => {
                                                         LUT enables efficient transactions with up to 20 wallets
                                                     </span>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Bundle Status Panel */}
+                                    {bundleStatus !== 'idle' && (
+                                        <div className='w-full mt-5'>
+                                            <label className="block text-base text-white font-semibold">
+                                                Bundle Status:
+                                            </label>
+                                            <div className="mt-2 p-2 bg-[#101010] rounded-md">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-gray-300">Status:</span>
+                                                    <span className={`text-sm font-medium ${bundleStatus === 'sending' ? 'text-yellow-400' :
+                                                        bundleStatus === 'confirmed' ? 'text-green-400' :
+                                                            bundleStatus === 'rejected' ? 'text-red-400' : 'text-gray-300'
+                                                        }`}>
+                                                        {bundleStatus === 'sending' ? 'Sending' :
+                                                            bundleStatus === 'confirmed' ? 'Confirmed' :
+                                                                bundleStatus === 'rejected' ? 'Rejected' : 'Unknown'}
+                                                    </span>
+                                                </div>
+
+                                                {bundleId && (
+                                                    <div className="flex items-center justify-between mt-1">
+                                                        <span className="text-sm text-gray-300">Bundle ID:</span>
+                                                        <a
+                                                            href={`https://explorer.jito.wtf/bundle/${bundleId}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-blue-400 hover:underline"
+                                                        >
+                                                            {bundleId.substring(0, 8)}...
+                                                        </a>
+                                                    </div>
+                                                )}
+
+                                                {bundleResult && bundleResult.confirmed && bundleResult.confirmed.landedInSlot && (
+                                                    <div className="flex items-center justify-between mt-1">
+                                                        <span className="text-sm text-gray-300">Landed in Slot:</span>
+                                                        <span className="text-sm text-gray-300">
+                                                            {bundleResult.confirmed.landedInSlot}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span className="text-sm text-gray-300">Last Updated:</span>
+                                                    <span className="text-sm text-gray-300">
+                                                        {new Date().toLocaleTimeString()}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-2 max-h-60 overflow-y-auto bg-[#0a0a0a] rounded-md p-2">
+                                                    <h4 className="text-sm font-medium text-gray-300 mb-2">Bundle Logs:</h4>
+                                                    {bundleLogs.length > 0 ? (
+                                                        <div className="space-y-1 text-xs">
+                                                            {bundleLogs.map((log, index) => (
+                                                                <div key={index} className="text-gray-400">{log}</div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xs text-gray-500 italic">No logs yet.</div>
+                                                    )}
+                                                </div>
+
+                                                {/* Clear logs button */}
+                                                {(bundleLogs.length > 0 || bundleStatus === 'sending' || bundleStatus === 'confirmed' || bundleStatus === 'rejected') && (
+                                                    <div className="mt-2 flex justify-end">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                setBundleLogs([]);
+                                                                setBundleStatus('idle');
+                                                            }}
+                                                            className="text-xs px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded border border-zinc-700 transition-colors"
+                                                        >
+                                                            Clear logs
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {bundleResult && bundleResult.rejected && bundleResult.rejected.simulationFailure && (
+                                                    <div className="mt-2 p-2 bg-[#1a0000] rounded-md border border-red-900">
+                                                        <h4 className="text-sm font-medium text-red-300">Error Details:</h4>
+                                                        <div className="mt-1 text-xs text-red-200 opacity-80">
+                                                            <div>Transaction: {bundleResult.rejected.simulationFailure.txSignature.substring(0, 12)}...</div>
+                                                            <div className="mt-1">{bundleResult.rejected.simulationFailure.msg}</div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}

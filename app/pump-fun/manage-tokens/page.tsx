@@ -32,7 +32,7 @@ const PumpfunSell = () => {
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [Mode, setMode] = useState(1);
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
 
 
     const [formData, setFormData] = useState<{

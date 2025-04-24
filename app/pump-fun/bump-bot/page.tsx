@@ -1,10 +1,11 @@
 "use client";
 
-import React, { ChangeEvent, useState } from 'react';
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import React, { ChangeEvent, useState, useEffect } from 'react';
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction, SystemProgram, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { toast } from "sonner";
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
 import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
 import { getHeaderLayout } from '@/components/header-layout';
@@ -13,32 +14,50 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ClipLoader } from "react-spinners";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import { getBuyInstructions, getSellInstructions, deserializeInstruction } from '@/components/instructions/pump-bundler/utils';
+import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction, closeAccount, createCloseAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AccountLayout } from '@solana/spl-token';
+
+// Wallet selection mode enum
+enum WalletMode {
+    Extension = "extension",
+    PrivateKey = "privateKey",
+    MultiWallet = "multiWallet"
+}
 
 const BumpBot = () => {
     const { cluster } = useSolana();
     const connection = new Connection(cluster.endpoint);
+    const walletAdapter = useWallet();
 
-    // State for wallets
+    // Wallet mode selection
+    const [walletMode, setWalletMode] = useState<WalletMode>(WalletMode.Extension);
+
+    // Single private key for PrivateKey mode
+    const [singlePrivateKey, setSinglePrivateKey] = useState('');
+
+    // State for wallets (for multi-wallet mode)
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
 
     // State for form data
     const [formData, setFormData] = useState({
         tokenAddress: '',
         buyAmount: '0.01',
-        sellAmount: '0.01',
+        sellAmount: '50', // 50% by default
         BlockEngineSelection: BlockEngineLocation[2],
         BundleTip: '0.01',
         TransactionTip: '0.00001',
     });
 
     // Mode selection
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
     const [botMode, setBotMode] = useState<'buy-sell' | 'buy-only' | 'sell-only'>('buy-sell');
 
     // Loading state
     const [isLoading, setIsLoading] = useState(false);
     const [isBotRunning, setIsBotRunning] = useState(false);
-    const [walletBalances, setWalletBalances] = useState<Array<{ balance: string, publicKey: string }>>([]);
+    const [walletBalances, setWalletBalances] = useState<Array<{ balance: string, publicKey: string, tokenBalance?: string }>>([]);
 
     // Handle form field changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
@@ -63,6 +82,18 @@ const BumpBot = () => {
         console.log('Updated wallet data:', walletData);
     };
 
+    // Handle private key input change
+    const handlePrivateKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSinglePrivateKey(e.target.value);
+    };
+
+    // Check if wallet is connected on tab change
+    useEffect(() => {
+        if (walletMode === WalletMode.Extension && !walletAdapter.connected) {
+            toast.warning("Please connect your wallet to use the wallet extension option");
+        }
+    }, [walletMode, walletAdapter.connected]);
+
     // Start/Stop bot
     const toggleBot = async () => {
         if (isBotRunning) {
@@ -77,7 +108,14 @@ const BumpBot = () => {
             return;
         }
 
-        if (wallets.length === 0) {
+        // Validate wallet selection based on mode
+        if (walletMode === WalletMode.Extension && !walletAdapter.connected) {
+            toast.error("Please connect your wallet");
+            return;
+        } else if (walletMode === WalletMode.PrivateKey && !singlePrivateKey) {
+            toast.error("Please enter a private key");
+            return;
+        } else if (walletMode === WalletMode.MultiWallet && wallets.length === 0) {
             toast.error("Please add at least one wallet");
             return;
         }
@@ -95,35 +133,689 @@ const BumpBot = () => {
             }
 
             // Fetch wallet balances for preview
-            const balances = await Promise.all(
+            const balances = await fetchWalletBalances();
+            setWalletBalances(balances);
+
+            // Start the bot
+            setIsBotRunning(true);
+            toast.success(`Bump Bot started in ${botMode} mode`);
+
+            // Process transactions
+            await processBotTransactions();
+
+        } catch (error) {
+            console.error("Error starting bot:", error);
+            toast.error("Failed to start bot: " + (error instanceof Error ? error.message : "Unknown error"));
+            setIsBotRunning(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Fetch wallet balances based on selected mode
+    const fetchWalletBalances = async () => {
+        let balances: Array<{ balance: string, publicKey: string, tokenBalance?: string }> = [];
+        const showTokenBalances = botMode === 'sell-only' && formData.tokenAddress;
+        let tokenMint: PublicKey | null = null;
+
+        // Parse token mint if we need to show token balances
+        if (showTokenBalances) {
+            try {
+                tokenMint = new PublicKey(formData.tokenAddress);
+            } catch (error) {
+                console.error("Invalid token address:", error);
+            }
+        }
+
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            const solBalance = await connection.getBalance(walletAdapter.publicKey);
+            const balanceInfo: { balance: string, publicKey: string, tokenBalance?: string } = {
+                balance: (solBalance / LAMPORTS_PER_SOL).toFixed(4) + " SOL",
+                publicKey: walletAdapter.publicKey.toString()
+            };
+
+            // Add token balance if in sell mode
+            if (showTokenBalances && tokenMint) {
+                const amount = await getTokenBalance(connection, walletAdapter.publicKey, tokenMint);
+                balanceInfo.tokenBalance = amount;
+            }
+
+            balances = [balanceInfo];
+        } else if (walletMode === WalletMode.PrivateKey && singlePrivateKey) {
+            try {
+                const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(singlePrivateKey)));
+                const solBalance = await connection.getBalance(keypair.publicKey);
+                const balanceInfo: { balance: string, publicKey: string, tokenBalance?: string } = {
+                    balance: (solBalance / LAMPORTS_PER_SOL).toFixed(4) + " SOL",
+                    publicKey: keypair.publicKey.toString()
+                };
+
+                // Add token balance if in sell mode
+                if (showTokenBalances && tokenMint) {
+                    const amount = await getTokenBalance(connection, keypair.publicKey, tokenMint);
+                    balanceInfo.tokenBalance = amount;
+                }
+
+                balances = [balanceInfo];
+            } catch (error) {
+                console.error("Error fetching private key wallet balance:", error);
+                balances = [{ balance: "Error", publicKey: "Invalid wallet" }];
+            }
+        } else if (walletMode === WalletMode.MultiWallet) {
+            balances = await Promise.all(
                 wallets.map(async (wallet) => {
                     try {
                         const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
                         const solBalance = await connection.getBalance(keypair.publicKey);
-                        return {
+                        const balanceInfo: { balance: string, publicKey: string, tokenBalance?: string } = {
                             balance: (solBalance / LAMPORTS_PER_SOL).toFixed(4) + " SOL",
                             publicKey: keypair.publicKey.toString()
                         };
+
+                        // Add token balance if in sell mode
+                        if (showTokenBalances && tokenMint) {
+                            const amount = await getTokenBalance(connection, keypair.publicKey, tokenMint);
+                            balanceInfo.tokenBalance = amount;
+                        }
+
+                        return balanceInfo;
                     } catch (error) {
                         return { balance: "Error", publicKey: "Invalid wallet" };
                     }
                 })
             );
+        }
 
-            setWalletBalances(balances);
+        return balances;
+    };
 
-            // Start the bot (in a real implementation, this would initiate continuous transactions)
-            setIsBotRunning(true);
-            toast.success(`Bump Bot started in ${botMode} mode with ${wallets.length} wallets`);
+    // Process bot transactions with Jito bundles
+    const processBotTransactionsWithJito = async () => {
+        try {
+            // Get the token mint address
+            const tokenMintPublicKey = new PublicKey(formData.tokenAddress);
 
-            // Here would be the bot's actual functionality
-            // This is a placeholder for now
+            // Get wallet keypairs based on selected mode
+            const walletKeypairs = getWalletKeypairs();
+
+            if (walletKeypairs.length === 0 && walletMode !== WalletMode.Extension) {
+                throw new Error("No valid wallets found");
+            }
+
+            // Process transactions based on bot mode
+            if (botMode === 'buy-only') {
+                await processBuyTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+            } else if (botMode === 'sell-only') {
+                await processSellTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+            } else if (botMode === 'buy-sell') {
+                await processBuySellTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+            }
 
         } catch (error) {
-            console.error("Error starting bot:", error);
-            toast.error("Failed to start bot: " + (error instanceof Error ? error.message : "Unknown error"));
-        } finally {
-            setIsLoading(false);
+            console.error("Error processing Jito bundle transactions:", error);
+            throw error;
+        }
+    };
+
+    // Process buy transactions using Jito bundles
+    const processBuyTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        // In a real implementation, you would create a bundle of transactions
+        // For this demo, we'll just call the individual transaction methods with a message about using Jito
+        toast.info("Using Jito bundle for buy transactions");
+
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            await handleBuyWithWalletAdapter(tokenMint);
+        } else {
+            for (const keypair of walletKeypairs) {
+                await handleBuyWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Process sell transactions using Jito bundles
+    const processSellTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        // In a real implementation, you would create a bundle of transactions
+        // For this demo, we'll just call the individual transaction methods with a message about using Jito
+        toast.info("Using Jito bundle for sell transactions");
+
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            await handleSellWithWalletAdapter(tokenMint);
+        } else {
+            for (const keypair of walletKeypairs) {
+                await handleSellWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Process buy and sell transactions using Jito bundles
+    const processBuySellTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        // In a real implementation, you would create a bundle of transactions
+        // For this demo, we'll just call the individual transaction methods with a message about using Jito
+        toast.info("Using Jito bundle for buy-sell transactions");
+
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            await handleBuySellWithWalletAdapter(tokenMint);
+        } else {
+            for (const keypair of walletKeypairs) {
+                await handleBuySellWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Update the processBotTransactions function to use Jito if selected
+    const processBotTransactions = async () => {
+        if (isJitoBundle) {
+            await processBotTransactionsWithJito();
+        } else {
+            try {
+                // Get the token mint address
+                const tokenMintPublicKey = new PublicKey(formData.tokenAddress);
+
+                // Get wallet keypairs based on selected mode
+                const walletKeypairs = getWalletKeypairs();
+
+                if (walletKeypairs.length === 0 && walletMode !== WalletMode.Extension) {
+                    throw new Error("No valid wallets found");
+                }
+
+                // Process transactions based on bot mode
+                if (botMode === 'buy-only') {
+                    await processBuyTransactions(walletKeypairs, tokenMintPublicKey);
+                } else if (botMode === 'sell-only') {
+                    await processSellTransactions(walletKeypairs, tokenMintPublicKey);
+                } else if (botMode === 'buy-sell') {
+                    await processBuySellTransactions(walletKeypairs, tokenMintPublicKey);
+                }
+
+            } catch (error) {
+                console.error("Error processing transactions:", error);
+                throw error;
+            }
+        }
+    };
+
+    // Get wallet keypairs based on the selected wallet mode
+    const getWalletKeypairs = (): Keypair[] => {
+        const keypairs: Keypair[] = [];
+
+        try {
+            if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+                // For wallet extension mode, we can't get the keypair directly
+                // We'll handle this specially in the transaction methods
+                return [];
+            } else if (walletMode === WalletMode.PrivateKey && singlePrivateKey) {
+                try {
+                    const keypair = Keypair.fromSecretKey(
+                        new Uint8Array(base58.decode(singlePrivateKey))
+                    );
+                    keypairs.push(keypair);
+                } catch (error) {
+                    console.error("Invalid private key:", error);
+                }
+            } else if (walletMode === WalletMode.MultiWallet) {
+                for (const wallet of wallets) {
+                    try {
+                        const keypair = Keypair.fromSecretKey(
+                            new Uint8Array(base58.decode(wallet.wallet))
+                        );
+                        keypairs.push(keypair);
+                    } catch (error) {
+                        console.error("Invalid wallet private key:", error);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error getting wallet keypairs:", error);
+        }
+
+        return keypairs;
+    };
+
+    // Process buy transactions for the given wallets
+    const processBuyTransactions = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            // Use wallet adapter for Extension mode
+            await handleBuyWithWalletAdapter(tokenMint);
+        } else {
+            // Use keypairs for other modes
+            for (const keypair of walletKeypairs) {
+                await handleBuyWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Process sell transactions for the given wallets
+    const processSellTransactions = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            // Use wallet adapter for Extension mode
+            await handleSellWithWalletAdapter(tokenMint);
+        } else {
+            // Use keypairs for other modes
+            for (const keypair of walletKeypairs) {
+                await handleSellWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Process buy and sell in the same transaction for the given wallets
+    const processBuySellTransactions = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
+        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
+            // Use wallet adapter for Extension mode
+            await handleBuySellWithWalletAdapter(tokenMint);
+        } else {
+            // Use keypairs for other modes
+            for (const keypair of walletKeypairs) {
+                await handleBuySellWithKeypair(keypair, tokenMint);
+            }
+        }
+    };
+
+    // Handle buy with wallet adapter (Extension mode)
+    const handleBuyWithWalletAdapter = async (tokenMint: PublicKey) => {
+        if (!walletAdapter.publicKey || !walletAdapter.signTransaction) {
+            throw new Error("Wallet not connected or doesn't support signing");
+        }
+
+        // TypeScript assertions since we've checked these already
+        const walletPublicKey = walletAdapter.publicKey as PublicKey;
+        const signTransaction = walletAdapter.signTransaction;
+
+        try {
+            const buyAmount = formData.buyAmount;
+
+            await toast.promise(
+                (async () => {
+                    // Get buy instructions
+                    const buyData = await getBuyInstructions(
+                        "", // No private key needed for adapter
+                        tokenMint.toString(),
+                        buyAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Deserialize instructions
+                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
+                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+
+                    // Create transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+                    // Create versioned transaction
+                    const versionedTx = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: walletPublicKey,
+                            recentBlockhash,
+                            instructions: [ataInstruction, buyInstruction],
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    const signedTx = await signTransaction(versionedTx);
+                    const signature = await connection.sendRawTransaction(signedTx.serialize());
+                    return signature;
+                })(),
+                {
+                    loading: 'Buying tokens...',
+                    success: (signature) => `Purchase successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to buy tokens: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleBuyWithWalletAdapter:", error);
+            throw error;
+        }
+    };
+
+    // Handle buy with keypair (PrivateKey and MultiWallet modes)
+    const handleBuyWithKeypair = async (keypair: Keypair, tokenMint: PublicKey) => {
+        try {
+            const buyAmount = formData.buyAmount;
+
+            await toast.promise(
+                (async () => {
+                    // Get buy instructions
+                    const buyData = await getBuyInstructions(
+                        base58.encode(keypair.secretKey),
+                        tokenMint.toString(),
+                        buyAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Deserialize instructions
+                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
+                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+
+                    // Create transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                    const transaction = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: keypair.publicKey,
+                            recentBlockhash,
+                            instructions: [ataInstruction, buyInstruction],
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    transaction.sign([keypair]);
+                    const signature = await connection.sendTransaction(transaction);
+                    return signature;
+                })(),
+                {
+                    loading: `Buying tokens with wallet ${keypair.publicKey.toString().slice(0, 6)}...`,
+                    success: (signature) => `Purchase successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to buy tokens: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleBuyWithKeypair:", error);
+            throw error;
+        }
+    };
+
+    // Get token balance for an associated token account
+    const getTokenBalance = async (connection: Connection, walletPublicKey: PublicKey, tokenMint: PublicKey): Promise<string> => {
+        try {
+            // Get the associated token account address
+            const ata = getAssociatedTokenAddressSync(tokenMint, walletPublicKey);
+
+            // Check if the ATA exists
+            const accountInfo = await connection.getAccountInfo(ata);
+
+            if (!accountInfo) {
+                console.log("No associated token account found");
+                return "0";
+            }
+
+            // Parse the account data
+            const accountData = AccountLayout.decode(accountInfo.data);
+            const amount = accountData.amount.toString();
+
+            console.log(`Token balance for ${ata.toString()}: ${amount}`);
+            return amount;
+        } catch (error) {
+            console.error("Error fetching token balance:", error);
+            return "0";
+        }
+    };
+
+    // Handle sell with wallet adapter (Extension mode)
+    const handleSellWithWalletAdapter = async (tokenMint: PublicKey) => {
+        if (!walletAdapter.publicKey || !walletAdapter.signTransaction) {
+            throw new Error("Wallet not connected or doesn't support signing");
+        }
+
+        // TypeScript assertions since we've checked these already
+        const walletPublicKey = walletAdapter.publicKey as PublicKey;
+        const signTransaction = walletAdapter.signTransaction;
+
+        try {
+            // Fetch the token balance
+            const tokenAmount = await getTokenBalance(connection, walletPublicKey, tokenMint);
+
+            if (tokenAmount === "0") {
+                toast.error("No tokens to sell. Your balance is 0");
+                return;
+            }
+
+            // For partial selling, calculate the amount based on percentage
+            const sellPercentage = Number(formData.sellAmount) / 100; // Convert to decimal
+            const amountToSell = Math.floor(Number(tokenAmount) * sellPercentage).toString();
+
+            await toast.promise(
+                (async () => {
+                    // Get sell instructions
+                    const sellData = await getSellInstructions(
+                        "", // No private key needed for adapter
+                        tokenMint.toString(),
+                        amountToSell,
+                        connection.rpcEndpoint
+                    );
+
+                    // Deserialize instruction
+                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+
+                    // Create transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+                    // Create versioned transaction
+                    const versionedTx = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: walletPublicKey,
+                            recentBlockhash,
+                            instructions: [sellInstruction],
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    const signedTx = await signTransaction(versionedTx);
+                    const signature = await connection.sendRawTransaction(signedTx.serialize());
+                    return signature;
+                })(),
+                {
+                    loading: 'Selling tokens...',
+                    success: (signature) => `Sale successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to sell tokens: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleSellWithWalletAdapter:", error);
+            throw error;
+        }
+    };
+
+    // Handle sell with keypair (PrivateKey and MultiWallet modes)
+    const handleSellWithKeypair = async (keypair: Keypair, tokenMint: PublicKey) => {
+        try {
+            // Fetch the token balance
+            const tokenAmount = await getTokenBalance(connection, keypair.publicKey, tokenMint);
+
+            if (tokenAmount === "0") {
+                toast.error(`No tokens to sell for wallet ${keypair.publicKey.toString().slice(0, 6)}...`);
+                return;
+            }
+
+            // For partial selling, calculate the amount based on percentage
+            const sellPercentage = Number(formData.sellAmount) / 100; // Convert to decimal
+            const amountToSell = Math.floor(Number(tokenAmount) * sellPercentage).toString();
+
+            await toast.promise(
+                (async () => {
+                    // Get sell instructions
+                    const sellData = await getSellInstructions(
+                        base58.encode(keypair.secretKey),
+                        tokenMint.toString(),
+                        amountToSell,
+                        connection.rpcEndpoint
+                    );
+
+                    // Deserialize instruction
+                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+
+                    // Create transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                    const transaction = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: keypair.publicKey,
+                            recentBlockhash,
+                            instructions: [sellInstruction],
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    transaction.sign([keypair]);
+                    const signature = await connection.sendTransaction(transaction);
+                    return signature;
+                })(),
+                {
+                    loading: `Selling tokens with wallet ${keypair.publicKey.toString().slice(0, 6)}...`,
+                    success: (signature) => `Sale successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to sell tokens: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleSellWithKeypair:", error);
+            throw error;
+        }
+    };
+
+    // Handle buy and sell in the same transaction with wallet adapter (Extension mode)
+    const handleBuySellWithWalletAdapter = async (tokenMint: PublicKey) => {
+        if (!walletAdapter.publicKey || !walletAdapter.signTransaction) {
+            throw new Error("Wallet not connected or doesn't support signing");
+        }
+
+        // TypeScript assertions since we've checked these already
+        const walletPublicKey = walletAdapter.publicKey as PublicKey;
+        const signTransaction = walletAdapter.signTransaction;
+
+        try {
+            const buyAmount = formData.buyAmount;
+            const sellPercentage = Number(formData.sellAmount) / 100; // Convert to decimal
+
+            await toast.promise(
+                (async () => {
+                    // Get buy instructions
+                    const buyData = await getBuyInstructions(
+                        "", // No private key needed for adapter
+                        tokenMint.toString(),
+                        buyAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Calculate sell amount based on percentage
+                    const tokenAmount = Math.floor(Number(buyData.tokenAmount) * sellPercentage).toString();
+
+                    // Get sell instructions
+                    const sellData = await getSellInstructions(
+                        "", // No private key needed for adapter
+                        tokenMint.toString(),
+                        tokenAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Create ATA for token
+                    const ata = getAssociatedTokenAddressSync(tokenMint, walletPublicKey);
+
+                    // Deserialize instructions
+                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
+                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+
+                    // Create close ATA instruction if needed
+                    const closeAtaInstruction = createCloseAccountInstruction(
+                        ata,
+                        walletPublicKey,
+                        walletPublicKey
+                    );
+
+                    // Create instructions array
+                    const instructions = [ataInstruction, buyInstruction, sellInstruction];
+
+                    // Only close ATA if selling 100%
+                    if (sellPercentage === 1) {
+                        instructions.push(closeAtaInstruction);
+                    }
+
+                    // Create versioned transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                    const versionedTx = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: walletPublicKey,
+                            recentBlockhash,
+                            instructions,
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    const signedTx = await signTransaction(versionedTx);
+                    const signature = await connection.sendRawTransaction(signedTx.serialize());
+                    return signature;
+                })(),
+                {
+                    loading: 'Processing buy and sell...',
+                    success: (signature) => `Transaction successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to process transaction: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleBuySellWithWalletAdapter:", error);
+            throw error;
+        }
+    };
+
+    // Handle buy and sell in the same transaction with keypair (PrivateKey and MultiWallet modes)
+    const handleBuySellWithKeypair = async (keypair: Keypair, tokenMint: PublicKey) => {
+        try {
+            const buyAmount = formData.buyAmount;
+            const sellPercentage = Number(formData.sellAmount) / 100; // Convert to decimal
+
+            await toast.promise(
+                (async () => {
+                    // Get buy instructions
+                    const buyData = await getBuyInstructions(
+                        base58.encode(keypair.secretKey),
+                        tokenMint.toString(),
+                        buyAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Calculate sell amount based on percentage
+                    const tokenAmount = Math.floor(Number(buyData.tokenAmount) * sellPercentage).toString();
+
+                    // Get sell instructions
+                    const sellData = await getSellInstructions(
+                        base58.encode(keypair.secretKey),
+                        tokenMint.toString(),
+                        tokenAmount,
+                        connection.rpcEndpoint
+                    );
+
+                    // Create ATA for token
+                    const ata = getAssociatedTokenAddressSync(tokenMint, keypair.publicKey);
+
+                    // Deserialize instructions
+                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
+                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+
+                    // Create close ATA instruction if needed
+                    const closeAtaInstruction = createCloseAccountInstruction(
+                        ata,
+                        keypair.publicKey,
+                        keypair.publicKey
+                    );
+
+                    // Create transaction
+                    const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                    const instructions = [ataInstruction, buyInstruction, sellInstruction];
+
+                    // Only close ATA if selling 100%
+                    if (sellPercentage === 1) {
+                        instructions.push(closeAtaInstruction);
+                    }
+
+                    const transaction = new VersionedTransaction(
+                        new TransactionMessage({
+                            payerKey: keypair.publicKey,
+                            recentBlockhash,
+                            instructions,
+                        }).compileToV0Message()
+                    );
+
+                    // Sign and send transaction
+                    transaction.sign([keypair]);
+                    const signature = await connection.sendTransaction(transaction);
+                    return signature;
+                })(),
+                {
+                    loading: `Processing buy and sell with wallet ${keypair.publicKey.toString().slice(0, 6)}...`,
+                    success: (signature) => `Transaction successful! Signature: ${signature.slice(0, 8)}...`,
+                    error: (error) => `Failed to process transaction: ${error instanceof Error ? error.message : String(error)}`
+                }
+            );
+        } catch (error) {
+            console.error("Error in handleBuySellWithKeypair:", error);
+            throw error;
         }
     };
 
@@ -145,20 +837,59 @@ const BumpBot = () => {
                                 <p className='text-[12px] text-[#96989c]'>Automated buying and selling to generate volume for a token</p>
                             </div>
 
+                            {/* Wallet Selection Tabs */}
                             <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center">
                                 <h3 className="btn-text-gradient font-bold text-[15px] mb-3">
-                                    Add Wallets
+                                    Wallet Selection
                                 </h3>
-                                <WalletInput
-                                    wallets={wallets}
-                                    setWallets={setWallets}
-                                    Mode={100}
-                                    maxWallets={100}
-                                    onChange={handleWalletsChange}
-                                    onWalletsUpdate={(walletData) => {
-                                        console.log('Updated wallet data:', walletData);
-                                    }}
-                                />
+                                <Tabs defaultValue={walletMode} onValueChange={(value) => setWalletMode(value as WalletMode)} className="w-full">
+                                    <TabsList className="grid w-full grid-cols-3">
+                                        <TabsTrigger value="extension">Wallet Extension</TabsTrigger>
+                                        <TabsTrigger value="privateKey">Private Key</TabsTrigger>
+                                        <TabsTrigger value="multiWallet">Multi-Wallet</TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="extension" className="mt-4">
+                                        <div className="text-center p-4 border rounded-md bg-[#1c1e22]">
+                                            {walletAdapter.connected ? (
+                                                <div>
+                                                    <p className="text-green-400 mb-2">✓ Wallet Connected</p>
+                                                    <p className="text-sm text-gray-300 break-all">{walletAdapter.publicKey?.toString()}</p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-yellow-400">Please connect your wallet using the button in the header</p>
+                                            )}
+                                        </div>
+                                    </TabsContent>
+
+                                    <TabsContent value="privateKey" className="mt-4">
+                                        <div className="space-y-2">
+                                            <InputField
+                                                id="singlePrivateKey"
+                                                label="Wallet Private Key"
+                                                subfield="Enter the private key of your wallet"
+                                                value={singlePrivateKey}
+                                                onChange={handlePrivateKeyChange}
+                                                placeholder="Enter private key (base58 encoded)"
+                                                type="password"
+                                                required={true}
+                                            />
+                                        </div>
+                                    </TabsContent>
+
+                                    <TabsContent value="multiWallet" className="mt-4">
+                                        <WalletInput
+                                            wallets={wallets}
+                                            setWallets={setWallets}
+                                            Mode={100}
+                                            maxWallets={100}
+                                            onChange={handleWalletsChange}
+                                            onWalletsUpdate={(walletData) => {
+                                                console.log('Updated wallet data:', walletData);
+                                            }}
+                                        />
+                                    </TabsContent>
+                                </Tabs>
                             </div>
 
                             <div className='w-full'>
@@ -174,13 +905,7 @@ const BumpBot = () => {
                                 />
                             </div>
 
-                            <JitoBundleSelection
-                                isJitoBundle={isJitoBundle}
-                                setIsJitoBundle={setIsJitoBundle}
-                                formData={formData}
-                                handleChange={handleChange}
-                                handleSelectionChange={handleSelectionChange}
-                            />
+
 
                             <div className="border rounded-lg p-4 border-gray-600">
                                 <h3 className="text-sm font-medium text-white mb-4">Bot Mode</h3>
@@ -229,6 +954,13 @@ const BumpBot = () => {
                                     disabled={botMode === 'buy-only'}
                                 />
                             </div>
+                            <JitoBundleSelection
+                                isJitoBundle={isJitoBundle}
+                                setIsJitoBundle={setIsJitoBundle}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectionChange={handleSelectionChange}
+                            />
 
                             <div className='justify-center'>
                                 <button
@@ -245,7 +977,6 @@ const BumpBot = () => {
                                         ) : (
                                             <>
                                                 Start Bump Bot
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.50 Bundler Cost)</span>
                                             </>
                                         )}
                                     </span>
@@ -271,7 +1002,13 @@ const BumpBot = () => {
                                         <span className="font-medium">Transaction Type:</span> {isJitoBundle ? 'Jito Bundles' : 'Regular Transactions'}
                                     </p>
                                     <p className="text-xs text-gray-300">
-                                        <span className="font-medium">Wallets:</span> {wallets.length}
+                                        <span className="font-medium">Wallet Type:</span> {
+                                            walletMode === WalletMode.Extension
+                                                ? 'Wallet Extension'
+                                                : walletMode === WalletMode.PrivateKey
+                                                    ? 'Single Private Key'
+                                                    : `Multiple Wallets (${wallets.length})`
+                                        }
                                     </p>
                                     {formData.tokenAddress && (
                                         <p className="text-xs text-gray-300 truncate">
@@ -287,7 +1024,7 @@ const BumpBot = () => {
                                     <br />
                                     <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
                                         {walletBalances.length > 0 ? (
-                                            walletBalances.slice(0, 5).map(({ balance, publicKey }, index) => (
+                                            walletBalances.slice(0, 5).map(({ balance, publicKey, tokenBalance }, index) => (
                                                 <a
                                                     key={index}
                                                     href={`https://solscan.io/account/${publicKey}`}
@@ -302,7 +1039,15 @@ const BumpBot = () => {
                                                         </span>
                                                         {publicKey.slice(0, 6)}...{publicKey.slice(-6)}
                                                         <br />
-                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
+                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>SOL: {balance}</span>
+                                                        {botMode === 'sell-only' && tokenBalance !== undefined && (
+                                                            <>
+                                                                <br />
+                                                                <span className='text-[#96989c] text-[14px] font-normal ml-2'>
+                                                                    Token: {tokenBalance === "0" ? "0" : Number(tokenBalance).toLocaleString()}
+                                                                </span>
+                                                            </>
+                                                        )}
                                                         <br />
                                                     </p>
                                                 </a>

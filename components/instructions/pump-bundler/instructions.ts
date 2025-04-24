@@ -18,30 +18,30 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 
 export async function generateCreatePumpTokenIx(
-    token: Keypair,
-    mainSigner: Keypair,
+    token: PublicKey,
+    mainSigner: string,
     coinname: string,
     symbol: string,
     metadataURI: string,
     pumpProgram: Program,
 ): Promise<TransactionInstruction> {
-    const bondingCurvePda = getBondingCurve(token.publicKey, pumpProgram.programId);
-    const bondingCurveAta = getAssociatedTokenAddressSync(token.publicKey, bondingCurvePda, true);
-    const metadataPda = getMetadataPda(token.publicKey);
+    const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);
+    const bondingCurveAta = getAssociatedTokenAddressSync(token, bondingCurvePda, true);
+    const metadataPda = getMetadataPda(token);
 
     const createIx = await pumpProgram.methods.create(
         coinname,
         symbol,
         metadataURI,
     ).accounts({
-        mint: token.publicKey,
+        mint: token,
         mintAuthority: MINT_AUTH,
         bondingCurve: bondingCurvePda,
         associatedBondingCurve: bondingCurveAta,
         global: GLOBAL_STATE,
         mplTokenMetadata: metaplexMetadata,
         metadata: metadataPda,
-        user: mainSigner.publicKey,
+        user: new PublicKey(mainSigner),
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -57,12 +57,12 @@ export async function generateBuyIx(
     token: PublicKey,
     amount: any,
     maxSolAmount: any,
-    mainSigner: Keypair,
+    mainSigner: PublicKey,
     pumpProgram: Program,
 ) {
     const bondingCurvePda = getBondingCurve(token, pumpProgram.programId);
     const bondingCurveAta = getAssociatedTokenAddressSync(token, bondingCurvePda, true);
-    const signerAta = getAssociatedTokenAddressSync(token, mainSigner.publicKey, true);
+    const signerAta = getAssociatedTokenAddressSync(token, mainSigner, true);
 
     const buyIx = await pumpProgram.methods.buy(
         new BN(amount),
@@ -74,7 +74,7 @@ export async function generateBuyIx(
         bondingCurve: bondingCurvePda,
         associatedBondingCurve: bondingCurveAta,
         associatedUser: signerAta,
-        user: mainSigner.publicKey,
+        user: mainSigner,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,

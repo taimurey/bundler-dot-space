@@ -11,6 +11,7 @@ import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 
 interface WalletInputProps {
     Mode: number;
+    walletType?: 'privateKeys' | 'publicKeys';
     maxWallets?: number;
     wallets: WalletEntry[];
     setWallets: Dispatch<SetStateAction<WalletEntry[]>>;
@@ -31,6 +32,7 @@ interface ParseResult {
 
 const WalletAddressInput: React.FC<WalletInputProps> = ({
     maxWallets = 4,
+    walletType = 'privateKeys',
     wallets,
     setWallets,
     onChange,
@@ -38,6 +40,8 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
 }) => {
     const [error, setError] = useState<string>('');
     const [generateCount, setGenerateCount] = useState<string>(''); // Local state for the number of wallets to generate
+    const [fileName, setFileName] = useState<string>('');
+
 
     const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -169,25 +173,38 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
             return;
         }
 
-        const walletsWithDetails = [];
-
+        const walletsWithPubkeys = [];
+        const walletsWithPrivateKeys = [];
         for (let i = 0; i < count; i++) {
             const keypair = Keypair.generate();
-            walletsWithDetails.push({
+            walletsWithPubkeys.push({
                 id: i,
                 address: keypair.publicKey.toBase58(),
+            });
+            walletsWithPrivateKeys.push({
+                id: i,
                 privateKey: bs58.encode(keypair.secretKey),
             });
         }
 
+
+
         // Generate CSV with both addresses and private keys
-        const csvData = Papa.unparse(walletsWithDetails);
-        const blob = new Blob([csvData], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
+        const csvData = Papa.unparse(walletsWithPubkeys);
+        const csvDataPrivateKeys = Papa.unparse(walletsWithPrivateKeys);
+        const PubkeysBlob = new Blob([csvData], { type: 'text/csv' });
+        const PrivatekeysBlob = new Blob([csvDataPrivateKeys], { type: 'text/csv' });
+        const url = URL.createObjectURL(PubkeysBlob);
+        const urlPrivatekeys = URL.createObjectURL(PrivatekeysBlob);
         const link = document.createElement('a');
         link.setAttribute('hidden', '');
         link.setAttribute('href', url);
-        link.setAttribute('download', 'wallets.csv');
+        link.setAttribute('download', `${fileName}PubKeys.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        link.setAttribute('href', urlPrivatekeys);
+        link.setAttribute('download', `${fileName}PrivateKeys.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -249,6 +266,12 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                         onChange={(e) => setGenerateCount(e.target.value)}
                         placeholder="Number of wallets to generate"
                     />
+                    <Input
+                        type="text"
+                        value={fileName}
+                        onChange={(e) => setFileName(e.target.value)}
+                        placeholder="Name of the file"
+                    />
                     <Button
                         type="button"
                         className='flex p-2 border font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12'
@@ -257,7 +280,7 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                         Generate Receiving Wallets
                     </Button>
                 </div>
-                <h1 className='text-yellow-400'>Input Wallet addresses file here</h1>
+                <h1 className='text-yellow-400'>Input {walletType} wallet file here</h1>
                 <div className='flex gap-2'>
                     <div className="flex-1">
                         <div className="relative">
