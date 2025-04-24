@@ -115,8 +115,11 @@ export async function distributeSol(
             const batch = encodedTxns.slice(i, i + 5);
 
             try {
-                // Make a request to the server-side API
-                const response = await fetch('/api/jito-bundle', {
+                // Get the current window.location.origin for absolute URL
+                const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+                // Make a request to the server-side API with absolute URL
+                const response = await fetch(`${origin}/api/jito-bundle`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

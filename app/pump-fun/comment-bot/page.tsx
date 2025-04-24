@@ -17,7 +17,7 @@ export type BalanceType = {
 
 const VolumeCommentBomb = () => {
 
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
     const [formData, setFormData] = useState({
         signerkeypair: '',
         tokenMintAddress: '',

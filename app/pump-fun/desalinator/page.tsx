@@ -34,7 +34,7 @@ const Desalinator = () => {
         BlockEngineSelection: BlockEngineLocation[2],
     });
 
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
 
     // State for wallet balances
     const [sellerBalances, setSellerBalances] = useState({

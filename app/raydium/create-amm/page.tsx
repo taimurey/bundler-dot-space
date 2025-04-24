@@ -30,7 +30,7 @@ const LiquidityHandlerRaydium = () => {
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [balances, setBalances] = useState<BalanceType[]>([]);
     const [Mode, setMode] = useState(1);
-    const [isJitoBundle, setIsJitoBundle] = useState(false);
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
     const [formData, setFormData] = useState<{
         buyerPrivateKey: string;
         buyerextraWallets: string[];
