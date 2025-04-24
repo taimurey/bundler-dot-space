@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Keypair, Connection } from '@solana/web3.js';
 import base58 from 'bs58';
 import { BundleJitoApi } from '../../../lib/jito/bundleJitoApi';
-import { storeBundleResult } from '../bundle-result/[bundleId]/route';
+import { storeBundleResult } from '@/components/utils/bundle-result';
 
 export async function POST(request: NextRequest) {
     try {
@@ -20,8 +20,6 @@ export async function POST(request: NextRequest) {
         // Create connection
         const connection = new Connection(rpcEndpoint);
 
-        // Initialize the Jito API client
-        // Make sure URL is in the right format - remove https:// prefix if present and remove any trailing hash
         let cleanUrl = blockEngineUrl;
 
         // Remove https:// prefix if present

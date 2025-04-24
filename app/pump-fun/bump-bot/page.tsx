@@ -14,10 +14,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ClipLoader } from "react-spinners";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
-import { getBuyInstructions, getSellInstructions, deserializeInstruction } from '@/components/instructions/pump-bundler/utils';
-import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction, closeAccount, createCloseAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction, closeAccount, createCloseAccountInstruction, TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction } from '@solana/spl-token';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountLayout } from '@solana/spl-token';
+import { PumpInstructions } from '@/components/instructions/pump-bundler/pumpfun-interface';
+import { BN } from '@coral-xyz/anchor';
 
 // Wallet selection mode enum
 enum WalletMode {
@@ -426,16 +427,17 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get buy instructions
-                    const buyData = await getBuyInstructions(
-                        "", // No private key needed for adapter
-                        tokenMint.toString(),
-                        buyAmount,
-                        connection.rpcEndpoint
+                    const buyData = PumpInstructions.createBuyInstruction(
+                        tokenMint,
+                        walletPublicKey,
+                        {
+                            amount: new BN(buyAmount),
+                            maxSolCost: new BN(0.0001)
+                        }
                     );
 
-                    // Deserialize instructions
-                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
-                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+                    const ata = getAssociatedTokenAddressSync(tokenMint, walletPublicKey);
+                    const createATAInstruction = createAssociatedTokenAccountInstruction(walletPublicKey, ata, walletPublicKey, tokenMint);
 
                     // Create transaction
                     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -445,7 +447,7 @@ const BumpBot = () => {
                         new TransactionMessage({
                             payerKey: walletPublicKey,
                             recentBlockhash,
-                            instructions: [ataInstruction, buyInstruction],
+                            instructions: [createATAInstruction, buyData],
                         }).compileToV0Message()
                     );
 
@@ -474,16 +476,17 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get buy instructions
-                    const buyData = await getBuyInstructions(
-                        base58.encode(keypair.secretKey),
-                        tokenMint.toString(),
-                        buyAmount,
-                        connection.rpcEndpoint
+                    const buyData = PumpInstructions.createBuyInstruction(
+                        tokenMint,
+                        keypair.publicKey,
+                        {
+                            amount: new BN(buyAmount),
+                            maxSolCost: new BN(0.0001)
+                        }
                     );
 
-                    // Deserialize instructions
-                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
-                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
+                    const ata = getAssociatedTokenAddressSync(tokenMint, keypair.publicKey);
+                    const createATAInstruction = createAssociatedTokenAccountInstruction(keypair.publicKey, ata, keypair.publicKey, tokenMint);
 
                     // Create transaction
                     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -491,7 +494,7 @@ const BumpBot = () => {
                         new TransactionMessage({
                             payerKey: keypair.publicKey,
                             recentBlockhash,
-                            instructions: [ataInstruction, buyInstruction],
+                            instructions: [createATAInstruction, buyData],
                         }).compileToV0Message()
                     );
 
@@ -564,15 +567,15 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get sell instructions
-                    const sellData = await getSellInstructions(
-                        "", // No private key needed for adapter
-                        tokenMint.toString(),
-                        amountToSell,
-                        connection.rpcEndpoint
+                    const sellData = PumpInstructions.createSellInstruction(
+                        tokenMint,
+                        walletPublicKey,
+                        {
+                            amount: new BN(amountToSell),
+                            minSolOutput: new BN(0.0001)
+                        }
                     );
 
-                    // Deserialize instruction
-                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
 
                     // Create transaction
                     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -582,7 +585,7 @@ const BumpBot = () => {
                         new TransactionMessage({
                             payerKey: walletPublicKey,
                             recentBlockhash,
-                            instructions: [sellInstruction],
+                            instructions: [sellData],
                         }).compileToV0Message()
                     );
 
@@ -621,15 +624,17 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get sell instructions
-                    const sellData = await getSellInstructions(
-                        base58.encode(keypair.secretKey),
-                        tokenMint.toString(),
-                        amountToSell,
-                        connection.rpcEndpoint
+                    const sellData = PumpInstructions.createSellInstruction(
+                        tokenMint,
+                        keypair.publicKey,
+                        {
+                            amount: new BN(amountToSell),
+                            minSolOutput: new BN(0.0001)
+                        }
                     );
 
-                    // Deserialize instruction
-                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+                    const ata = getAssociatedTokenAddressSync(tokenMint, keypair.publicKey);
+                    const createATAInstruction = createAssociatedTokenAccountInstruction(keypair.publicKey, ata, keypair.publicKey, tokenMint);
 
                     // Create transaction
                     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -637,7 +642,7 @@ const BumpBot = () => {
                         new TransactionMessage({
                             payerKey: keypair.publicKey,
                             recentBlockhash,
-                            instructions: [sellInstruction],
+                            instructions: [createATAInstruction, sellData],
                         }).compileToV0Message()
                     );
 
@@ -675,31 +680,35 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get buy instructions
-                    const buyData = await getBuyInstructions(
-                        "", // No private key needed for adapter
-                        tokenMint.toString(),
-                        buyAmount,
-                        connection.rpcEndpoint
+                    const buyData = PumpInstructions.createBuyInstruction(
+                        tokenMint,
+                        walletPublicKey,
+                        {
+                            amount: new BN(buyAmount),
+                            maxSolCost: new BN(0.0001)
+                        }
                     );
 
                     // Calculate sell amount based on percentage
-                    const tokenAmount = Math.floor(Number(buyData.tokenAmount) * sellPercentage).toString();
+                    const tokenAmount = Math.floor(Number(buyAmount) * sellPercentage).toString();
 
                     // Get sell instructions
-                    const sellData = await getSellInstructions(
-                        "", // No private key needed for adapter
-                        tokenMint.toString(),
-                        tokenAmount,
-                        connection.rpcEndpoint
+                    const sellData = PumpInstructions.createSellInstruction(
+                        tokenMint,
+                        walletPublicKey,
+                        {
+                            amount: new BN(tokenAmount),
+                            minSolOutput: new BN(0.0001)
+                        }
                     );
 
                     // Create ATA for token
                     const ata = getAssociatedTokenAddressSync(tokenMint, walletPublicKey);
+                    const createATAInstruction = createAssociatedTokenAccountInstruction(walletPublicKey, ata, walletPublicKey, tokenMint);
 
                     // Deserialize instructions
-                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
-                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
-                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+                    const buyInstruction = buyData;
+                    const sellInstruction = sellData;
 
                     // Create close ATA instruction if needed
                     const closeAtaInstruction = createCloseAccountInstruction(
@@ -709,7 +718,7 @@ const BumpBot = () => {
                     );
 
                     // Create instructions array
-                    const instructions = [ataInstruction, buyInstruction, sellInstruction];
+                    const instructions = [createATAInstruction, buyInstruction, sellInstruction];
 
                     // Only close ATA if selling 100%
                     if (sellPercentage === 1) {
@@ -752,31 +761,35 @@ const BumpBot = () => {
             await toast.promise(
                 (async () => {
                     // Get buy instructions
-                    const buyData = await getBuyInstructions(
-                        base58.encode(keypair.secretKey),
-                        tokenMint.toString(),
-                        buyAmount,
-                        connection.rpcEndpoint
+                    const buyData = PumpInstructions.createBuyInstruction(
+                        tokenMint,
+                        keypair.publicKey,
+                        {
+                            amount: new BN(buyAmount),
+                            maxSolCost: new BN(0.0001)
+                        }
                     );
 
                     // Calculate sell amount based on percentage
-                    const tokenAmount = Math.floor(Number(buyData.tokenAmount) * sellPercentage).toString();
+                    const tokenAmount = Math.floor(Number(buyAmount) * sellPercentage).toString();
 
                     // Get sell instructions
-                    const sellData = await getSellInstructions(
-                        base58.encode(keypair.secretKey),
-                        tokenMint.toString(),
-                        tokenAmount,
-                        connection.rpcEndpoint
+                    const sellData = PumpInstructions.createSellInstruction(
+                        tokenMint,
+                        keypair.publicKey,
+                        {
+                            amount: new BN(tokenAmount),
+                            minSolOutput: new BN(0.0001)
+                        }
                     );
 
                     // Create ATA for token
                     const ata = getAssociatedTokenAddressSync(tokenMint, keypair.publicKey);
+                    const createATAInstruction = createAssociatedTokenAccountInstruction(keypair.publicKey, ata, keypair.publicKey, tokenMint);
 
                     // Deserialize instructions
-                    const ataInstruction = deserializeInstruction(buyData.buyInstructions.ataInstruction);
-                    const buyInstruction = deserializeInstruction(buyData.buyInstructions.buyInstruction);
-                    const sellInstruction = deserializeInstruction(sellData.sellInstruction);
+                    const buyInstruction = buyData;
+                    const sellInstruction = sellData;
 
                     // Create close ATA instruction if needed
                     const closeAtaInstruction = createCloseAccountInstruction(
@@ -787,7 +800,7 @@ const BumpBot = () => {
 
                     // Create transaction
                     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-                    const instructions = [ataInstruction, buyInstruction, sellInstruction];
+                    const instructions = [createATAInstruction, buyInstruction, sellInstruction];
 
                     // Only close ATA if selling 100%
                     if (sellPercentage === 1) {
