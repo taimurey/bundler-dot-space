@@ -27,24 +27,60 @@ interface PumpTokenCreator {
 
 // Calculate buy tokens and new reserves
 function calculateBuyTokensAndNewReserves(solAmount: BN, reserves: any) {
+    // Make sure we're working with BN instances
     const virtualSolReserves = new BN(reserves.virtualSolReserves);
     const virtualTokenReserves = new BN(reserves.virtualTokenReserves);
     const realTokenReserves = new BN(reserves.realTokenReserves);
 
+    // Calculate new reserves
     const product = virtualSolReserves.mul(virtualTokenReserves);
     const newSolReserves = virtualSolReserves.add(solAmount);
-    const newTokenAmount = product.div(newSolReserves).add(new BN(1));
-    const tokenAmount = virtualTokenReserves.sub(newTokenAmount);
 
+    // Prevent division by zero or negative values
+    if (newSolReserves.lte(new BN(0))) {
+        return {
+            tokenAmount: new BN(0),
+            newReserves: {
+                virtualSolReserves,
+                realTokenReserves,
+                virtualTokenReserves,
+            },
+        };
+    }
+
+    const newTokenAmount = product.div(newSolReserves).add(new BN(1));
+    let tokenAmount = virtualTokenReserves.sub(newTokenAmount);
+
+    // Ensure token amount is not negative
+    if (tokenAmount.lt(new BN(0))) {
+        tokenAmount = new BN(0);
+    }
+
+    // Limit token amount by available real tokens
     const finalTokenAmount = BN.min(tokenAmount, realTokenReserves);
+
+    // Ensure final token amount is not negative
+    if (finalTokenAmount.lt(new BN(0))) {
+        return {
+            tokenAmount: new BN(0),
+            newReserves: {
+                virtualSolReserves: newSolReserves,
+                realTokenReserves,
+                virtualTokenReserves,
+            },
+        };
+    }
+
+    // Calculate new virtual token reserves
     const newVirtualTokenReserves = virtualTokenReserves.sub(finalTokenAmount);
 
+    // Validate and ensure positive values
     return {
         tokenAmount: finalTokenAmount,
         newReserves: {
             virtualSolReserves: newSolReserves,
-            realTokenReserves,
-            virtualTokenReserves: newVirtualTokenReserves,
+            realTokenReserves: realTokenReserves.sub(finalTokenAmount).lt(new BN(0)) ? new BN(0) : realTokenReserves.sub(finalTokenAmount),
+            virtualTokenReserves: newVirtualTokenReserves.lt(new BN(0)) ? new BN(0) : newVirtualTokenReserves,
         },
     };
 }
@@ -79,23 +115,33 @@ export async function PumpBundler(
         }
     );
 
+    // Ensure all values are BN instances for correct calculation
     const tempBondingCurveData = {
-        virtualTokenReserves: globalStateData?.initialVirtualTokenReserves,
-        virtualSolReserves: globalStateData?.initialVirtualSolReserves,
-        realTokenReserves: globalStateData?.initialRealTokenReserves,
+        virtualTokenReserves: new BN(globalStateData?.initialVirtualTokenReserves || 0),
+        virtualSolReserves: new BN(globalStateData?.initialVirtualSolReserves || 0),
+        realTokenReserves: new BN(globalStateData?.initialRealTokenReserves || 0),
     };
 
-
     const associatedToken = getAssociatedTokenAddressSync(TokenKeypair.publicKey, devkeypair.publicKey);
-    const devBuyAmount = Number(pool_data.DevtokenbuyAmount) * LAMPORTS_PER_SOL;
+    const devBuyAmount = new BN(Number(pool_data.DevtokenbuyAmount) * LAMPORTS_PER_SOL);
 
-    const devBuyQuote1 = calculateBuyTokensAndNewReserves(new BN(devBuyAmount), tempBondingCurveData);
-    const devMaxSol = new BN(devBuyAmount).muln(101).divn(100);
+    // Calculate dev buy quote with correct BN values
+    const devBuyQuote1 = calculateBuyTokensAndNewReserves(devBuyAmount, tempBondingCurveData);
+    console.log("devBuyQuote1", {
+        tokenAmount: devBuyQuote1.tokenAmount.toString(),
+        newReserves: {
+            virtualSolReserves: devBuyQuote1.newReserves.virtualSolReserves.toString(),
+            realTokenReserves: devBuyQuote1.newReserves.realTokenReserves.toString(),
+            virtualTokenReserves: devBuyQuote1.newReserves.virtualTokenReserves.toString(),
+        }
+    });
+
+    const devMaxSol = devBuyAmount.muln(101).divn(100);
     const devBuyIx = PumpInstructions.createBuyInstruction(
         TokenKeypair.publicKey,
         devkeypair.publicKey,
         {
-            amount: devBuyAmount,
+            amount: devBuyAmount.toNumber(),
             maxSolCost: devMaxSol
         }
     );
@@ -117,6 +163,10 @@ export async function PumpBundler(
     devIxs.push(createIx);
     devIxs.push(ataIx);
     devIxs.push(devBuyIx);
+
+    // Add tax payment to the developer transaction
+    devIxs.push(taxIx);
+
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     console.log("devIxs", devIxs);
@@ -146,13 +196,11 @@ export async function PumpBundler(
     // Skip buyer wallets processing if there are no buyer wallets
     const buyerwallets = [...pool_data.buyerextraWallets];
     if (buyerwallets.length > 0) {
-
-
         let lastNonZeroBalanceIndex = -1;
         if (pool_data.buyerPrivateKey) {
             buyerwallets.unshift(pool_data.buyerPrivateKey);
         }
-        console.log("buyerwallets", buyerwallets);
+
         // Find the last non-zero balance wallet
         for (let i = 0; i < buyerwallets.length; i++) {
             const buyerWallet = getKeypairFromBs58(buyerwallets[i])!;
@@ -160,14 +208,35 @@ export async function PumpBundler(
             if (buyerwallets.length === 1) {
                 balance = new BN(Number(pool_data.BuyertokenbuyAmount) * LAMPORTS_PER_SOL);
             } else {
-                balance = await connection.getBalance(buyerWallet.publicKey);
+                const walletBalance = await connection.getBalance(buyerWallet.publicKey);
+                // Ensure balance is at least enough for transaction fees
+                if (walletBalance <= 0.003 * LAMPORTS_PER_SOL) {
+                    console.log(`Skipping buyer ${i} due to insufficient balance`);
+                    continue;
+                }
+                balance = new BN(walletBalance - (0.003 * LAMPORTS_PER_SOL));
             }
-            if (balance != 0) {
+
+            if (balance.isZero() || balance.isNeg()) {
+                console.log(`Skipping buyer ${i} due to zero or negative balance`);
+                continue;
+            }
+
+            // Use toString method for BN comparison instead of != 0
+            if (!balance.isZero()) {
                 lastNonZeroBalanceIndex = i;
             }
         }
 
-        let currentReserves = devBuyQuote1.newReserves;
+        // Use the updated reserves from devBuyQuote1 for subsequent calculations
+        let currentReserves = {
+            virtualSolReserves: devBuyQuote1.newReserves.virtualSolReserves,
+            virtualTokenReserves: devBuyQuote1.newReserves.virtualTokenReserves,
+            realTokenReserves: devBuyQuote1.newReserves.realTokenReserves,
+        };
+
+        // Track if any buyer transactions were actually added
+        let buyerTxAdded = false;
 
         // Create a bundle for each buyer
         for (let i = 0; i < buyerwallets.length; i++) {
@@ -181,10 +250,17 @@ export async function PumpBundler(
             if (buyerwallets.length === 1) {
                 balance = new BN(Number(pool_data.BuyertokenbuyAmount) * LAMPORTS_PER_SOL);
             } else {
-                balance = new BN(await connection.getBalance(buyerWallet.publicKey) - (0.003 * LAMPORTS_PER_SOL));
+                const walletBalance = await connection.getBalance(buyerWallet.publicKey);
+                // Ensure balance is at least enough for transaction fees
+                if (walletBalance <= 0.003 * LAMPORTS_PER_SOL) {
+                    console.log(`Skipping buyer ${i} due to insufficient balance`);
+                    continue;
+                }
+                balance = new BN(walletBalance - (0.003 * LAMPORTS_PER_SOL));
             }
 
-            if (balance.isZero()) {
+            if (balance.isZero() || balance.isNeg()) {
+                console.log(`Skipping buyer ${i} due to zero or negative balance`);
                 continue;
             }
 
@@ -196,20 +272,37 @@ export async function PumpBundler(
                 TokenKeypair.publicKey,
             );
 
+            const buyerSolAmount = balance.muln(98).divn(100);
             const { tokenAmount, newReserves } = calculateBuyTokensAndNewReserves(
-                balance.muln(98).divn(100),
+                buyerSolAmount,
                 currentReserves
             );
+
+            // Update the reserves for the next buyer
             currentReserves = newReserves;
 
+            console.log(`Buyer ${i} quote:`, {
+                tokenAmount: tokenAmount.toString(),
+                solAmount: buyerSolAmount.toString(),
+                newReserves: {
+                    virtualSolReserves: newReserves.virtualSolReserves.toString(),
+                    realTokenReserves: newReserves.realTokenReserves.toString(),
+                    virtualTokenReserves: newReserves.virtualTokenReserves.toString(),
+                }
+            });
 
+            // Skip this buyer if token amount is zero or negative
+            if (tokenAmount.isZero()) {
+                console.log(`Skipping buyer ${i} due to zero token amount`);
+                continue;
+            }
 
             const buyerBuyIx = PumpInstructions.createBuyInstruction(
                 TokenKeypair.publicKey,
                 buyerWallet.publicKey,
                 {
-                    amount: tokenAmount,
-                    maxSolCost: balance.muln(98).divn(100)
+                    amount: tokenAmount.toNumber(),
+                    maxSolCost: buyerSolAmount
                 }
             );
 
@@ -218,6 +311,7 @@ export async function PumpBundler(
             buyerIxs.push(buyerBuyIx);
             const signers = [buyerWallet];
 
+            // Add tip instruction to the last non-zero balance wallet's transaction
             if (i === lastNonZeroBalanceIndex) {
                 const tipAmount = Number(pool_data.BundleTip) * LAMPORTS_PER_SOL;
                 const tipIx = SystemProgram.transfer({
@@ -240,11 +334,63 @@ export async function PumpBundler(
 
             buyerTx.sign(signers);
             bundleTxn.push(buyerTx);
+            buyerTxAdded = true;
+        }
+
+        // If no buyer transactions were added due to all being skipped,
+        // we need to ensure a tip transaction is included
+        if (!buyerTxAdded) {
+            console.log("All buyers were skipped. Adding a tip transaction to the bundle.");
+
+            // Create a tip instruction using the dev keypair
+            const tipAmount = Number(pool_data.BundleTip) * LAMPORTS_PER_SOL;
+            const tipIx = SystemProgram.transfer({
+                fromPubkey: devkeypair.publicKey,
+                toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+                lamports: tipAmount
+            });
+
+            // Add the tip to the developer transaction if it exists
+            if (bundleTxn.length > 0) {
+                // Create a new transaction with the original instructions plus the tip
+                const lastTxIndex = bundleTxn.length - 1;
+                const originalTx = bundleTxn[lastTxIndex];
+
+                // Get the original transaction message
+                const originalMessage = TransactionMessage.decompile(originalTx.message);
+
+                // Create a new message with the original instructions plus the tip instruction
+                const newMessage = new TransactionMessage({
+                    payerKey: devkeypair.publicKey,
+                    recentBlockhash: recentBlockhash,
+                    instructions: [...originalMessage.instructions, tipIx],
+                }).compileToV0Message();
+
+                // Create and sign the new transaction
+                const newTx = new VersionedTransaction(newMessage);
+                newTx.sign([devkeypair]);
+
+                // Replace the original transaction with the new one
+                bundleTxn[lastTxIndex] = newTx;
+            } else {
+                // Create a standalone tip transaction if no dev transaction exists
+                const tipTx = new VersionedTransaction(
+                    new TransactionMessage({
+                        payerKey: devkeypair.publicKey,
+                        recentBlockhash: recentBlockhash,
+                        instructions: [tipIx],
+                    }).compileToV0Message()
+                );
+
+                tipTx.sign([devkeypair]);
+                bundleTxn.push(tipTx);
+            }
         }
     } else {
-
         console.log("No buyer wallets");
-        // If there are no buyer wallets, add the tip transaction to the bundle
+
+        // If there are no buyer wallets, add the tip instruction to the developer transaction
+        // by updating the last transaction in the bundle
         const tipAmount = Number(pool_data.BundleTip) * LAMPORTS_PER_SOL;
         const tipIx = SystemProgram.transfer({
             fromPubkey: devkeypair.publicKey,
@@ -252,16 +398,43 @@ export async function PumpBundler(
             lamports: tipAmount
         });
 
-        const tipTx = new VersionedTransaction(
-            new TransactionMessage({
+        // Add the tip instruction to the last transaction (which is the dev transaction)
+        if (bundleTxn.length > 0) {
+            console.log("Adding tip instruction to the last transaction");
+
+            // Create a new transaction with the original instructions plus the tip
+            const lastTxIndex = bundleTxn.length - 1;
+            const originalTx = bundleTxn[lastTxIndex];
+
+            // Get the original transaction message
+            const originalMessage = TransactionMessage.decompile(originalTx.message);
+
+            // Create a new message with the original instructions plus the tip instruction
+            const newMessage = new TransactionMessage({
                 payerKey: devkeypair.publicKey,
                 recentBlockhash: recentBlockhash,
-                instructions: [tipIx],
-            }).compileToV0Message()
-        );
+                instructions: [...originalMessage.instructions, tipIx],
+            }).compileToV0Message();
 
-        tipTx.sign([devkeypair]);
-        bundleTxn.push(tipTx);
+            // Create and sign the new transaction
+            const newTx = new VersionedTransaction(newMessage);
+            newTx.sign([devkeypair]);
+
+            // Replace the original transaction with the new one
+            bundleTxn[lastTxIndex] = newTx;
+        } else {
+            // If no transactions exist yet (unlikely), create a new one
+            const tipTx = new VersionedTransaction(
+                new TransactionMessage({
+                    payerKey: devkeypair.publicKey,
+                    recentBlockhash: recentBlockhash,
+                    instructions: [tipIx],
+                }).compileToV0Message()
+            );
+
+            tipTx.sign([devkeypair]);
+            bundleTxn.push(tipTx);
+        }
     }
 
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));

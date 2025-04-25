@@ -162,6 +162,7 @@ const SOLDistributor: FC = () => {
 
                 <WalletAddressInput
                     Mode={0}
+                    walletType="publicKeys"
                     wallets={wallets}
                     setWallets={setWallets}
                     onWalletsUpdate={handleWalletsUpdate}

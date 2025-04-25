@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountLayout } from '@solana/spl-token';
 import { PumpInstructions } from '@/components/instructions/pump-bundler/pumpfun-interface';
 import { BN } from '@coral-xyz/anchor';
+import { createBumpBotBuyBundle, createBumpBotSellBundle, createBumpBotBuySellBundle, BumpBotParams } from '@/components/instructions/pump-bundler/BumpBotJito';
 
 // Wallet selection mode enum
 enum WalletMode {
@@ -243,64 +244,76 @@ const BumpBot = () => {
                 throw new Error("No valid wallets found");
             }
 
+            // Create params object for BumpBot functions
+            const params: BumpBotParams = {
+                tokenAddress: formData.tokenAddress,
+                BlockEngineSelection: formData.BlockEngineSelection,
+                BundleTip: formData.BundleTip,
+                TransactionTip: formData.TransactionTip,
+                buyAmount: formData.buyAmount,
+                sellAmount: formData.sellAmount,
+            };
+
             // Process transactions based on bot mode
+            let result;
             if (botMode === 'buy-only') {
-                await processBuyTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+                if (walletMode === WalletMode.Extension && walletAdapter.publicKey && walletAdapter.signTransaction) {
+                    // For wallet extension mode, we handle differently
+                    await handleBuyWithWalletAdapter(tokenMintPublicKey);
+                    toast.success("Buy transaction with wallet extension completed");
+                } else {
+                    // For private key modes, use our bundle implementation
+                    toast.info("Creating buy bundle with Jito...");
+                    result = await createBumpBotBuyBundle(connection, walletKeypairs, params);
+                    toast.success(`Buy bundle created with ID: ${result.bundleId.slice(0, 8)}...`);
+                }
             } else if (botMode === 'sell-only') {
-                await processSellTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+                if (walletMode === WalletMode.Extension && walletAdapter.publicKey && walletAdapter.signTransaction) {
+                    // For wallet extension mode, we handle differently
+                    await handleSellWithWalletAdapter(tokenMintPublicKey);
+                    toast.success("Sell transaction with wallet extension completed");
+                } else {
+                    // For private key modes, use our bundle implementation
+                    toast.info("Creating sell bundle with Jito...");
+                    result = await createBumpBotSellBundle(connection, walletKeypairs, params);
+                    toast.success(`Sell bundle created with ID: ${result.bundleId.slice(0, 8)}...`);
+                }
             } else if (botMode === 'buy-sell') {
-                await processBuySellTransactionsWithJito(walletKeypairs, tokenMintPublicKey);
+                if (walletMode === WalletMode.Extension && walletAdapter.publicKey && walletAdapter.signTransaction) {
+                    // For wallet extension mode, we handle differently
+                    await handleBuySellWithWalletAdapter(tokenMintPublicKey);
+                    toast.success("Buy-sell transaction with wallet extension completed");
+                } else {
+                    // For private key modes, use our bundle implementation
+                    toast.info("Creating buy-sell bundle with Jito...");
+                    result = await createBumpBotBuySellBundle(connection, walletKeypairs, params);
+                    toast.success(`Buy-sell bundle created with ID: ${result.bundleId.slice(0, 8)}...`);
+                }
             }
 
         } catch (error) {
             console.error("Error processing Jito bundle transactions:", error);
+            toast.error("Failed to process Jito bundle: " + (error instanceof Error ? error.message : String(error)));
             throw error;
         }
     };
 
-    // Process buy transactions using Jito bundles
+    // Process buy transactions using Jito bundles (legacy, now using new implementation)
     const processBuyTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
-        // In a real implementation, you would create a bundle of transactions
-        // For this demo, we'll just call the individual transaction methods with a message about using Jito
-        toast.info("Using Jito bundle for buy transactions");
-
-        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
-            await handleBuyWithWalletAdapter(tokenMint);
-        } else {
-            for (const keypair of walletKeypairs) {
-                await handleBuyWithKeypair(keypair, tokenMint);
-            }
-        }
+        // This function is no longer used
+        console.warn("Legacy processBuyTransactionsWithJito called");
     };
 
-    // Process sell transactions using Jito bundles
+    // Process sell transactions using Jito bundles (legacy, now using new implementation)
     const processSellTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
-        // In a real implementation, you would create a bundle of transactions
-        // For this demo, we'll just call the individual transaction methods with a message about using Jito
-        toast.info("Using Jito bundle for sell transactions");
-
-        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
-            await handleSellWithWalletAdapter(tokenMint);
-        } else {
-            for (const keypair of walletKeypairs) {
-                await handleSellWithKeypair(keypair, tokenMint);
-            }
-        }
+        // This function is no longer used
+        console.warn("Legacy processSellTransactionsWithJito called");
     };
 
-    // Process buy and sell transactions using Jito bundles
+    // Process buy and sell transactions using Jito bundles (legacy, now using new implementation)
     const processBuySellTransactionsWithJito = async (walletKeypairs: Keypair[], tokenMint: PublicKey) => {
-        // In a real implementation, you would create a bundle of transactions
-        // For this demo, we'll just call the individual transaction methods with a message about using Jito
-        toast.info("Using Jito bundle for buy-sell transactions");
-
-        if (walletMode === WalletMode.Extension && walletAdapter.publicKey) {
-            await handleBuySellWithWalletAdapter(tokenMint);
-        } else {
-            for (const keypair of walletKeypairs) {
-                await handleBuySellWithKeypair(keypair, tokenMint);
-            }
-        }
+        // This function is no longer used
+        console.warn("Legacy processBuySellTransactionsWithJito called");
     };
 
     // Update the processBotTransactions function to use Jito if selected

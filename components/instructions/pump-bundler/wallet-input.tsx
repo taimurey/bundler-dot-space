@@ -31,7 +31,7 @@ interface ParseResult {
 }
 
 const WalletAddressInput: React.FC<WalletInputProps> = ({
-    maxWallets = 4,
+    maxWallets,
     walletType = 'privateKeys',
     wallets,
     setWallets,
@@ -39,7 +39,8 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
     onWalletsUpdate,
 }) => {
     const [error, setError] = useState<string>('');
-    const [generateCount, setGenerateCount] = useState<string>(''); // Local state for the number of wallets to generate
+    const [effectiveMaxWallets, setEffectiveMaxWallets] = useState<number | null>(maxWallets || null);
+    const [generateCount, setGenerateCount] = useState<string>('');
     const [fileName, setFileName] = useState<string>('');
 
 
@@ -62,72 +63,66 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                     }
 
                     try {
-                        let privateKey = '';
+                        let wallet = '';
                         let solAmount = '';
 
-                        // First column might be a private key directly
-                        if (row[0] && row[0].length > 30) {
-                            try {
-                                // Try to decode as a private key
-                                const keypair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[0])));
-                                privateKey = row[0];
-
-                                // Check if second column contains a SOL amount
-                                if (row[1] && !isNaN(Number(row[1]))) {
-                                    solAmount = row[1];
-                                }
-                            } catch (e) {
-                                // Not a valid private key in column 1
-                            }
-                        }
-
-                        // If first column wasn't a valid private key, check second or third column
-                        if (!privateKey) {
-                            // Check if first column is a public key
-                            try {
-                                new PublicKey(row[0]); // Validate as a public key
-
-                                // Second column might be the private key
-                                if (row[1] && row[1].length > 30) {
+                        if (walletType === 'privateKeys') {
+                            // Looking for private keys in the CSV
+                            for (let i = 0; i < row.length; i++) {
+                                if (row[i] && row[i].length > 30) {
                                     try {
-                                        Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[1])));
-                                        privateKey = row[1];
+                                        // Try to decode as a private key
+                                        const keypair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[i])));
 
-                                        // If third column exists, it might be the SOL amount
-                                        if (row[2] && !isNaN(Number(row[2]))) {
-                                            solAmount = row[2];
+                                        // Store the private key but display the public key
+                                        const publicKey = keypair.publicKey.toBase58();
+
+                                        wallet = row[i]; // Store the private key
+
+                                        // Look for SOL amount in other columns
+                                        for (let j = 0; j < row.length; j++) {
+                                            if (j !== i && row[j] && !isNaN(Number(row[j]))) {
+                                                solAmount = row[j];
+                                                break;
+                                            }
                                         }
+                                        break;
                                     } catch (e) {
-                                        // Not a valid private key in column 2
+                                        // Not a valid private key
                                     }
                                 }
+                            }
+                        } else {
+                            // Looking for public keys in the CSV
+                            for (let i = 0; i < row.length; i++) {
+                                try {
+                                    if (row[i] && row[i].length >= 32) {
+                                        new PublicKey(row[i]); // Validate as a public key
+                                        wallet = row[i];
 
-                                // If second column is a number, check third column for private key
-                                if (!privateKey && row[1] && !isNaN(Number(row[1]))) {
-                                    solAmount = row[1];
-
-                                    if (row[2] && row[2].length > 30) {
-                                        try {
-                                            Keypair.fromSecretKey(new Uint8Array(bs58.decode(row[2])));
-                                            privateKey = row[2];
-                                        } catch (e) {
-                                            // Not a valid private key in column 3
+                                        // Look for SOL amount in other columns
+                                        for (let j = 0; j < row.length; j++) {
+                                            if (j !== i && row[j] && !isNaN(Number(row[j]))) {
+                                                solAmount = row[j];
+                                                break;
+                                            }
                                         }
+                                        break;
                                     }
+                                } catch (e) {
+                                    // Not a valid public key
                                 }
-                            } catch (e) {
-                                // First column is not a valid public key
                             }
                         }
 
-                        // If we found a valid private key, add it to our wallet set
-                        if (privateKey) {
+                        // If we found a valid wallet, add it to our wallet set
+                        if (wallet) {
                             walletSet.push({
-                                wallet: privateKey,
+                                wallet: wallet,
                                 solAmount: solAmount
                             });
                         } else {
-                            console.warn(`No valid private key found in row ${rowIndex + 1}`);
+                            console.warn(`No valid ${walletType === 'privateKeys' ? 'private key' : 'public key'} found in row ${rowIndex + 1}`);
                         }
                     } catch (err) {
                         console.error(`Error processing row ${rowIndex + 1}:`, err);
@@ -135,13 +130,14 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                 });
 
                 if (walletSet.length === 0) {
-                    toast.error('No valid private keys found in the CSV file');
+                    toast.error(`No valid ${walletType === 'privateKeys' ? 'private keys' : 'public keys'} found in the CSV file`);
                     return;
                 }
 
-                if (walletSet.length > maxWallets) {
-                    setError(`Only the first ${maxWallets} wallets will be used`);
-                    walletSet.splice(maxWallets);
+                // Only limit wallets if effectiveMaxWallets is set
+                if (effectiveMaxWallets !== null && walletSet.length > effectiveMaxWallets) {
+                    setError(`Only the first ${effectiveMaxWallets} wallets will be used`);
+                    walletSet.splice(effectiveMaxWallets);
                 }
 
                 toast.success(`${walletSet.length} wallets loaded successfully`);
@@ -158,8 +154,9 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
     };
 
     const handleManualAdd = () => {
-        if (wallets.length >= maxWallets) {
-            setError(`Maximum ${maxWallets} wallets allowed`);
+        // Only check limit if effectiveMaxWallets is set
+        if (effectiveMaxWallets !== null && wallets.length >= effectiveMaxWallets) {
+            setError(`Maximum ${effectiveMaxWallets} wallets allowed`);
             return;
         }
         setWallets([...wallets, { wallet: '', solAmount: '' }]);
@@ -199,12 +196,12 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
         const link = document.createElement('a');
         link.setAttribute('hidden', '');
         link.setAttribute('href', url);
-        link.setAttribute('download', `${fileName}PubKeys.csv`);
+        link.setAttribute('download', `${fileName}publickeys.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         link.setAttribute('href', urlPrivatekeys);
-        link.setAttribute('download', `${fileName}PrivateKeys.csv`);
+        link.setAttribute('download', `${fileName}privatekeys.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -291,13 +288,13 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                                 className="file:mr-4 cursor-pointer file:py-1 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 placeholder:text-gray-400"
                             />
                         </div>
-                        <p className="mt-1 text-sm text-gray-500">CSV file - Max {maxWallets} wallets</p>
+                        <p className="mt-1 text-sm text-gray-500">CSV file {effectiveMaxWallets !== null ? `- Max ${effectiveMaxWallets} wallets` : '- No wallet limit'}</p>
 
                     </div>
                     <Button
                         type="button" // Add this to prevent form submission
                         onClick={handleManualAdd}
-                        disabled={wallets.length >= maxWallets}
+                        disabled={effectiveMaxWallets !== null && wallets.length >= effectiveMaxWallets}
                         variant="outline"
                         className="flex p-2 border font-semibold bg-zinc-900 border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out w-4/12"
                     >
@@ -324,43 +321,55 @@ const WalletAddressInput: React.FC<WalletInputProps> = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {wallets.map((wallet, index) => (
-                                <tr key={index} className="border-t border-zinc-700">
-                                    <td className="px-4 py-2 w-[75%]">
-                                        <Input
-                                            value={wallet.wallet}
-                                            onChange={(e) => handleWalletChange(index, e.target.value)}
-                                            placeholder="Enter wallet address"
-                                            className={`w-full ${!validateWallet(wallet.wallet) && wallet.wallet ? 'border-red-500 bg-zinc-900' : 'bg-zinc-900'}`}
-                                        />
-                                    </td>
-                                    <td className="px-4 py-2 w-[25%]">
-                                        <div className="relative">
+                            {wallets.map((wallet, index) => {
+                                // Display public key if wallet type is private keys
+                                let displayWallet = wallet.wallet;
+                                if (walletType === 'privateKeys' && wallet.wallet) {
+                                    try {
+                                        const keypair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallet.wallet)));
+                                        displayWallet = keypair.publicKey.toBase58();
+                                    } catch (e) {
+                                        // Keep original value if conversion fails
+                                    }
+                                }
+
+                                return (
+                                    <tr key={index} className="border-t border-zinc-700">
+                                        <td className="px-4 py-2 w-[75%]">
                                             <Input
-                                                type="number"
-                                                value={wallet.solAmount}
-                                                onChange={(e) => handleSolAmountChange(index, e.target.value)}
-                                                disabled
-                                                placeholder="0.0"
-                                                className="w-full bg-zinc-900"
-                                                min="0"
-                                                step="0.000000001"
+                                                value={displayWallet}
+                                                onChange={(e) => handleWalletChange(index, e.target.value)}
+                                                placeholder="Enter wallet address"
+                                                className={`w-full ${!validateWallet(displayWallet) && displayWallet ? 'border-red-500 bg-zinc-900' : 'bg-zinc-900'}`}
                                             />
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        <Button
-                                            type="button" // Add this to prevent form submission
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleRemoveWallet(index)}
-                                            className="text-red-500 hover:text-red-700"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-4 py-2 w-[25%]">
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    value={wallet.solAmount}
+                                                    onChange={(e) => handleSolAmountChange(index, e.target.value)}
+                                                    placeholder="0.0"
+                                                    className="w-full bg-zinc-900"
+                                                    min="0"
+                                                    step="0.000000001"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            <Button
+                                                type="button" // Add this to prevent form submission
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleRemoveWallet(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </Table>
                 </div>

@@ -114,9 +114,9 @@ const Sidebar: FC = () => {
     const router = useRouter();
     const pathname = usePathname();
     const { isProfilesActive, setisProfilesActive } = WalletProfileContext();
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
-    const [isLocked, setIsLocked] = useState(false);
+    const [isLocked, setIsLocked] = useState(true);
     const [isHovering, setIsHovering] = useState(false);
     // Track text visibility separately
     const [textVisible, setTextVisible] = useState(true);
@@ -309,12 +309,12 @@ const Sidebar: FC = () => {
             icon: <PumpFunBumpBotIcon className="w-6 h-6" />,
             group: 'pump-fun'
         },
-        {
-            href: '/pump-fun/comment-bot',
-            title: 'Comment Bot',
-            icon: <PumpFunCommentBotIcon className="w-6 h-6" />,
-            group: 'pump-fun'
-        },
+        // {
+        //     href: '/pump-fun/comment-bot',
+        //     title: 'Comment Bot',
+        //     icon: <PumpFunCommentBotIcon className="w-6 h-6" />,
+        //     group: 'pump-fun'
+        // },
         {
             href: '/pump-fun/desalinator',
             title: 'Desalinator',
@@ -340,12 +340,7 @@ const Sidebar: FC = () => {
             icon: <GiSpawnNode className="w-5 h-5" />,
             group: 'utils'
         },
-        // {
-        //     href: '/utilities/volume-generator',
-        //     title: 'Volume Generator',
-        //     icon: <CashInflowIcon />,
-        //     group: 'utils'
-        // }
+
     ];
 
     const isMintingLabPage = pathname.includes('/minting-lab');
@@ -385,7 +380,7 @@ const Sidebar: FC = () => {
                         className="hidden md:flex w-8 h-8 mr-1 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
                         aria-label={isLocked ? "Unlock sidebar" : "Lock sidebar"}
                     >
-                        <LockIcon className={`w-3 h-3 ${isLocked ? 'text-blue-400' : ''}`} />
+                        <LockIcon className={`w-3 h-3 ${isLocked ? 'text-red-500' : ''}`} />
                     </button>
                     <button
                         onClick={() => handleCollapse(!isCollapsed)}

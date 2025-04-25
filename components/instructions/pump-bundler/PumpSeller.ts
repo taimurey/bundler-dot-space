@@ -66,44 +66,140 @@ export async function PumpSeller(
     BlockEngineSelection: string,
 ): Promise<string[]> {
     const initKeypair = getKeypairFromBs58(feepayer)!;
+    if (!initKeypair) {
+        throw new Error("Invalid fee payer private key");
+    }
+
     const tokenMint = new PublicKey(tokenAddress);
     const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     const bundleResults: string[] = [];
     const bundleTxn: VersionedTransaction[] = [];
 
-    // Process wallets in batches of 2 wallets per transaction
-    for (let i = 0; i < wallets.length; i += 2) {
-        const currentWallets = wallets.slice(i, i + 2);
+    // Keep track of valid wallets for processing
+    const validWallets: { keypair: Keypair, balance: string }[] = [];
 
-        for (const walletEntry of currentWallets) {
+    // First, validate all wallets and check their token balances
+    console.log(`Checking balances for ${wallets.length} wallets...`);
+    for (const walletEntry of wallets) {
+        try {
             const wallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(walletEntry.wallet)));
-            let tokenBalance;
+            const tokenAccount = getAssociatedTokenAddressSync(tokenMint, wallet.publicKey);
 
             try {
-                const tokenAccount = getAssociatedTokenAddressSync(tokenMint, wallet.publicKey);
-                tokenBalance = await connection.getTokenAccountBalance(tokenAccount);
+                const tokenBalance = await connection.getTokenAccountBalance(tokenAccount);
+                const balance = tokenBalance.value.amount;
+
+                if (Number(balance) > 0) {
+                    validWallets.push({ keypair: wallet, balance });
+                    console.log(`Wallet ${wallet.publicKey.toString()} has ${balance} tokens`);
+                } else {
+                    console.log(`Skipping wallet ${wallet.publicKey.toString()} with zero balance`);
+                }
             } catch (e) {
-                console.error(`Error fetching balance for wallet ${wallet.publicKey}:`, e);
-                continue;
+                console.log(`Wallet ${wallet.publicKey.toString()} has no token account or other error: ${e}`);
+            }
+        } catch (e) {
+            console.error(`Invalid wallet key provided:`, e);
+        }
+    }
+
+    console.log(`Found ${validWallets.length} wallets with tokens to sell`);
+
+    // If no valid wallets, ensure we still send a tip transaction
+    if (validWallets.length === 0) {
+        console.log("No wallets with tokens to sell. Creating a tip-only transaction.");
+        const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
+        const tipIx = SystemProgram.transfer({
+            fromPubkey: initKeypair.publicKey,
+            toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+            lamports: tipAmount
+        });
+
+        const tipTx = new VersionedTransaction(
+            new TransactionMessage({
+                payerKey: initKeypair.publicKey,
+                recentBlockhash: recentBlockhash,
+                instructions: [tipIx],
+            }).compileToV0Message()
+        );
+
+        tipTx.sign([initKeypair]);
+        bundleTxn.push(tipTx);
+
+        // Send the tip-only bundle
+        const bundleId = await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
+        return [bundleId];
+    }
+
+    // Process wallets in batches
+    const maxTxPerBundle = 5; // Maximum transactions per bundle
+    let tipAdded = false;
+
+    // Process each valid wallet
+    for (let i = 0; i < validWallets.length; i++) {
+        const { keypair: wallet, balance } = validWallets[i];
+        const isLastWallet = i === validWallets.length - 1;
+
+        // Calculate sell amount
+        const totalAmount = new BN(
+            Math.floor(Number(balance) * (Number(SellPercentage) / 100))
+        );
+
+        if (totalAmount.isZero() || totalAmount.isNeg()) {
+            console.log(`Skipping wallet ${wallet.publicKey.toString()} due to zero sell amount`);
+            continue;
+        }
+
+        try {
+            console.log(`Selling ${totalAmount.toString()} tokens from wallet ${wallet.publicKey.toString()}`);
+            const sellIx = await generateSellInstruction(tokenMint, wallet, totalAmount);
+            const txInstructions = [sellIx];
+            const signers = [wallet];
+
+            // Add tip to the last wallet in a batch or the very last wallet
+            const addTipToThisWallet = isLastWallet ||
+                (bundleTxn.length === maxTxPerBundle - 1);
+
+            if (addTipToThisWallet && !tipAdded) {
+                console.log(`Adding tip to transaction from wallet ${wallet.publicKey.toString()}`);
+                const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
+                const tipIx = SystemProgram.transfer({
+                    fromPubkey: initKeypair.publicKey,
+                    toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+                    lamports: tipAmount,
+                });
+
+                txInstructions.push(tipIx);
+                signers.push(initKeypair);
+                tipAdded = true;
             }
 
-            if (Number(tokenBalance!.value.amount) === 0) {
-                continue;
-            }
-
-            console.log(`Selling ${tokenBalance!.value.amount} tokens from wallet ${wallet.publicKey}`);
-
-            const totalAmount = new BN(
-                Math.floor(Number(tokenBalance!.value.amount) * (Number(SellPercentage) / 100))
+            // Create and sign the transaction
+            const versionedTxn = new VersionedTransaction(
+                new TransactionMessage({
+                    payerKey: wallet.publicKey,
+                    recentBlockhash: recentBlockhash,
+                    instructions: txInstructions,
+                }).compileToV0Message()
             );
 
-            try {
-                const sellIx = await generateSellInstruction(tokenMint, wallet, totalAmount);
-                const buyerIxs = [sellIx];
-                const signers = [wallet];
+            versionedTxn.sign(signers);
+            bundleTxn.push(versionedTxn);
 
-                // Add tip instruction for the last transaction in the bundle
-                if (bundleTxn.length === 4 && walletEntry === currentWallets[currentWallets.length - 1]) {
+            // Send the bundle when max transactions are ready or we've reached the last wallet
+            if (bundleTxn.length === maxTxPerBundle || isLastWallet) {
+                // If we've reached the end and haven't added a tip yet, add it now
+                if (isLastWallet && !tipAdded && bundleTxn.length > 0) {
+                    console.log("Adding tip instruction to the last transaction in the bundle");
+
+                    // Add tip to the last transaction
+                    const lastTxIndex = bundleTxn.length - 1;
+                    const originalTx = bundleTxn[lastTxIndex];
+
+                    // Get the original transaction message
+                    const originalMessage = TransactionMessage.decompile(originalTx.message);
+
+                    // Create a new message with the original instructions plus the tip instruction
                     const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
                     const tipIx = SystemProgram.transfer({
                         fromPubkey: initKeypair.publicKey,
@@ -111,36 +207,84 @@ export async function PumpSeller(
                         lamports: tipAmount,
                     });
 
-                    buyerIxs.push(tipIx);
-                    signers.push(initKeypair);
-                }
-
-                // Create and sign the transaction
-                const versionedTxn = new VersionedTransaction(
-                    new TransactionMessage({
-                        payerKey: wallet.publicKey,
+                    const newMessage = new TransactionMessage({
+                        payerKey: originalMessage.payerKey,
                         recentBlockhash: recentBlockhash,
-                        instructions: buyerIxs,
-                    }).compileToV0Message()
-                );
+                        instructions: [...originalMessage.instructions, tipIx],
+                    }).compileToV0Message();
 
-                versionedTxn.sign(signers);
-                bundleTxn.push(versionedTxn);
+                    // Create and sign the new transaction
+                    const newTx = new VersionedTransaction(newMessage);
+                    // We need to sign with both the original signer and the fee payer
+                    const originalWalletKey = originalMessage.payerKey.toString();
+                    const originalWallet = validWallets.find(w =>
+                        w.keypair.publicKey.toString() === originalWalletKey
+                    )?.keypair;
 
-                // Send the bundle when 5 transactions are ready
-                if (bundleTxn.length === 5) {
-                    await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
-                    bundleTxn.length = 0;
+                    if (originalWallet) {
+                        newTx.sign([originalWallet, initKeypair]);
+                        // Replace the original transaction
+                        bundleTxn[lastTxIndex] = newTx;
+                    } else {
+                        console.error("Could not find original wallet for signing");
+                    }
                 }
-            } catch (error) {
-                console.error(`Error processing wallet ${wallet.publicKey}:`, error);
-                continue;
+
+                // Send this batch
+                await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
+
+                // Reset for next batch
+                bundleTxn.length = 0;
+                tipAdded = false;
             }
+        } catch (error) {
+            console.error(`Error processing wallet ${wallet.publicKey.toString()}:`, error);
+            continue;
         }
     }
 
     // Send any remaining transactions in the last bundle
     if (bundleTxn.length > 0) {
+        // Ensure the last bundle has a tip
+        if (!tipAdded && bundleTxn.length > 0) {
+            console.log("Adding tip to the last bundle");
+            const lastTxIndex = bundleTxn.length - 1;
+            const originalTx = bundleTxn[lastTxIndex];
+
+            // Get the original transaction message
+            const originalMessage = TransactionMessage.decompile(originalTx.message);
+
+            // Create a new message with the original instructions plus the tip instruction
+            const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
+            const tipIx = SystemProgram.transfer({
+                fromPubkey: initKeypair.publicKey,
+                toPubkey: new PublicKey(getRandomElement(tipAccounts)),
+                lamports: tipAmount,
+            });
+
+            const newMessage = new TransactionMessage({
+                payerKey: originalMessage.payerKey,
+                recentBlockhash: recentBlockhash,
+                instructions: [...originalMessage.instructions, tipIx],
+            }).compileToV0Message();
+
+            // Create and sign the new transaction
+            const newTx = new VersionedTransaction(newMessage);
+            // We need to sign with both the original signer and the fee payer
+            const originalWalletKey = originalMessage.payerKey.toString();
+            const originalWallet = validWallets.find(w =>
+                w.keypair.publicKey.toString() === originalWalletKey
+            )?.keypair;
+
+            if (originalWallet) {
+                newTx.sign([originalWallet, initKeypair]);
+                // Replace the original transaction
+                bundleTxn[lastTxIndex] = newTx;
+            } else {
+                console.error("Could not find original wallet for signing");
+            }
+        }
+
         await sendBundle(bundleTxn, BlockEngineSelection, bundleResults, initKeypair, connection, BundleTip);
     }
 
@@ -154,14 +298,17 @@ async function sendBundle(
     tipKeypair: Keypair,
     connection: Connection,
     BundleTip: string
-): Promise<void> {
+): Promise<string> {
     const EncodedbundledTxns = bundleTxn.map(txn => base58.encode(txn.serialize()));
 
     try {
         // Use our direct Jito SDK integration
         const tipAmount = Number(BundleTip) * LAMPORTS_PER_SOL;
 
-        const bundlePromise = sendJitoBundleClient(
+        console.log(`Sending bundle with ${bundleTxn.length} transactions to ${BlockEngineSelection}`);
+        console.log(`Tip amount: ${tipAmount} lamports`);
+
+        const bundleUuid = await sendJitoBundleClient(
             `https://${BlockEngineSelection}`,
             tipKeypair,
             connection,
@@ -169,12 +316,12 @@ async function sendBundle(
             tipAmount
         );
 
-        const bundleUuid = await bundlePromise;
-
         console.log(`Successfully sent selling bundle with ID: ${bundleUuid}`);
         bundleResults.push(bundleUuid);
+        return bundleUuid;
     } catch (error) {
         console.error('Error sending bundle via Jito:', error);
-        throw new Error(`Failed to send selling bundle: ${error instanceof Error ? error.message : String(error)}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to send selling bundle: ${errorMessage}`);
     }
 }

@@ -2,11 +2,8 @@
 
 import React, { ChangeEvent, ReactNode, useState } from 'react';
 import { BN } from 'bn.js';
-import {
-    MAINNET_PROGRAM_ID,
-} from '@raydium-io/raydium-sdk';
 import { Keypair, LAMPORTS_PER_SOL, AddressLookupTableProgram } from '@solana/web3.js';
-import { Connection, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { Connection, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import base58 from 'bs58';
 import axios from 'axios';
 import { toast } from "sonner";
@@ -16,7 +13,6 @@ import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
 import { randomColor } from '@/components/utils/random-color';
 import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { GLOBAL_STATE } from '@/components/instructions/pump-bundler/constants';
 import { calculateBuyTokensAndNewReserves } from "@/components/instructions/pump-bundler/misc";
 import { truncate } from '@/components/sidebar-drawer';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
@@ -28,7 +24,6 @@ import { PublicKey } from "@solana/web3.js";
 import { getHeaderLayout } from "@/components/header-layout";
 import { FaSpinner } from "react-icons/fa";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
-import { bundleWalletEntry } from "@/components/instructions/pump-bundler/types";
 import PumpFunSDK from '@/components/instructions/pump-bundler/pumpfun-interface';
 
 interface WorkerResult {
@@ -52,7 +47,7 @@ const ZERO = new BN(0)
 type BN = typeof ZERO
 
 
-const LiquidityHandlerRaydium = () => {
+const PumpFunCreator = () => {
     const { cluster } = useSolana();
     const { setDeployerWallets } = WalletProfileContext();
     const connection = new Connection(cluster.endpoint);
@@ -61,6 +56,11 @@ const LiquidityHandlerRaydium = () => {
     const [Mode, setMode] = useState(1);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
+    const walletDependencyString = React.useMemo(() => {
+        // Join all wallet strings into a single string to create a stable dependency
+        return wallets.map(w => w.wallet).join(',');
+    }, [wallets]);
+
     const [balances, setBalances] = useState<BalanceType[]>([]);
     // const [devMaxSolPercentage, setDevMaxSolPercentage] = React.useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -464,55 +464,11 @@ const LiquidityHandlerRaydium = () => {
         };
 
         fetchBalances();
-    }, [wallets, formData.deployerPrivateKey, formData.buyerPrivateKey]);
-
-    // React.useEffect(() => {
-    //     const amountsCalculation = async () => {
-    //         const pumpProgram = new Program(pumpIdl as Idl, PUMP_PROGRAM_ID, new AnchorProvider(connection, new NodeWallet(Keypair.generate()), AnchorProvider.defaultOptions()));
-
-    //         const globalStateData = await pumpProgram.account.global.fetch(GLOBAL_STATE);
-    //         const tempBondingCurveData = {
-    //             virtualTokenReserves: globalStateData.initialVirtualTokenReserves,
-    //             virtualSolReserves: globalStateData.initialVirtualSolReserves,
-    //             realTokenReserves: globalStateData.initialRealTokenReserves,
-    //         }
-    //         const devBuyQuote = calculateBuyTokensAndNewReserves(new BN(Number(formData.DevtokenbuyAmount) * (LAMPORTS_PER_SOL)), tempBondingCurveData);
-    //         const devMaxSolPercentage = ((devBuyQuote.tokenAmount.toNumber() / 1000000) / 1000000000) * 100;
-
-    //         // setDevMaxSolPercentage(devMaxSolPercentage.toFixed(2));
-    //     }
-
-    //     amountsCalculation();
-
-    // }, [formData.DevtokenbuyAmount]);
-
-    class BrowserWallet {
-        constructor(readonly payer: Keypair) { }
-
-        async signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T> {
-            if (tx instanceof Transaction) {
-                tx.partialSign(this.payer);
-            } else if (tx instanceof VersionedTransaction) {
-                tx.sign([this.payer]);
-            }
-            return tx;
-        }
-
-        async signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> {
-            return txs.map((tx) => {
-                if (tx instanceof Transaction) {
-                    tx.partialSign(this.payer);
-                } else if (tx instanceof VersionedTransaction) {
-                    tx.sign([this.payer]);
-                }
-                return tx;
-            });
-        }
-
-        get publicKey(): PublicKey {
-            return this.payer.publicKey;
-        }
-    }
+    }, [
+        formData.deployerPrivateKey,
+        formData.buyerPrivateKey,
+        walletDependencyString
+    ]);
 
     React.useEffect(() => {
         const amountsCalculation = async () => {
@@ -816,11 +772,12 @@ const LiquidityHandlerRaydium = () => {
                                         />
                                     </div>)}
                                 <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
-                                    {Mode === 5 && (
+                                    {Mode === 4 && (
                                         <WalletInput
                                             wallets={wallets}
                                             setWallets={setWallets}
                                             Mode={Mode}
+                                            walletType='privateKeys'
                                             maxWallets={4}
                                             onChange={(walletData) => {
                                                 setFormData(prevState => ({
@@ -1267,13 +1224,13 @@ const LiquidityHandlerRaydium = () => {
 
 const modeOptions = [
     { value: 1, label: "Wallet Mode" },
-    { value: 5, label: "Wallet Mode" },
+    { value: 4, label: "Wallet Mode" },
     { value: 20, label: "Wallet Mode" },
 ];
 
 
 
 
-LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, "Pumpfun Bundler");
+PumpFunCreator.getLayout = (page: ReactNode) => getHeaderLayout(page, "Pumpfun Creator");
 
-export default LiquidityHandlerRaydium;
+export default PumpFunCreator;

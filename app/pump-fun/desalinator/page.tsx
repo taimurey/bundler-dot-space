@@ -15,6 +15,8 @@ import { FaCoins, FaSpinner, FaSync } from "react-icons/fa";
 import { ClipLoader } from "react-spinners";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
 import { truncate } from '@/components/sidebar-drawer';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { createDesalinatorBundle, DesalinatorParams } from '@/components/instructions/pump-bundler/DesalinatorJito';
 
 const ZERO = new BN(0);
 type BN = typeof ZERO;
@@ -54,6 +56,7 @@ const Desalinator = () => {
     const [displayBalances, setDisplayBalances] = useState<Array<{ balance: string, publicKey: string }>>([]);
     const [fetchingError, setFetchingError] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
+    const [tokenBalancesLoaded, setTokenBalancesLoaded] = useState(false);
     const MAX_RETRIES = 3;
 
     // Handle form field changes
@@ -116,6 +119,7 @@ const Desalinator = () => {
 
         let isMounted = true;
         setIsLoading(true);
+        setTokenBalancesLoaded(false);
 
         try {
             // Only proceed if we have at least one key
@@ -125,6 +129,46 @@ const Desalinator = () => {
             }
 
             const balancesToDisplay = [];
+            let hasTokenBalance = false;
+
+            // Helper function to find token accounts for a wallet
+            const getTokenAccounts = async (walletPublicKey: PublicKey, tokenMintAddress: string) => {
+                try {
+                    const tokenMint = new PublicKey(tokenMintAddress);
+                    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+                        walletPublicKey,
+                        { mint: tokenMint }
+                    );
+
+                    // Return the first token account we find for this mint
+                    return tokenAccounts.value.length > 0 ? tokenAccounts.value[0] : null;
+                } catch (error) {
+                    console.error("Error finding token account:", error);
+                    return null;
+                }
+            };
+
+            // Helper function to get token balance
+            const getTokenBalance = async (walletPublicKey: PublicKey, tokenMintAddress: string) => {
+                try {
+                    const tokenAccount = await getTokenAccounts(walletPublicKey, tokenMintAddress);
+                    if (!tokenAccount) {
+                        return 0;
+                    }
+
+                    const tokenBalance = await connection.getTokenAccountBalance(tokenAccount.pubkey);
+                    return parseFloat(tokenBalance.value.uiAmount?.toString() || '0');
+                } catch (error) {
+                    // Handle errors for token accounts that don't exist or invalid owners
+                    if (error instanceof Error &&
+                        (error.message.includes('TokenAccountNotFound') ||
+                            error.message.includes('TokenInvalidAccountOwner'))) {
+                        return 0;
+                    }
+                    console.error("Error getting token balance:", error);
+                    return 0;
+                }
+            };
 
             // Get seller keypair and balance
             if (formData.sellerPrivateKey) {
@@ -134,10 +178,21 @@ const Desalinator = () => {
                         // Get SOL balance
                         const solBalance = await connection.getBalance(sellerKeypair.publicKey);
 
+                        // Get token balance if token address is provided
+                        let tokenBalance = 0;
+                        if (formData.tokenAddress) {
+                            try {
+                                tokenBalance = await getTokenBalance(sellerKeypair.publicKey, formData.tokenAddress);
+                                hasTokenBalance = tokenBalance > 0;
+                            } catch (error) {
+                                console.error("Error fetching token balance:", error);
+                            }
+                        }
+
                         // Update seller balances
                         setSellerBalances({
                             sol: solBalance / LAMPORTS_PER_SOL,
-                            token: 0, // Placeholder until token balance is implemented
+                            token: tokenBalance,
                             publicKey: sellerKeypair.publicKey.toString()
                         });
 
@@ -145,6 +200,14 @@ const Desalinator = () => {
                             balance: (solBalance / LAMPORTS_PER_SOL).toFixed(4) + " SOL",
                             publicKey: sellerKeypair.publicKey.toString()
                         });
+
+                        // Add token balance display if available
+                        if (formData.tokenAddress) {
+                            balancesToDisplay.push({
+                                balance: tokenBalance.toString() + " Tokens",
+                                publicKey: sellerKeypair.publicKey.toString() + "_token"
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching seller balance:", error);
@@ -159,10 +222,21 @@ const Desalinator = () => {
                         // Get SOL balance
                         const solBalance = await connection.getBalance(buyerKeypair.publicKey);
 
+                        // Get token balance if token address is provided
+                        let tokenBalance = 0;
+                        if (formData.tokenAddress) {
+                            try {
+                                tokenBalance = await getTokenBalance(buyerKeypair.publicKey, formData.tokenAddress);
+                                hasTokenBalance = hasTokenBalance || tokenBalance > 0;
+                            } catch (error) {
+                                console.error("Error fetching token balance:", error);
+                            }
+                        }
+
                         // Update buyer balances
                         setBuyerBalances({
                             sol: solBalance / LAMPORTS_PER_SOL,
-                            token: 0, // Placeholder until token balance is implemented
+                            token: tokenBalance,
                             publicKey: buyerKeypair.publicKey.toString()
                         });
 
@@ -170,6 +244,14 @@ const Desalinator = () => {
                             balance: (solBalance / LAMPORTS_PER_SOL).toFixed(4) + " SOL",
                             publicKey: buyerKeypair.publicKey.toString()
                         });
+
+                        // Add token balance display if available
+                        if (formData.tokenAddress) {
+                            balancesToDisplay.push({
+                                balance: tokenBalance.toString() + " Tokens",
+                                publicKey: buyerKeypair.publicKey.toString() + "_token"
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching buyer balance:", error);
@@ -179,6 +261,10 @@ const Desalinator = () => {
             setDisplayBalances(balancesToDisplay);
             setFetchingError(false);
             setRetryCount(0);
+
+            // Only enable slider if seller has tokens and token address is valid
+            const sellerHasTokens = sellerBalances.token > 0;
+            setTokenBalancesLoaded(sellerHasTokens && formData.tokenAddress !== '');
 
         } catch (error) {
             console.error("Error fetching balances:", error);
@@ -201,7 +287,7 @@ const Desalinator = () => {
         fetchBalances(true);
     };
 
-    // Use effect to fetch balances on initial keys
+    // Update the useEffect to fetch token balance when token address changes
     useEffect(() => {
         // Only run if keys change and not in error state or max retries
         if ((formData.sellerPrivateKey || formData.buyerPrivateKey) &&
@@ -213,7 +299,7 @@ const Desalinator = () => {
             return () => clearTimeout(timer);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formData.sellerPrivateKey, formData.buyerPrivateKey, fetchingError, retryCount]);
+    }, [formData.sellerPrivateKey, formData.buyerPrivateKey, formData.tokenAddress, fetchingError, retryCount]);
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
@@ -247,18 +333,31 @@ const Desalinator = () => {
                 return;
             }
 
-            // TODO: Implement the actual token sell/buy bundling logic
-            // This would call your backend or local bundling logic
+            // Create params for the desalinator bundle
+            const params: DesalinatorParams = {
+                sellerPrivateKey: formData.sellerPrivateKey,
+                buyerPrivateKey: formData.buyerPrivateKey,
+                tokenAddress: formData.tokenAddress,
+                tokensToSell: formData.tokensToSell,
+                BlockEngineSelection: formData.BlockEngineSelection,
+                BundleTip: formData.BundleTip,
+                TransactionTip: formData.TransactionTip
+            };
 
-            // Placeholder for success message
-            toast.success("Desalinator bundle submitted");
+            // Show pending toast
+            toast.info("Creating desalinator bundle...");
 
-            // Placeholder for bundle result
-            const bundleId = "placeholder-bundle-id";
+            // Create and submit the bundle
+            const result = await createDesalinatorBundle(connection, params);
+
+            // Show success message
+            toast.success("Desalinator bundle submitted successfully");
+
+            // Show bundle ID toast
             toast(
                 () => (
                     <BundleToast
-                        txSig={bundleId}
+                        txSig={result.bundleId}
                         message={"Bundle ID:"}
                     />
                 ),
@@ -331,9 +430,15 @@ const Desalinator = () => {
                                         defaultValue={[50]}
                                         max={100}
                                         step={1}
-                                        className="w-full py-4"
-                                        onValueChange={handleSliderChange}
+                                        className={`w-full py-4 ${!tokenBalancesLoaded ? 'opacity-50' : ''}`}
+                                        onValueChange={tokenBalancesLoaded ? handleSliderChange : undefined}
+                                        disabled={!tokenBalancesLoaded}
                                     />
+                                    {!tokenBalancesLoaded && formData.tokenAddress && (
+                                        <p className="text-xs text-amber-400 mt-1">
+                                            {isLoading ? "Loading token balances..." : "Enter token address and wallet keys to enable slider"}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <JitoBundleSelection
@@ -391,7 +496,9 @@ const Desalinator = () => {
                                             displayBalances.map(({ balance, publicKey }, index) => (
                                                 <a
                                                     key={index}
-                                                    href={`https://solscan.io/account/${publicKey}`}
+                                                    href={publicKey.endsWith("_token")
+                                                        ? `https://solscan.io/token/${formData.tokenAddress}`
+                                                        : `https://solscan.io/account/${publicKey}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
@@ -399,11 +506,17 @@ const Desalinator = () => {
                                                 >
                                                     <p>
                                                         <span className='text-[#96989c] text-[15px] font-normal'>
-                                                            {index === 0 ? 'Seller: ' : 'Buyer: '}
+                                                            {publicKey.endsWith("_token")
+                                                                ? (index <= 2 ? 'Seller Token: ' : 'Buyer Token: ')
+                                                                : (index === 0 || (index === 1 && publicKey.endsWith("_token")) ? 'Seller: ' : 'Buyer: ')}
                                                         </span>
-                                                        {truncate(publicKey, 6, 7)!}
+                                                        {publicKey.endsWith("_token")
+                                                            ? balance
+                                                            : truncate(publicKey, 6, 7)!}
                                                         <br />
-                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
+                                                        {!publicKey.endsWith("_token") && (
+                                                            <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
+                                                        )}
                                                         <br />
                                                     </p>
                                                 </a>
@@ -431,13 +544,13 @@ const Desalinator = () => {
                                     </div>
                                 )}
 
-                                {formData.tokensToSell && (
+                                {formData.tokensToSell && tokenBalancesLoaded && (
                                     <div className="mt-6">
                                         <label className="block text-base text-white font-semibold">
                                             Trade Amount:
                                         </label>
                                         <p className="text-[#96989c] text-sm mt-2">
-                                            {formData.tokensToSell}% of seller's tokens
+                                            {formData.tokensToSell}% of seller's tokens ({(sellerBalances.token * parseInt(formData.tokensToSell) / 100).toFixed(6)} tokens)
                                         </p>
                                     </div>
                                 )}
