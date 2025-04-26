@@ -15,7 +15,7 @@ import { GiBrainFreeze, GiSpawnNode } from "react-icons/gi";
 import { RiMenuFold2Line, RiMenuFoldLine } from "react-icons/ri";
 import MevLabLogo from "./icons/JupiterLogo";
 import { LockIcon } from "lucide-react";
-import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon } from "./icons/RaydiumIcons";
+import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon, RaydiumCPMMSellIcon, RaydiumIconV2, OpenBookIcon } from "./icons/RaydiumIcons";
 import PumpFunIcon from "./icons/PumpFunIcon";
 import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunCommentBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
@@ -50,7 +50,7 @@ const SidebarLink = ({
             if (gradientFrom === mintingLabGradient.from) return "text-blue-500";
             if (gradientFrom === pumpFunGradient.from) return "text-emerald-400";
             if (gradientFrom === raydiumGradient.from) return "text-purple-500";
-            if (gradientFrom === utilitiesGradient.from) return "text-amber-500";
+            if (gradientFrom === utilitiesGradient.from) return "text-[#00edc2]";
             return "text-[#ffac40]"; // Default active color
         }
         return ""; // Use default text color for inactive
@@ -80,10 +80,11 @@ const SidebarLink = ({
 };
 
 // Define gradient colors at the top level
-const mintingLabGradient = { from: "#3b82f6", to: "#1e40af" };   // Blue gradient
-const pumpFunGradient = { from: "#10b981", to: "#047857" };      // Green gradient
-const raydiumGradient = { from: "#8b5cf6", to: "#6d28d9" };      // Purple gradient
-const utilitiesGradient = { from: "#f59e0b", to: "#d97706" };        // Amber/orange gradient
+const mintingLabGradient = { from: "#3b82f6", to: "#1e40af" };
+const pumpFunGradient = { from: "#10b981", to: "#047857" };
+const raydiumGradient = { from: "#8b5cf6", to: "#6d28d9" };
+const utilitiesGradient = { from: "#00edc2", to: "#0094d9" };
+const launchLabGradient = { from: "#ffa500", to: "#ff8c00" };
 
 // Divider component for visual separation
 const Divider = ({ label, isCollapsed, group }: { label: string; isCollapsed: boolean; group?: string }) => {
@@ -92,7 +93,8 @@ const Divider = ({ label, isCollapsed, group }: { label: string; isCollapsed: bo
         if (group === 'minting-lab') return "text-blue-500";
         if (group === 'pump-fun') return "text-green-500";
         if (group === 'raydium') return "text-purple-500";
-        if (group === 'utilities') return "text-amber-500";
+        if (group === 'utilities') return "text-[#00edc2]";
+        if (group === 'launch-lab') return "text-orange-500";
         return "text-white/40"; // Default
     };
 
@@ -122,6 +124,24 @@ const Sidebar: FC = () => {
     const [textVisible, setTextVisible] = useState(true);
     const isHomePage = pathname === "/";
 
+    // Load sidebar state from localStorage on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedCollapsed = localStorage.getItem('sidebar_collapsed');
+            const savedLocked = localStorage.getItem('sidebar_locked');
+
+            if (savedCollapsed !== null) {
+                const isCollapsedValue = savedCollapsed === 'true';
+                setIsCollapsed(isCollapsedValue);
+                setTextVisible(!isCollapsedValue);
+            }
+
+            if (savedLocked !== null) {
+                setIsLocked(savedLocked === 'true');
+            }
+        }
+    }, []);
+
     // Listen for toggle event from header
     useEffect(() => {
         const handleToggleSidebar = () => {
@@ -143,14 +163,23 @@ const Sidebar: FC = () => {
             setTextVisible(false);
             setTimeout(() => {
                 setIsCollapsed(true);
+                localStorage.setItem('sidebar_collapsed', 'true');
             }, 150);
         } else {
             // Expand sidebar first, then show text
             setIsCollapsed(false);
+            localStorage.setItem('sidebar_collapsed', 'false');
             setTimeout(() => {
                 setTextVisible(true);
             }, 150);
         }
+    };
+
+    // Handle lock toggle with localStorage persistence
+    const toggleLock = () => {
+        const newLockedState = !isLocked;
+        setIsLocked(newLockedState);
+        localStorage.setItem('sidebar_locked', newLockedState.toString());
     };
 
     // Handle hover effects
@@ -209,6 +238,12 @@ const Sidebar: FC = () => {
             icon: <PumpFunIcon className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
         },
+        // {
+        //     href: '/launch-lab/create',
+        //     title: 'Launch Lab',
+        //     icon: <RaydiumIconV2 className="w-6 h-6" />,
+        //     showOnlyOnHomePage: false  // Show on all pages
+        // },
         {
             href: '/raydium/create-amm',
             title: 'Raydium',
@@ -216,7 +251,7 @@ const Sidebar: FC = () => {
             showOnlyOnHomePage: false  // Show on all pages
         },
         {
-            href: '/utilities/distribute-tokens',
+            href: '/utilities/distribute-sol',
             title: 'Utilities',
             icon: <ToolsIcon width="25" height="25" />,
             showOnlyOnHomePage: false  // Show on all pages
@@ -296,6 +331,19 @@ const Sidebar: FC = () => {
             icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
+        // Launch-lab links
+        {
+            href: '/launch-lab/create',
+            title: 'Create Coin',
+            icon: <RaydiumIconV2 className="w-7 h-7" />,
+            group: 'launch-lab'
+        },
+        {
+            href: '/launch-lab/manage',
+            title: 'Manage Coin',
+            icon: <RaydiumIconV2 className="w-7 h-7" />,
+            group: 'launch-lab'
+        },
         // PumpFun links
         {
             href: '/pump-fun/create',
@@ -332,13 +380,13 @@ const Sidebar: FC = () => {
             href: '/utilities/distribute-sol',
             title: 'SOL Distributor',
             icon: <SolanaIcon className="w-5 h-5" />,
-            group: 'utils'
+            group: 'utilities'
         },
         {
             href: '/utilities/distribute-tokens',
             title: 'Token Distributor',
             icon: <GiSpawnNode className="w-5 h-5" />,
-            group: 'utils'
+            group: 'utilities'
         },
 
     ];
@@ -346,6 +394,7 @@ const Sidebar: FC = () => {
     const isMintingLabPage = pathname.includes('/minting-lab');
     const isPumpFunPage = pathname.includes('/pump-fun');
     const isRaydiumPage = pathname.includes('/raydium');
+    const isLaunchLabPage = pathname.includes('/launch-lab');
     const isUtilsPage = pathname.includes('/utilities/distribute-tokens') || pathname.includes('/utilities/distribute-sol');
 
     // Determine which sub-links to show based on active section
@@ -357,8 +406,10 @@ const Sidebar: FC = () => {
         visibleSubLinks = subLinks.filter(link => link.group === 'pump-fun');
     } else if (isRaydiumPage) {
         visibleSubLinks = subLinks.filter(link => link.group === 'raydium');
+    } else if (isLaunchLabPage) {
+        visibleSubLinks = subLinks.filter(link => link.group === 'launch-lab');
     } else if (isUtilsPage || pathname.includes('/utils')) {
-        visibleSubLinks = subLinks.filter(link => link.group === 'utils');
+        visibleSubLinks = subLinks.filter(link => link.group === 'utilities');
     } else {
         // On homepage, don't show any sublinks
         visibleSubLinks = [];
@@ -375,7 +426,7 @@ const Sidebar: FC = () => {
             <div className="flex justify-end">
                 <div className="flex items-center justify-center">
                     <button
-                        onClick={() => setIsLocked(!isLocked)}
+                        onClick={toggleLock}
                         type="button"
                         className="hidden md:flex w-8 h-8 mr-1 text-white/50 duration-300 ease-in-out items-center justify-center hover:text-white rounded-md transition-colors"
                         aria-label={isLocked ? "Unlock sidebar" : "Lock sidebar"}
@@ -428,6 +479,9 @@ const Sidebar: FC = () => {
                         } else if (link.href.includes('/utilities')) {
                             gradientFrom = utilitiesGradient.from;
                             gradientTo = utilitiesGradient.to;
+                        } else if (link.href.includes('/launch-lab')) {
+                            gradientFrom = launchLabGradient.from;
+                            gradientTo = launchLabGradient.to;
                         }
 
                         return (
@@ -439,6 +493,7 @@ const Sidebar: FC = () => {
                                         (link.href.includes('/minting-lab') && isMintingLabPage) ||
                                         (link.href.includes('/pump-fun') && isPumpFunPage) ||
                                         (link.href.includes('/raydium') && isRaydiumPage) ||
+                                        (link.href.includes('/launch-lab') && isLaunchLabPage) ||
                                         (link.href.includes('/utilities') && isUtilsPage)
                                 }
                                 title={link.title}
@@ -497,14 +552,16 @@ const Sidebar: FC = () => {
                                 isMintingLabPage ? "Minting Lab" :
                                     isPumpFunPage ? "PumpFun" :
                                         isRaydiumPage ? "Raydium" :
-                                            isUtilsPage ? "Utilities" : "Tools"
+                                            isLaunchLabPage ? "Launch Lab" :
+                                                isUtilsPage ? "Utilities" : "Tools"
                             }
                             isCollapsed={!isExpanded || !textVisible}
                             group={
                                 isMintingLabPage ? "minting-lab" :
                                     isPumpFunPage ? "pump-fun" :
                                         isRaydiumPage ? "raydium" :
-                                            isUtilsPage ? "utilities" : undefined
+                                            isLaunchLabPage ? "launch-lab" :
+                                                isUtilsPage ? "utilities" : undefined
                             }
                         />
 
@@ -524,6 +581,9 @@ const Sidebar: FC = () => {
                                 } else if (link.group === 'utilities') {
                                     gradientFrom = utilitiesGradient.from;
                                     gradientTo = utilitiesGradient.to;
+                                } else if (link.group === 'launch-lab') {
+                                    gradientFrom = launchLabGradient.from;
+                                    gradientTo = launchLabGradient.to;
                                 }
 
                                 return (
