@@ -25,6 +25,8 @@ import { getHeaderLayout } from "@/components/header-layout";
 import { FaSpinner } from "react-icons/fa";
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
 import PumpFunSDK from '@/components/instructions/pump-bundler/pumpfun-interface';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { InfoIcon } from 'lucide-react';
 
 interface WorkerResult {
     secretKey: Uint8Array;
@@ -53,6 +55,7 @@ const PumpFunCreator = () => {
     const connection = new Connection(cluster.endpoint);
     const [uploading, setUploading] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [isKeypairUploaded, setIsKeypairUploaded] = useState(false);
     const [Mode, setMode] = useState(1);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
@@ -102,7 +105,7 @@ const PumpFunCreator = () => {
         coinname: '',
         symbol: '',
         tokenDescription: '',
-        vanity: '',
+        vanity: 'pump',
         threads: 4,
         tokenKeypair: '',
         tokenKeypairpublicKey: '',
@@ -236,6 +239,45 @@ const PumpFunCreator = () => {
         }
     };
 
+    const handleKeypairUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files && e.target.files[0];
+
+        if (file) {
+            try {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const jsonContent = event.target?.result as string;
+                        const keypairData = JSON.parse(jsonContent);
+
+                        // Check if it's a valid keypair format (array of numbers)
+                        if (Array.isArray(keypairData) && keypairData.length === 64) {
+                            const uint8Array = new Uint8Array(keypairData);
+                            const keypair = Keypair.fromSecretKey(uint8Array);
+
+                            setFormData(prevState => ({
+                                ...prevState,
+                                tokenKeypair: bs58.encode(keypair.secretKey),
+                                tokenKeypairpublicKey: keypair.publicKey.toBase58(),
+                            }));
+
+                            setIsKeypairUploaded(true);
+                            toast.success("Keypair loaded successfully");
+                        } else {
+                            toast.error("Invalid keypair format. Please upload a valid JSON file containing a 64-byte array");
+                        }
+                    } catch (error) {
+                        console.error("Error parsing keypair JSON:", error);
+                        toast.error("Failed to parse keypair file. Make sure it's a valid JSON format");
+                    }
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                console.error("Error reading keypair file:", error);
+                toast.error("Failed to read keypair file");
+            }
+        }
+    };
 
     const NUM_WORKERS = formData.threads;
 
@@ -734,19 +776,50 @@ const PumpFunCreator = () => {
                                             />
                                         </div>
                                     </div>
-                                    <button
-                                        className='bundler-btn border p-2 w-1/3 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
-                                        onClick={vanityAddressGenerator}
-                                    >
-                                        {isLoading ? (
-                                            <div className='flex justify-center items-center gap-2'>
-                                                <span className="italic font-i">Generating</span>
-                                                <FaSpinner className='animate-spin' />
-                                            </div>
-                                        ) : (
-                                            'Generate'
-                                        )}
-                                    </button>
+                                    <div className="flex flex-col gap-1 w-1/3">
+                                        <button
+                                            className='bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
+                                            onClick={vanityAddressGenerator}
+                                        >
+                                            {isLoading ? (
+                                                <div className='flex justify-center items-center gap-2'>
+                                                    <span className="italic font-i">Generating</span>
+                                                    <FaSpinner className='animate-spin' />
+                                                </div>
+                                            ) : (
+                                                'Generate'
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="relative border-t border-dashed border-gray-500">
+                                    <input
+                                        type="file"
+                                        id="keypair_file_input"
+                                        accept=".json"
+                                        onChange={handleKeypairUpload}
+                                        className="hidden"
+                                    />
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <label
+                                                htmlFor="keypair_file_input"
+                                                className={`bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] ${isKeypairUploaded ? 'border-green-500 text-green-500' : 'hover:border-[#45ddc4]'} rounded-md duration-300 ease-in-out cursor-pointer flex justify-center items-center text-sm`}
+                                            >
+                                                <TooltipTrigger>
+                                                    {isKeypairUploaded ? 'Keypair Loaded' : 'Upload Bytes Keypair'}
+                                                    <span className="ml-2 text-xs text-gray-500">
+                                                        (Optional if local grinded)
+                                                    </span>
+                                                </TooltipTrigger>
+                                            </label>
+                                            <TooltipContent>
+                                                <p>
+                                                    solana-keygen grind --ends-with pump:1
+                                                </p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                                 <InputField
                                     id="deployerPrivatekey"

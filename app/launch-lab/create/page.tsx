@@ -63,7 +63,7 @@ const LaunchLabCreate = () => {
     };
 
     return (
-        <div className="w-full px-4">
+        <div className="lg:w-3/4 px-4 mx-auto">
             <form onSubmit={handleSubmit} className="w-full">
                 <div className="flex flex-col md:flex-row h-full gap-6">
                     <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl sm:p-6 shadow-lg w-full">
@@ -71,7 +71,6 @@ const LaunchLabCreate = () => {
                             <p className='font-bold text-xl'>Launch Lab</p>
                             <p className='text-xs text-[#96989c]'>Create your own token liquidity pool with ease</p>
                         </div>
-
                         <JitoBundleSelection
                             isJitoBundle={isJitoBundle}
                             setIsJitoBundle={setIsJitoBundle}
@@ -79,31 +78,6 @@ const LaunchLabCreate = () => {
                             handleChange={handleChange}
                             handleSelectionChange={handleSelectionChange}
                         />
-
-                        <div className='w-full'>
-                            <label className="block text-base text-white font-semibold">
-                                Block Engine
-                            </label>
-                            <div className="relative mt-1 rounded-md shadow-sm">
-                                <select
-                                    id="BlockEngineSelection"
-                                    value={formData.BlockEngineSelection}
-                                    onChange={(e) => handleSelectionChange(e, 'BlockEngineSelection')}
-                                    required={true}
-                                    className="block w-full px-4 py-2 rounded-md text-base border border-[#404040] text-white bg-transparent focus:outline-none sm:text-base focus:border-blue-500"
-                                >
-                                    <option value="" disabled>
-                                        Select Block Engine
-                                    </option>
-                                    {BlockEngineLocation.map((option, index) => (
-                                        <option key={index} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
                         <div className="border border-dashed border-white rounded-md shadow-lg p-4">
                             <InputField
                                 id="deployerPrivateKey"
@@ -116,25 +90,6 @@ const LaunchLabCreate = () => {
                                 required={true}
                             />
                         </div>
-
-                        <div className='w-full'>
-                            <label className="block text-base text-white font-semibold">
-                                Launch Type
-                            </label>
-                            <div className="relative mt-1 rounded-md shadow-sm">
-                                <select
-                                    id="orderType"
-                                    value={formData.orderType}
-                                    onChange={(e) => handleSelectionChange(e, 'orderType')}
-                                    required={true}
-                                    className="block w-full px-4 py-2 rounded-md text-base border border-[#404040] text-white bg-transparent focus:outline-none sm:text-base focus:border-blue-500"
-                                >
-                                    <option value="market">Market Order</option>
-                                    <option value="limit">Limit Order</option>
-                                </select>
-                            </div>
-                        </div>
-
                         <div className='flex flex-col gap-2' id="tokeninfo">
                             <h3 className='font-bold text-sm text-white'>Token Information</h3>
                             <InputField
@@ -204,33 +159,6 @@ const LaunchLabCreate = () => {
                                 required={false}
                             />
                         </div>
-
-                        <div className='flex flex-col gap-2' id="feesinfo">
-                            <h3 className='font-bold text-sm text-white'>Transaction Fees</h3>
-                            <div className='flex gap-2'>
-                                <InputField
-                                    id="BundleTip"
-                                    label="Bundle Tip"
-                                    subfield='SOL'
-                                    value={formData.BundleTip}
-                                    onChange={(e) => handleChange(e, 'BundleTip')}
-                                    placeholder="0.01"
-                                    type="text"
-                                    required={true}
-                                />
-                                <InputField
-                                    id="TransactionTip"
-                                    label="Transaction Tip"
-                                    subfield='SOL'
-                                    value={formData.TransactionTip}
-                                    onChange={(e) => handleChange(e, 'TransactionTip')}
-                                    placeholder="0.00001"
-                                    type="text"
-                                    required={true}
-                                />
-                            </div>
-                        </div>
-
                         <div className="mt-6">
                             <button
                                 type="submit"

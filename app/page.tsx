@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import PumpFunIcon from "@/components/icons/PumpFunIcon";
-import { RaydiumIcon } from "@/components/icons/RaydiumIcons";
+import { RaydiumIcon, RaydiumIconV2 } from "@/components/icons/RaydiumIcons";
 import SolanaIcon from "@/components/icons/SolanaIcon";
 import MultiSendIcon from "@/components/icons/MultiSendIcon";
 import { Spotlight, GridBackground } from "@/components/blocks/spotlight-new";
@@ -29,7 +29,7 @@ const Home = () => {
     },
     {
       id: 3,
-      icon: SolanaIcon,
+      icon: RaydiumIconV2,
       name: "LaunchLab",
       color: "",
       href: "/minting-lab/create-token",

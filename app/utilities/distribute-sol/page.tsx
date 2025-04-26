@@ -1,12 +1,13 @@
 "use client"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useNetworkConfiguration } from "@/components/context/NetworkConfigurationProvider";
 import { FaInfoCircle } from "react-icons/fa";
 import WalletAddressInput, { WalletEntry } from "@/components/instructions/pump-bundler/wallet-input";
 import { distributeSol } from "@/components/instructions/tokenDistributor/distribute-sol";
+import JitoBundleSelection from "@/components/ui/jito-bundle-selection";
 
 // Tooltip component for additional information
 const Tooltip: FC<{ title: string; description: string }> = ({ title, description }) => {
@@ -32,6 +33,29 @@ const SOLDistributor: FC = () => {
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [blockEngine, setBlockEngine] = useState("mainnet-beta-jito-api.bundlr.network");
     const [bundleTip, setBundleTip] = useState("0.01");
+    const [isJitoBundle, setIsJitoBundle] = useState(true);
+    const [formData, setFormData] = useState({
+        BlockEngineSelection: "",
+        BundleTip: "",
+        TransactionTip: ""
+    });
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+    };
+
+    const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
+    }
+
 
     // Fetch user's SOL balance
     useEffect(() => {
@@ -114,7 +138,7 @@ const SOLDistributor: FC = () => {
 
 
     return (
-        <div className="container mx-auto max-w-4xl p-4">
+        <div className="container mx-auto max-w-5xl p-4">
             <h1 className="text-3xl font-bold mb-6">SOL Distributor</h1>
 
 
@@ -129,28 +153,14 @@ const SOLDistributor: FC = () => {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-400">Block Engine</label>
-                        <select
-                            value={blockEngine}
-                            onChange={(e) => setBlockEngine(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white"
-                        >
-                            <option value="mainnet-beta-jito-api.bundlr.network">Mainnet Beta</option>
-                            <option value="devnet-jito-api.bundlr.network">Devnet</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-400">Bundle Tip (SOL)</label>
-                        <input
-                            type="text"
-                            value={bundleTip}
-                            onChange={(e) => setBundleTip(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white"
-                            placeholder="0.01"
-                        />
-                    </div>
+                <div className="w-full">
+                    <JitoBundleSelection
+                        isJitoBundle={isJitoBundle}
+                        setIsJitoBundle={setIsJitoBundle}
+                        formData={formData}
+                        handleChange={handleChange}
+                        handleSelectionChange={handleSelectionChange}
+                    />
                 </div>
             </div>
 
