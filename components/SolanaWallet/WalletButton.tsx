@@ -7,6 +7,7 @@ import { useAuth } from "../context/auth-provider";
 import AuthModal from "../Auth/AuthModal";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { FaWallet } from "react-icons/fa";
 
 // Utility
 const copyTextToClipboard = async (text: string) => {
@@ -30,18 +31,6 @@ const WalletButton: FC = () => {
   // Check if this is a demo wallet
   const isDemoWallet = authState.user?.walletAddress?.includes('...');
 
-  const handleConnectClick = useCallback(() => {
-    if (authState.user) {
-      // User is logged in with email/Google
-      setShowModal(true);
-    } else if (wallet.connected) {
-      // User is connected with wallet
-      setShowModal(true);
-    } else {
-      // Show auth options modal
-      setShowAuthModal(true);
-    }
-  }, [wallet.connected, authState.user]);
 
   const handleCopyClick = () => {
     if (authState.user?.walletAddress) {
@@ -82,7 +71,6 @@ const WalletButton: FC = () => {
       <div className="relative flex justify-end px-4 text-md">
         <div className="flex items-center gap-3">
           <button
-            onClick={handleConnectClick}
             className="font-medium select-none"
           >
             {authState.user ? (
@@ -107,21 +95,19 @@ const WalletButton: FC = () => {
                 </span>
               </div>
             ) : (
-              // Not connected
-              <div className="flex items-center bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg px-5 py-2.5 shadow-lg hover:shadow-indigo-600/30 hover:from-indigo-500 hover:to-indigo-600 transition-all duration-200">
-                <LogInIcon className="h-4 w-4 mr-2" />
-                <span className="text-sm font-medium">Sign In</span>
-              </div>
+              <button
+                onClick={handleConnectWallet}
+                className="flex flex-row items-center justify-center gap-2 rounded-sm mx-auto border border-zinc-700 bg-gradient-to-r bg-purple-300 p-2.5 text-black font-medium hover:from-purple-400 
+              hover:to-purple-400 duration-200 ease-in-out transition-colors shadow-md hover:shadow-purple-900/20"
+              >
+                <FaWallet className="h-5 w-5" />
+                <span className="text-sm font-medium">Connect Wallet</span>
+              </button>
             )}
           </button>
         </div>
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
 
       {/* Wallet Connected Options Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>

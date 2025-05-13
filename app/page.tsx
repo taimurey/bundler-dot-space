@@ -24,7 +24,7 @@ const Home = () => {
       icon: RaydiumIcon,
       name: "Raydium",
       color: "",
-      href: "/raydium/create-ray-amm",
+      href: "/raydium/create-amm",
       available: true
     },
     {

@@ -301,12 +301,12 @@ const Sidebar: FC = () => {
             group: 'minting-lab'
         },
         // Raydium links
-        {
-            href: "/raydium/openbook",
-            title: "Create OpenBook",
-            icon: <FaStickyNote className="w-5 h-5 bg-gradient-to-t from-blue-500 to-purple-500 text-clip rounded-lg" />,
-            group: "raydium",
-        },
+        // {
+        //     href: "/raydium/openbook",
+        //     title: "Create OpenBook",
+        //     icon: <FaStickyNote className="w-5 h-5 bg-gradient-to-t from-blue-500 to-purple-500 text-clip rounded-lg" />,
+        //     group: "raydium",
+        // },
         {
             href: '/raydium/create-amm',
             title: 'AMM Bundler',
@@ -319,18 +319,18 @@ const Sidebar: FC = () => {
             icon: <RaydiumAMMSellIcon className="w-7 h-7" />,
             group: 'raydium'
         },
-        {
-            href: '/raydium/create-cpmm',
-            title: 'CPMM Bundler',
-            icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
-            group: 'raydium'
-        },
-        {
-            href: '/raydium/manage-cpmm',
-            title: 'CPMM Manager',
-            icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
-            group: 'raydium'
-        },
+        // {
+        //     href: '/raydium/create-cpmm',
+        //     title: 'CPMM Bundler',
+        //     icon: <RaydiumCPMMBuyIcon className="w-7 h-7" />,
+        //     group: 'raydium'
+        // },
+        // {
+        //     href: '/raydium/manage-cpmm',
+        //     title: 'CPMM Manager',
+        //     icon: <RaydiumCPMMSellIcon className="w-7 h-7" />,
+        //     group: 'raydium'
+        // },
         // Launch-lab links
         {
             href: '/launch-lab/create',

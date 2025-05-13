@@ -9,7 +9,7 @@ import axios from 'axios';
 import { toast } from "sonner";
 import { BundleToast, LinkToast, TransactionToast } from '@/components/bundler-toasts';
 import { WalletProfileContext } from '@/components/SolanaWallet/wallet-context';
-import ImageUploadIcon from '../../../components/icons/imageuploadIcon';
+import ImageUploadIcon from '@/components/icons/imageuploadIcon';
 import { randomColor } from '@/components/utils/random-color';
 import { PumpBundler } from "@/components/instructions/pump-bundler/PumpBundler";
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';

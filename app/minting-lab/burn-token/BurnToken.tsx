@@ -645,7 +645,7 @@ const BurnToken: FC = () => {
                                 </button>
                             </div>
                             <div className="text-xs text-gray-400">
-                                Search for your tokens by address
+                                Search tokens from your wallet
                             </div>
                         </div>
 
