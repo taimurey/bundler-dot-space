@@ -1,56 +1,67 @@
 'use client';
 
-import React, { ChangeEvent, ReactNode, useState } from 'react';
-import { FaSpinner } from 'react-icons/fa';
-import { getHeaderLayout } from '@/components/header-layout';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import React, { ChangeEvent, useState } from 'react';
+import { BN } from 'bn.js';
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
+import base58 from 'bs58';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
+import { toast } from "sonner";
+import { BundleToast } from '@/components/bundler-toasts';
+import { BalanceType } from '@/components/types/solana-types';
 import { truncate } from '@/components/sidebar-drawer';
+import WalletInput from '@/components/instructions/pump-bundler/wallet-input';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
+import { Listbox } from '@headlessui/react';
+import { FaSpinner } from 'react-icons/fa';
 import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import { LaunchLabBuyer, LaunchLabSeller } from '@/components/LaunchLabSDK/LaunchLabBundler';
+import Image from 'next/image';
 
-interface PoolInfo {
-    poolAddress: string;
-    tokenAddress: string;
-    liquidity: string;
-    price: string;
-}
+import LetsBonkLogo from '@/public/bonk_fun.png';
+
+const ZERO = new BN(0)
+type BN = typeof ZERO
 
 const LaunchLabManage = () => {
     const { cluster } = useSolana();
+    const connection = new Connection(cluster.endpoint);
+    const [balances, setBalances] = useState<BalanceType[]>([]);
+    const [wallets, setWallets] = useState<WalletEntry[]>([]);
+    const [Mode, setMode] = useState(0);
+    const [WalletMode, setWalletMode] = useState(1);
     const [isJitoBundle, setIsJitoBundle] = useState(true);
-    const [pools, setPools] = useState<PoolInfo[]>([]);
+    const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy');
     const [isLoading, setIsLoading] = useState(false);
+    const [bundleIds, setBundleIds] = useState<string[]>([]);
 
     const [formData, setFormData] = useState<{
         tokenAddress: string;
-        poolAddress: string;
-        actionType: string;
-        amount: string;
-        deployerPrivateKey: string;
+        Wallets: string[];
+        feeKeypair: string;
+        SellPercentage: string;
+        buyAmount: string;
         BundleTip: string;
         TransactionTip: string;
         BlockEngineSelection: string;
+        GoalSolAmount: string;
+        buyerextraWallets?: string[];
+        buyerWalletAmounts?: string[];
     }>({
         tokenAddress: '',
-        poolAddress: '',
-        actionType: 'add',
-        amount: '',
-        deployerPrivateKey: '',
+        Wallets: [],
+        feeKeypair: '',
+        SellPercentage: '',
+        buyAmount: '',
         BundleTip: '0.01',
         TransactionTip: '0.00001',
         BlockEngineSelection: BlockEngineLocation[2],
+        GoalSolAmount: '',
+        buyerextraWallets: [],
+        buyerWalletAmounts: [],
     });
-
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-        field: string
-    ) => {
-        const { value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [field]: value,
-        }));
-    };
 
     const handleSelectionChange = (e: ChangeEvent<HTMLSelectElement>, field: string) => {
         const { value } = e.target;
@@ -58,153 +69,621 @@ const LaunchLabManage = () => {
             ...prevState,
             [field]: value,
         }));
+    }
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
+        const { value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Placeholder for submission logic
-        console.log('Form submitted:', formData);
+    // Function to handle buying tokens with a single wallet
+    const handleSingleBuy = async () => {
+        if (!formData.tokenAddress || !formData.feeKeypair || !formData.buyAmount) {
+            toast.error('Token address, private key, and buy amount are required');
+            return;
+        }
+
+        try {
+            // Execute the buy operation
+            const result = await LaunchLabBuyer(
+                connection,
+                formData.feeKeypair,
+                formData.tokenAddress,
+                formData.buyAmount,
+                formData.BundleTip,
+                formData.BlockEngineSelection
+            );
+
+            // Display bundle ID toast
+            toast(() => (
+                <BundleToast
+                    txSig={result.bundleId}
+                    message={'Buy Bundle ID:'}
+                />
+            ));
+
+            setBundleIds(prev => [...prev, result.bundleId]);
+            toast.success('Buy transaction sent successfully!');
+        } catch (error) {
+            console.error('Error executing buy:', error);
+            toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     };
 
-    const loadPools = () => {
-        setIsLoading(true);
-        // Mock data for demonstration - would be replaced with real API call
-        setTimeout(() => {
-            setPools([
-                {
-                    poolAddress: '7KBN8iDEWMgFrKJEJXz9TaX29jAqUBrdJCA1y8GvnNtX',
-                    tokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                    liquidity: '10.5',
-                    price: '0.00012'
-                },
-                {
-                    poolAddress: '9VN2susRjJQDH5eGFmJxGcwqf2xNQD3jhpBYcHTzYo3Z',
-                    tokenAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-                    liquidity: '5.2',
-                    price: '0.00008'
+    // Function to handle buying tokens with multiple wallets
+    const handleMultiBuy = async () => {
+        if (!formData.tokenAddress || wallets.length === 0) {
+            toast.error('Token address and at least one wallet are required');
+            return;
+        }
+
+        try {
+            const results = [];
+            // Process each wallet and create a buy transaction
+            for (let i = 0; i < wallets.length; i++) {
+                const wallet = wallets[i];
+
+                // Skip wallets with no SOL amount specified
+                if (!wallet.solAmount || Number(wallet.solAmount) <= 0) {
+                    continue;
                 }
-            ]);
-            setIsLoading(false);
-        }, 1500);
+
+                // Execute buy operation for this wallet
+                const result = await LaunchLabBuyer(
+                    connection,
+                    wallet.wallet,
+                    formData.tokenAddress,
+                    wallet.solAmount.toString(),
+                    formData.BundleTip,
+                    formData.BlockEngineSelection
+                );
+
+                results.push(result);
+
+                // Display bundle ID toast
+                toast(() => (
+                    <BundleToast
+                        txSig={result.bundleId}
+                        message={`Buy Bundle ID (Wallet ${i + 1}):`}
+                    />
+                ));
+
+                setBundleIds(prev => [...prev, result.bundleId]);
+            }
+
+            toast.success(`${results.length} buy transactions sent successfully!`);
+        } catch (error) {
+            console.error('Error executing multi-wallet buy:', error);
+            toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     };
+
+    const handleBuy = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            // Validate token address
+            try {
+                new PublicKey(formData.tokenAddress);
+            } catch (error) {
+                toast.error('Invalid token address');
+                setIsLoading(false);
+                return;
+            }
+
+            // Check wallet mode and handle accordingly
+            if (WalletMode === 1) {
+                // Single wallet mode
+                await handleSingleBuy();
+            } else {
+                // Multi-wallet mode
+                await handleMultiBuy();
+            }
+        } catch (error) {
+            console.error('Error executing buy:', error);
+            toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSell = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            // Validate form inputs
+            if (wallets.length === 0) {
+                toast.error('No wallets loaded');
+                return;
+            }
+
+            if (!formData.tokenAddress) {
+                toast.error('Please enter a token address');
+                return;
+            }
+
+            if (!formData.SellPercentage) {
+                toast.error('Please enter a sell percentage');
+                return;
+            }
+
+            try {
+                // Validate token address
+                new PublicKey(formData.tokenAddress);
+
+                // Call the LaunchLabSeller function to process the wallets
+                const bundleResults = await LaunchLabSeller(
+                    connection,
+                    wallets,
+                    formData.feeKeypair || wallets[0].wallet, // Use the first wallet as fee payer if none specified
+                    formData.tokenAddress,
+                    formData.SellPercentage,
+                    formData.BundleTip,
+                    formData.BlockEngineSelection
+                );
+
+                // Display success toast for each bundle result
+                bundleResults.forEach((result) => {
+                    toast(
+                        () => (
+                            <BundleToast
+                                txSig={result}
+                                message={'Sell Bundle ID:'}
+                            />
+                        ),
+                        { duration: 5000 }
+                    );
+                });
+
+                setBundleIds(prev => [...prev, ...bundleResults]);
+                toast.success(`${bundleResults.length} sell transactions sent successfully!`);
+            } catch (error) {
+                console.error('Error during submission:', error);
+                toast.error(`Error bundling: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error processing sell:', error);
+            toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        const fetchBalances = async () => {
+            let allBalances: BalanceType[] = [];
+
+            const balances = await Promise.all(
+                wallets.map(async (wallet) => {
+                    try {
+                        const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
+
+                        // Fetch SOL balance
+                        const solBalance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
+
+                        // Fetch token balance if tokenAddress is provided
+                        let tokenBalance = '0';
+                        if (formData.tokenAddress) {
+                            try {
+                                const tokenMint = new PublicKey(formData.tokenAddress);
+                                const tokenAccount = getAssociatedTokenAddressSync(tokenMint, keypair.publicKey);
+                                try {
+                                    const balance = await connection.getTokenAccountBalance(tokenAccount);
+                                    tokenBalance = balance.value.amount;
+                                } catch (e) {
+                                    // Token account may not exist yet
+                                    console.log(`No token account for ${keypair.publicKey.toString()}`);
+                                }
+                            } catch (error) {
+                                console.error(`Error fetching token balance for wallet ${keypair.publicKey.toString()}:`, error);
+                            }
+                        }
+
+                        return {
+                            name: truncate(keypair.publicKey.toString(), 4, 4),
+                            address: keypair.publicKey.toString(),
+                            sol: solBalance,
+                            token: tokenBalance,
+                            balance: parseFloat(solBalance.toString()),
+                            publicKey: keypair.publicKey.toString(),
+                        } as BalanceType;
+                    } catch (error) {
+                        console.error('Error processing wallet:', error);
+                        return null;
+                    }
+                })
+            );
+
+            // Filter out null values from failed wallet processing
+            const validBalances = balances.filter(balance => balance !== null) as BalanceType[];
+            setBalances(validBalances);
+        };
+
+        // Fetch balances when wallets or tokenAddress changes
+        if (wallets.length > 0) {
+            fetchBalances();
+        }
+    }, [wallets, formData.tokenAddress, connection]);
+
+    const modeOptions = [
+        { value: 0, label: 'LetsBonk.fun', image: LetsBonkLogo },
+    ];
 
     return (
         <div className="lg:w-3/4 px-4 mx-auto">
-            <form onSubmit={handleSubmit} className="w-full">
+            <div className="w-full">
                 <div className="flex flex-col md:flex-row h-full gap-6">
-                    <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl sm:p-6 shadow-lg w-full">
+                    <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
                         <div className="mb-4 border-b border-neutral-700 pb-2">
-                            <p className='font-bold text-xl'>Manage Liquidity Pools</p>
-                            <p className='text-xs text-[#96989c]'>Add or remove liquidity from your pools</p>
+                            <p className="font-bold text-xl">Launch Lab Manager</p>
+                            <p className="text-xs text-[#96989c]">Manage your existing tokens with buy and sell operations</p>
                         </div>
 
-
-                        <div className="border border-dashed border-white rounded-md shadow-lg p-4">
-                            <InputField
-                                id="deployerPrivateKey"
-                                label="Wallet"
-                                subfield='private key'
-                                value={formData.deployerPrivateKey}
-                                onChange={(e) => handleChange(e, 'deployerPrivateKey')}
-                                placeholder="Enter private key..."
-                                type="password"
-                                required={true}
-                            />
+                        {/* Tab Navigation */}
+                        <div className="flex border-b border-neutral-700 mb-4">
+                            <button
+                                onClick={() => setActiveTab('buy')}
+                                className={`py-2 px-4 ${activeTab === 'buy' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
+                            >
+                                Buy
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('sell')}
+                                className={`py-2 px-4 ${activeTab === 'sell' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
+                            >
+                                Sell
+                            </button>
                         </div>
 
-                        <div className='flex flex-col gap-2'>
-                            <InputField
-                                id="poolAddress"
-                                label="Pool Address"
-                                value={formData.poolAddress}
-                                onChange={(e) => handleChange(e, 'poolAddress')}
-                                placeholder="Enter pool address..."
-                                type="text"
-                                required={true}
-                            />
-
-                            <InputField
-                                id="tokenAddress"
-                                label="Token Address"
-                                subfield='mint address'
-                                value={formData.tokenAddress}
-                                onChange={(e) => handleChange(e, 'tokenAddress')}
-                                placeholder="Enter token address..."
-                                type="text"
-                                required={true}
-                            />
+                        {/* Platform Selection */}
+                        <label className="block mt-2 text-base text-white font-semibold">
+                            Platform
+                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
+                                Select the platform your token is on
+                            </span>
+                        </label>
+                        <div className="relative mt-1 rounded-md shadow-sm w-full">
+                            <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
+                                <Listbox.Button className="block w-full px-4 rounded-md text-base border gap-2 border-[#404040] text-white bg-input-boxes h-[40px] focus:outline-none focus:border-blue-500 text-left flex items-center">
+                                    <Image
+                                        src={modeOptions.find((opt) => opt.value === Mode)?.image || ''}
+                                        alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                        width={20}
+                                        height={20}
+                                    />
+                                    {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                </Listbox.Button>
+                                <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
+                                    {modeOptions.map((option) => (
+                                        <Listbox.Option
+                                            key={option.value}
+                                            value={option.value}
+                                            className={({ active }) =>
+                                                `flex items-center gap-2 px-4 py-2 text-white text-[12px] cursor-pointer ${active ? 'bg-blue-500' : ''
+                                                }`
+                                            }
+                                        >
+                                            <Image src={option.image} alt={option.label} width={20} height={20} />
+                                            {option.label}
+                                        </Listbox.Option>
+                                    ))}
+                                </Listbox.Options>
+                            </Listbox>
                         </div>
+
+                        {/* Wallet Mode Selection */}
+                        <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                            <select
+                                id="WalletMode"
+                                value={WalletMode}
+                                onChange={(e) => setWalletMode(Number(e.target.value))}
+                                required={true}
+                                className="block w-full px-4 rounded-md text-base border border-[#404040] text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                            >
+                                <option value="" disabled>
+                                    Wallet Mode
+                                </option>
+                                {WalletmodeOptions
+                                    .map((option, index) => (
+                                        <option key={index} value={option.value}>
+                                            {option.value} {option.label}
+                                        </option>
+                                    ))}
+                            </select>
+                        </div>
+
+                        {/* Token Address */}
                         <InputField
-                            id="amount"
-                            label="Amount"
-                            subfield='SOL'
-                            value={formData.amount}
-                            onChange={(e) => handleChange(e, 'amount')}
-                            placeholder="Enter amount..."
+                            id="tokenAddress"
+                            label="Token Address"
+                            subfield='Mint address'
+                            value={formData.tokenAddress}
+                            onChange={(e) => handleChange(e, 'tokenAddress')}
+                            placeholder="Enter token mint address"
                             type="text"
                             required={true}
                         />
-                        <JitoBundleSelection
-                            isJitoBundle={isJitoBundle}
-                            setIsJitoBundle={setIsJitoBundle}
-                            formData={formData}
-                            handleChange={handleChange}
-                            handleSelectionChange={handleSelectionChange}
-                        />
-                        <div className="mt-6">
-                            <button
-                                type="submit"
-                                className="w-full px-4 py-3 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-md hover:from-blue-500 hover:to-blue-600 focus:outline-none"
-                            >
-                                {formData.actionType === 'add' ? 'Add Liquidity' : 'Remove Liquidity'}
-                            </button>
-                        </div>
-                    </div>
 
-                    <div className="p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-xl sm:p-6 flex flex-col w-full md:w-1/3">
-                        <div>
-                            <div className="mb-4 border-b border-neutral-700 pb-2">
-                                <p className='font-bold text-xl'>Status Panel</p>
-                                <p className='text-xs text-[#96989c]'>Real-time information and logs</p>
-                            </div>
-                            <div className='w-full'>
-                                <label className="block mt-5 text-base text-white font-semibold">
-                                    Pools:
-                                </label>
-                                <br />
-                                <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                    {pools.length > 0 ? (
-                                        pools.map((pool, index) => (
-                                            <div key={index} className="text-[#96989c] text-sm mb-2">
-                                                <p>
-                                                    <span className="text-[10px] font-normal">{index + 1}: </span>
-                                                    <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[12px]">
-                                                        {truncate(pool.poolAddress, 6, 4)}
-                                                    </span>
-                                                    <br />
-                                                    <span className="text-[14px] font-normal ml-2">Liquidity: {pool.liquidity} SOL</span>
-                                                    <br />
-                                                    <span className="text-[14px] font-normal ml-2">Token: {truncate(pool.tokenAddress, 4, 4)}</span>
-                                                    <br />
-                                                </p>
-                                            </div>
-                                        ))
+                        {/* Display content based on active tab */}
+                        {activeTab === 'buy' ? (
+                            <>
+                                {/* Buy Tab Content */}
+                                <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center">
+                                    {WalletMode === 1 ? (
+                                        <>
+                                            {/* Single Wallet Buy */}
+                                            <InputField
+                                                label="Private Key"
+                                                subfield='buyer wallet'
+                                                id="feeKeypair"
+                                                value={formData.feeKeypair}
+                                                onChange={(e) => handleChange(e, 'feeKeypair')}
+                                                placeholder="Enter private key"
+                                                type="password"
+                                                required={true}
+                                            />
+                                            <InputField
+                                                label="Buy Amount"
+                                                subfield='SOL'
+                                                id="buyAmount"
+                                                value={formData.buyAmount}
+                                                onChange={(e) => handleChange(e, 'buyAmount')}
+                                                placeholder="Enter amount in SOL"
+                                                type="number"
+                                                required={true}
+                                            />
+                                        </>
                                     ) : (
-                                        <div className="text-[#96989c] text-sm">
-                                            <p>No pools loaded yet.</p>
-                                        </div>
+                                        <>
+                                            {/* Multi Wallet Buy */}
+                                            <h3 className="text-white text-sm mb-2">Enter Multiple Wallets</h3>
+                                            <WalletInput
+                                                wallets={wallets}
+                                                setWallets={setWallets}
+                                                Mode={WalletMode}
+                                                maxWallets={WalletMode}
+                                                onChange={(walletData) => {
+                                                    setFormData(prevState => ({
+                                                        ...prevState,
+                                                        buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                        buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
+                                                    }));
+                                                }}
+                                                onWalletsUpdate={(walletData) => {
+                                                    console.log('Updated wallet data:', walletData);
+                                                }}
+                                            />
+                                        </>
                                     )}
                                 </div>
+
+                                <JitoBundleSelection
+                                    isJitoBundle={isJitoBundle}
+                                    setIsJitoBundle={setIsJitoBundle}
+                                    formData={formData}
+                                    handleChange={handleChange}
+                                    handleSelectionChange={handleSelectionChange}
+                                />
+
+                                <div className='justify-center'>
+                                    <button
+                                        className="text-center btn-normal mt-5 w-full"
+                                        type="submit"
+                                        id="buyButton"
+                                        onClick={handleBuy}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <div className='flex justify-center items-center gap-2'>
+                                                <span className="italic font-i">Processing</span>
+                                                <FaSpinner className='animate-spin' />
+                                            </div>
+                                        ) : (
+                                            <span className="btn-text-gradient font-bold">
+                                                Buy Tokens
+                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
+                                                    ({WalletMode === 1 ? 'Single wallet' : 'Multi wallet'})
+                                                </span>
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* Sell Tab Content */}
+                                <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center">
+                                    <InputField
+                                        label="Fee Payer Private Key"
+                                        subfield='(optional - first wallet used if empty)'
+                                        id="feeKeypair"
+                                        value={formData.feeKeypair}
+                                        onChange={(e) => handleChange(e, 'feeKeypair')}
+                                        placeholder="Enter fee payer's private key"
+                                        type="password"
+                                        required={false}
+                                    />
+
+                                    <h3 className="text-white text-sm my-2">Wallets to Sell From</h3>
+                                    <WalletInput
+                                        wallets={wallets}
+                                        setWallets={setWallets}
+                                        Mode={WalletMode}
+                                        maxWallets={WalletMode}
+                                        onChange={(walletData) => {
+                                            setFormData(prevState => ({
+                                                ...prevState,
+                                                buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
+                                            }));
+                                        }}
+                                        onWalletsUpdate={(walletData) => {
+                                            console.log('Updated wallet data for sell:', walletData);
+                                        }}
+                                    />
+
+                                    <InputField
+                                        label="Sell Percentage"
+                                        subfield='%'
+                                        id="SellPercentage"
+                                        value={formData.SellPercentage}
+                                        onChange={(e) => handleChange(e, 'SellPercentage')}
+                                        placeholder="Enter percentage to sell (e.g. 50)"
+                                        type="number"
+                                        required={true}
+                                    />
+                                </div>
+
+                                <JitoBundleSelection
+                                    isJitoBundle={isJitoBundle}
+                                    setIsJitoBundle={setIsJitoBundle}
+                                    formData={formData}
+                                    handleChange={handleChange}
+                                    handleSelectionChange={handleSelectionChange}
+                                />
+
+                                <div className='justify-center'>
+                                    <button
+                                        className="text-center btn-normal mt-5 w-full"
+                                        type="submit"
+                                        id="sellButton"
+                                        onClick={handleSell}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <div className='flex justify-center items-center gap-2'>
+                                                <span className="italic font-i">Processing</span>
+                                                <FaSpinner className='animate-spin' />
+                                            </div>
+                                        ) : (
+                                            <span className="btn-text-gradient font-bold">
+                                                Sell Tokens
+                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
+                                                    (Sells percentage from all wallets)
+                                                </span>
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Limit Order Section - Disabled */}
+                        <div className="border-t border-dashed border-neutral-700 pt-4 mt-4">
+                            <h3 className='btn-text-gradient font-bold text-[15px]'>Limit Order</h3>
+                            <InputField
+                                id="GoalSolAmount"
+                                label={`Goal SOL Amount`}
+                                subfield={`Sell tokens at specific goal`}
+                                value={formData.GoalSolAmount}
+                                onChange={(e) => handleChange(e, 'GoalSolAmount')}
+                                placeholder="Enter target SOL amount"
+                                type="number"
+                                required={false}
+                            />
+
+                            <div className='justify-center'>
+                                <button
+                                    className="text-center w-full invoke-btn"
+                                    type="button"
+                                    disabled={true}
+                                    title="Coming Soon"
+                                    style={{ backgroundColor: 'black', color: 'white', cursor: 'not-allowed' }}
+                                >
+                                    <span className="btn-text-gradient font-bold">
+                                        Limit Order
+                                        <span className="pl-5 text-[#FFC107] text-[12px] font-normal">Coming Soon</span>
+                                    </span>
+                                </button>
                             </div>
                         </div>
+                    </div>
 
+                    <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
+                        <div className="w-full">
+                            <div>
+                                <p className='font-bold text-[25px]'>Wallet Information</p>
+                                <p className='text-[12px] text-[#96989c]'>Current wallet balances and token holdings</p>
+                            </div>
+
+                            {balances.length > 0 ? (
+                                <div className='w-full'>
+                                    <label className="block mt-5 text-base text-white font-semibold">
+                                        Wallets ({balances.length}):
+                                    </label>
+                                    <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end mt-2">
+                                        {balances.map(({ balance, publicKey, token }, index) => (
+                                            <a
+                                                key={index}
+                                                href={`https://solscan.io/account/${publicKey}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full rounded-md text-base bg-transparent focus:outline-none sm:text-base mb-3 select-text p-2 border border-neutral-800 hover:border-neutral-700"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[#96989c] text-sm">{index + 1}:</span>
+                                                    <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncate(publicKey, 6, 6)}</span>
+                                                </div>
+                                                <div className="mt-1 flex justify-between items-center">
+                                                    <span className="text-[#96989c] text-xs">SOL:</span>
+                                                    <span className="text-white text-sm">{balance}</span>
+                                                </div>
+                                                {formData.tokenAddress && (
+                                                    <div className="mt-1 flex justify-between items-center">
+                                                        <span className="text-[#96989c] text-xs">Token:</span>
+                                                        <span className="text-white text-sm">{token}</span>
+                                                    </div>
+                                                )}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mt-5 p-3 bg-neutral-900 rounded-md text-gray-400 text-sm">
+                                    No wallets loaded yet. Add wallets to see balance information.
+                                </div>
+                            )}
+
+                            {bundleIds.length > 0 && (
+                                <div className="mt-5">
+                                    <label className="block text-base text-white font-semibold">
+                                        Recent Bundles:
+                                    </label>
+                                    <div className="mt-2 max-h-40 overflow-y-auto">
+                                        {bundleIds.map((id, index) => (
+                                            <div key={index} className="mb-2 p-2 bg-neutral-900 rounded border border-neutral-800">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-400 text-xs">{index + 1}:</span>
+                                                    <a
+                                                        href={`https://explorer.jito.wtf/bundle/${id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-400 text-xs hover:underline"
+                                                    >
+                                                        {id.substring(0, 8)}...
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     );
 };
 
-LaunchLabManage.getLayout = (page: ReactNode) => getHeaderLayout(page, "Launch Lab - Manage");
+const WalletmodeOptions = [
+    { value: 1, label: "Wallet Mode" },
+    { value: 100, label: "Multi-Wallet" },
+];
 
 export default LaunchLabManage; 

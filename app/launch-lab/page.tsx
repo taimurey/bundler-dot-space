@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import LaunchLabClient from './launch-lab-client';
 
 export default function LaunchLabPage() {
-    redirect('/launch-lab/create');
+    return <LaunchLabClient />;
 } 

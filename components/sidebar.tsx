@@ -238,12 +238,12 @@ const Sidebar: FC = () => {
             icon: <PumpFunIcon className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
         },
-        // {
-        //     href: '/launch-lab/create',
-        //     title: 'Launch Lab',
-        //     icon: <RaydiumIconV2 className="w-6 h-6" />,
-        //     showOnlyOnHomePage: false  // Show on all pages
-        // },
+        {
+            href: '/launch-lab/create',
+            title: 'Launch Lab',
+            icon: <RaydiumIconV2 className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Show on all pages
+        },
         {
             href: '/raydium/create-amm',
             title: 'Raydium',

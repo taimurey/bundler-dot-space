@@ -61,6 +61,10 @@ const CreateToken: FC = () => {
 
         defaultAccountStateEnabled: false,
         defaultAccountState: "initialized", // or "frozen"
+
+        freezeAuthority: false,
+        revokeMintAuthority: false,
+        revokeMetadataUpdateAuthority: false
     });
 
     const [tokenMintAddress, setTokenMintAddress] = useState("");
@@ -557,36 +561,40 @@ const CreateToken: FC = () => {
 
                             {/* Revoke Authorities Section */}
                             <div className="w-full md:w-1/2">
-                                <h2 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400 mb-2">
+                                <h1 className="text-sm text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]">
                                     Revoke Authorities
-                                </h2>
-                                <div className="border border-gray-600 rounded-lg p-3 bg-gray-800/50 shadow-lg">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <input
-                                            type="checkbox"
-                                            name="freezeAuthority"
-                                            id="freezeAuthority"
-                                            className="w-4 h-4 accent-green-400"
-                                            onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                        />
-                                        <label className="text-sm text-gray-200" htmlFor="freezeAuthority">
-                                            Freeze Authority
-                                        </label>
+                                </h1>
+                                <div className="border border-[#404040] mt-1 shadow-black rounded-md p-3 flex flex-col gap-2">
+                                    <div
+                                        className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.freezeAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                        onClick={() => setFormData(prev => ({ ...prev, freezeAuthority: !prev.freezeAuthority }))}
+                                    >
+                                        <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.freezeAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                            {formData.freezeAuthority && <span className="text-[#93c453]">✓</span>}
+                                        </div>
+                                        <label className="text-sm cursor-pointer">Freeze Authority</label>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            name="revokeMintAuthority"
-                                            id="revokeMintAuthority"
-                                            className="w-4 h-4 accent-green-400"
-                                            onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                        />
-                                        <label className="text-sm text-gray-200" htmlFor="revokeMintAuthority">
-                                            Mint Authority (Fixed Supply)
-                                        </label>
+                                    <div
+                                        className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMintAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                        onClick={() => setFormData(prev => ({ ...prev, revokeMintAuthority: !prev.revokeMintAuthority }))}
+                                    >
+                                        <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMintAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                            {formData.revokeMintAuthority && <span className="text-[#93c453]">✓</span>}
+                                        </div>
+                                        <label className="text-sm cursor-pointer">Mint Authority (Fixed Supply)</label>
+                                    </div>
+                                    <div
+                                        className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMetadataUpdateAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                        onClick={() => setFormData(prev => ({ ...prev, revokeMetadataUpdateAuthority: !prev.revokeMetadataUpdateAuthority }))}
+                                    >
+                                        <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMetadataUpdateAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                            {formData.revokeMetadataUpdateAuthority && <span className="text-[#93c453]">✓</span>}
+                                        </div>
+                                        <label className="text-sm cursor-pointer">Metadata Update Authority</label>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
 
                         {/* Token Extensions Section */}

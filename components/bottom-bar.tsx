@@ -20,6 +20,7 @@ import {
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 
 // TypeScript interfaces
 interface CryptoPrice {
@@ -397,20 +398,38 @@ const BottomBar: React.FC = () => {
                     {/* Server Status */}
                     {renderServerStatus()}
 
-                    <Link href="https://twitter.com/bundlerdotspace" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                    <Link href="https://twitter.com/BundlerSpace" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                         <FaXTwitter className="w-4 h-4" title="Twitter" />
                     </Link>
-                    <Link href="https://discord.gg/HGFf7NNHrp" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                        <FaDiscord className="w-4 h-4" title="Discord" />
-                    </Link>
-                    <Link href="https://docs.bundler.space" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                        <span className='flex items-center gap-2'>
-                            <FaBook className="w-4 h-4" title="Docs" />
-                            <span className='text-xs'>
-                                Docs
-                            </span>
-                        </span>
-                    </Link>
+                    <TooltipProvider delayDuration={0}>
+                        <div className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <FaDiscord className="w-4 h-4" title="Discord" />
+                                </TooltipTrigger>
+                                <TooltipContent className='bg-background text-foreground'>
+                                    Coming Soon
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </TooltipProvider>
+                    <TooltipProvider delayDuration={0}>
+                        <div className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <span className='flex items-center gap-2'>
+                                        <FaBook className="w-4 h-4" title="Docs" />
+                                        <span className='text-xs'>
+                                            Docs
+                                        </span>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent className='bg-background text-foreground'>
+                                    Coming Soon
+                                </TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </TooltipProvider>
                 </div>
             </div>
         </div>

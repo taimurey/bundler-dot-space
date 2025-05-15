@@ -478,13 +478,13 @@ const PumpFunCreator = () => {
             if (formData.deployerPrivateKey) {
                 const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
                 const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
+                allBalances.push({ balance: balance, publicKey: deployerWallet.publicKey.toString() });
             }
 
             if (formData.buyerPrivateKey) {
                 const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
                 const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
+                allBalances.push({ balance: balance, publicKey: buyerWallet.publicKey.toString() });
             }
 
             // Check balances for wallet-input wallets
@@ -493,7 +493,7 @@ const PumpFunCreator = () => {
                     try {
                         const keypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(wallet.wallet)));
                         const balance = parseFloat((await connection.getBalance(keypair.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
-                        return { balance, publicKey: keypair.publicKey.toString() };
+                        return { balance: balance, publicKey: keypair.publicKey.toString() };
                     } catch (error) {
                         toast.error(`Error fetching balance: ${error}`);
                         return { balance: 0, publicKey: 'Invalid' };

@@ -336,7 +336,7 @@ const PumpfunSell = () => {
                                             </span>
                                         </button>
                                     </div>
-                                    <h3 className='btn-text-gradient font-bold text-[15px] mt-2'>Goal Specific</h3>
+                                    <h3 className='btn-text-gradient font-bold text-[15px] mt-2'>Limit Order</h3>
 
                                     <InputField
                                         id="GoalSolAmount"

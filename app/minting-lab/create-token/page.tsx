@@ -369,23 +369,32 @@ const CreateToken: FC = () => {
                                             Revoke Authorities
                                         </h1>
                                         <div className="border border-[#404040] mt-1 shadow-black rounded-md p-3 flex flex-col gap-2">
-                                            <div className="flex gap-2 items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    name="freezeAuthority"
-                                                    id="freezeAuthority"
-                                                    onChange={(e) => handleChange(e, 'freezeAuthority')}
-                                                />
-                                                <label className="text-sm" htmlFor="freezeAuthority">Freeze Authority</label>
+                                            <div
+                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.freezeAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                                onClick={() => setFormData(prev => ({ ...prev, freezeAuthority: !prev.freezeAuthority }))}
+                                            >
+                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.freezeAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                    {formData.freezeAuthority && <span className="text-[#93c453]">✓</span>}
+                                                </div>
+                                                <label className="text-sm cursor-pointer">Freeze Authority</label>
                                             </div>
-                                            <div className="flex gap-2 items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    name="revokeMintAuthority"
-                                                    id="revokeMintAuthority"
-                                                    onChange={(e) => handleChange(e, 'revokeMintAuthority')}
-                                                />
-                                                <label className="text-sm" htmlFor="revokeMintAuthority">Mint Authority(Fixed Supply)</label>
+                                            <div
+                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMintAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                                onClick={() => setFormData(prev => ({ ...prev, revokeMintAuthority: !prev.revokeMintAuthority }))}
+                                            >
+                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMintAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                    {formData.revokeMintAuthority && <span className="text-[#93c453]">✓</span>}
+                                                </div>
+                                                <label className="text-sm cursor-pointer">Mint Authority (Fixed Supply)</label>
+                                            </div>
+                                            <div
+                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMetadataUpdateAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                                onClick={() => setFormData(prev => ({ ...prev, revokeMetadataUpdateAuthority: !prev.revokeMetadataUpdateAuthority }))}
+                                            >
+                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMetadataUpdateAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                    {formData.revokeMetadataUpdateAuthority && <span className="text-[#93c453]">✓</span>}
+                                                </div>
+                                                <label className="text-sm cursor-pointer">Metadata Update Authority</label>
                                             </div>
                                         </div>
                                     </div>
