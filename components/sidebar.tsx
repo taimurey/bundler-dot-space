@@ -19,6 +19,7 @@ import { RaydiumIcon, RaydiumAMMBuyIcon, RaydiumAMMSellIcon, RaydiumCPMMBuyIcon,
 import PumpFunIcon from "./icons/PumpFunIcon";
 import GoldenPumpFunIcon, { PumpFunBumpBotIcon, PumpFunCommentBotIcon, PumpFunDesalinatorIcon } from "./icons/GoldenPumpIcon";
 import SolanaIcon from "./icons/SolanaIcon";
+import KlikFinanceIcon from "./icons/KlikFinanceIcon";
 
 export interface LinkProps extends DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
     className?: string;
@@ -244,10 +245,17 @@ const Sidebar: FC = () => {
             icon: <RaydiumIconV2 className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
         },
+
         {
             href: '/raydium/create-amm',
             title: 'Raydium',
             icon: <RaydiumIcon className="w-6 h-6" />,
+            showOnlyOnHomePage: false  // Show on all pages
+        },
+        {
+            href: '/ethereum/klik-finance',
+            title: 'Klik Finance',
+            icon: <KlikFinanceIcon className="w-6 h-6" />,
             showOnlyOnHomePage: false  // Show on all pages
         },
         {

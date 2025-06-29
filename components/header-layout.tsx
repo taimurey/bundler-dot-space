@@ -82,9 +82,11 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                             </div>
                         )}
                         {/* Always show wallet button and discord link */}
-                        <div className="flex items-center gap-2">
-                            <WalletButton />
-                        </div>
+                        {/* {pathname !== '/ethereum/klik-finance' && (
+                            <div className="flex items-center gap-2">
+                                <WalletButton />
+                            </div>
+                        )} */}
                     </div>
                     {children}
                 </main>
