@@ -5,7 +5,7 @@ import React, { FC, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import { useSolana } from "@/components/SolanaWallet/SolanaContext";
 import { toast } from "sonner";
-import { UpdatedInputField } from "@/components/FieldComponents/UpdatedInputfield";
+import { InputField } from "@/components/ui/input-field";
 import { createToken } from "@/components/TransactionUtils/token";
 import { LinkToast, TransactionToast } from "@/components/common/Toasts/TransactionToast";
 import ImageUploadIcon from "@/components/icons/imageuploadIcon";
@@ -217,67 +217,87 @@ const CreateToken: FC = () => {
     }
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 py-10">
-            <div className="bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-lg shadow-md">
-                <div className="divide-y divide-neutral-700 w-full">
+        <div className="flex py-1 justify-center items-start relative max-w-[100vw]">
+            {isLoading && (
+                <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
+                    <ClipLoader />
+                </div>
+            )}
 
-                    {isLoading && (
-                        <div className="absolute top-0 left-0 z-50 flex h-screen w-full items-center justify-center bg-black/[.3] backdrop-blur-[10px]">
-                            <ClipLoader />
-                        </div>
-                    )}
-
-                    {tokenMintAddress && tokenMetadata ? (
-                        <div className="p-6">
-                            <TokenMetadataView
-                                tokenMetadata={tokenMetadata}
-                                tokenMintAddress={tokenMintAddress}
-                                network={cluster.network}
-                                isToken2022={false}
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <form action="" className="p-4 flex flex-col gap-4">
-                                <div className="mb-2">
-                                    <p className="text-base uppercase text-white font-medium">SPL Token Creation</p>
-                                    <p className="text-xs text-[#8c929d]">This information is stored on IPFS by + Metaplex Metadata standard.</p>
+            {tokenMintAddress && tokenMetadata ? (
+                <div className="w-full max-w-[1400px] p-4">
+                    <div className="p-6 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                        <TokenMetadataView
+                            tokenMetadata={tokenMetadata}
+                            tokenMintAddress={tokenMintAddress}
+                            network={cluster.network}
+                            isToken2022={false}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <form className="w-full max-w-[1400px]">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                        {/* Left Column - Main Form */}
+                        <div className="xl:col-span-2 space-y-3">
+                            {/* Header Section */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <div>
+                                    <p className='font-bold text-[20px]'>SPL Token Creation</p>
+                                    <p className='text-[11px] text-[#96989c]'>This information is stored on IPFS by + Metaplex Metadata standard</p>
                                 </div>
-                                <hr className="border-[#e8e2e2b8]" />
+                            </div>
+
+                            {/* Token Configuration Section */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <h3 className='font-bold text-[16px] mb-3 text-white'>Token Configuration</h3>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <UpdatedInputField id="tokenName *"
-                                        label="Token Name "
+                                    <InputField
+                                        id="tokenName"
+                                        label="Token Name"
+                                        subfield="required"
                                         value={formData.tokenName}
-                                        onChange={(e) => handleChange(e, 'tokenName')}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'tokenName')}
                                         placeholder="Enter Token Name (ex. Mevarik)"
                                         type="text"
                                         required={true} />
 
-                                    <UpdatedInputField id="tokenSymbol"
-                                        label="Token Symbol *"
+                                    <InputField
+                                        id="tokenSymbol"
+                                        label="Token Symbol"
+                                        subfield="required"
                                         value={formData.tokenSymbol}
-                                        onChange={(e) => { handleChange(e, 'tokenSymbol'); setImageandsymbol(e); }}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => { handleChange(e, 'tokenSymbol'); setImageandsymbol(e); }}
                                         placeholder="Enter Token Symbol"
                                         type="text"
                                         required={true} />
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <UpdatedInputField id="tokenDecimals"
-                                        label="Token Decimals *"
+                                    <InputField
+                                        id="tokenDecimals"
+                                        label="Token Decimals"
+                                        subfield="0-9"
                                         value={formData.tokenDecimals}
-                                        onChange={(e) => handleChange(e, 'tokenDecimals')}
-                                        placeholder={"Enter token decimals(0-9)"}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'tokenDecimals')}
+                                        placeholder="Enter token decimals(0-9)"
                                         type="number"
                                         required={true} />
 
-                                    <UpdatedInputField id="supply"
-                                        label="Supply *"
+                                    <InputField
+                                        id="supply"
+                                        label="Supply"
+                                        subfield="total tokens"
                                         value={formData.supply}
-                                        onChange={(e) => handleChange(e, 'supply')}
-                                        placeholder={"Quantity of tokens to issue"}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'supply')}
+                                        placeholder="Quantity of tokens to issue"
                                         type="number"
                                         required={true} />
                                 </div>
+                            </div>
+
+                            {/* Metadata Section */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <h3 className='font-bold text-[16px] mb-3 text-white'>Token Metadata</h3>
                                 <div className="">
                                     <label className="font-normal text-sm text-white"> Description</label>
                                     <textarea
@@ -291,42 +311,46 @@ const CreateToken: FC = () => {
                                     </textarea>
                                 </div>
 
-                                <div className="flex flex-col md:flex-row gap-4 w-full">
+                                <div className="flex flex-col md:flex-row gap-4 w-full mt-4">
                                     <div className="w-full md:w-1/2 flex flex-col gap-2">
                                         <p className="text-xs text-white font-medium">Extensions</p>
-                                        <UpdatedInputField
+                                        <InputField
                                             id="websiteUrl"
-                                            label=""
+                                            label="Website"
+                                            subfield="optional"
                                             value={formData.websiteUrl}
-                                            onChange={(e) => handleChange(e, 'websiteUrl')}
-                                            placeholder={"Website URL"}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'websiteUrl')}
+                                            placeholder="Website URL"
                                             type="url"
                                             required={false}
                                         />
-                                        <UpdatedInputField
+                                        <InputField
                                             id="twitterUrl"
-                                            label=""
+                                            label="Twitter"
+                                            subfield="optional"
                                             value={formData.twitterUrl}
-                                            onChange={(e) => handleChange(e, 'twitterUrl')}
-                                            placeholder={"Twitter URL"}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'twitterUrl')}
+                                            placeholder="Twitter URL"
                                             type="url"
                                             required={false}
                                         />
-                                        <UpdatedInputField
+                                        <InputField
                                             id="telegramUrl"
-                                            label=""
+                                            label="Telegram"
+                                            subfield="optional"
                                             value={formData.telegramUrl}
-                                            onChange={(e) => handleChange(e, 'telegramUrl')}
-                                            placeholder={"Telegram Group URL"}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'telegramUrl')}
+                                            placeholder="Telegram Group URL"
                                             type="url"
                                             required={false}
                                         />
-                                        <UpdatedInputField
+                                        <InputField
                                             id="discordUrl"
-                                            label=""
+                                            label="Discord"
+                                            subfield="optional"
                                             value={formData.discordUrl}
-                                            onChange={(e) => handleChange(e, 'discordUrl')}
-                                            placeholder={"Discord URL"}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, 'discordUrl')}
+                                            placeholder="Discord URL"
                                             type="url"
                                             required={false}
                                         />
@@ -363,94 +387,110 @@ const CreateToken: FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="w-full md:w-1/2">
-                                        <h1 className="text-sm text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83]">
-                                            Revoke Authorities
-                                        </h1>
-                                        <div className="border border-[#404040] mt-1 shadow-black rounded-md p-3 flex flex-col gap-2">
-                                            <div
-                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.freezeAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
-                                                onClick={() => setFormData(prev => ({ ...prev, freezeAuthority: !prev.freezeAuthority }))}
-                                            >
-                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.freezeAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
-                                                    {formData.freezeAuthority && <span className="text-[#93c453]">✓</span>}
-                                                </div>
-                                                <label className="text-sm cursor-pointer">Freeze Authority</label>
-                                            </div>
-                                            <div
-                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMintAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
-                                                onClick={() => setFormData(prev => ({ ...prev, revokeMintAuthority: !prev.revokeMintAuthority }))}
-                                            >
-                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMintAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
-                                                    {formData.revokeMintAuthority && <span className="text-[#93c453]">✓</span>}
-                                                </div>
-                                                <label className="text-sm cursor-pointer">Mint Authority (Fixed Supply)</label>
-                                            </div>
-                                            <div
-                                                className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMetadataUpdateAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
-                                                onClick={() => setFormData(prev => ({ ...prev, revokeMetadataUpdateAuthority: !prev.revokeMetadataUpdateAuthority }))}
-                                            >
-                                                <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMetadataUpdateAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
-                                                    {formData.revokeMetadataUpdateAuthority && <span className="text-[#93c453]">✓</span>}
-                                                </div>
-                                                <label className="text-sm cursor-pointer">Metadata Update Authority</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                            </div>
 
-                                    <div className="w-full md:w-1/2 p-3 border border-[#404040] mt-0 md:mt-7 rounded-md flex justify-between items-center flex-col gap-2 sm:flex-row">
-                                        <div className="flex gap-2 justify-center items-center">
-                                            {uploadedImage || image ?
-                                                <img src={uploadedImage ? uploadedImage : image} className="w-[40px] h-[40px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
-                                                <div className="w-[40px] bg-[#404040] h-[40px] bg-transparent rounded-full flex justify-center items-center">S</div>}
-                                            <div className="">
-                                                <p className="font-light text-[#c7f285] text-xs truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
-                                                <p className="font-light text-xs truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                            {/* Authorities Section */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <h3 className='font-bold text-[16px] mb-3 text-white'>Token Authorities</h3>
+                                <div className="w-full">
+                                    <h1 className="text-sm text-transparent bg-clip-text bg-gradient-to-r from-[#93c453] to-[#2eec83] mb-2">
+                                        Revoke Authorities
+                                    </h1>
+                                    <div className="border border-[#404040] shadow-black rounded-md p-3 flex flex-col gap-2">
+                                        <div
+                                            className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.freezeAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, freezeAuthority: !prev.freezeAuthority }))}
+                                        >
+                                            <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.freezeAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                {formData.freezeAuthority && <span className="text-[#93c453]">✓</span>}
                                             </div>
+                                            <label className="text-sm cursor-pointer">Freeze Authority</label>
                                         </div>
-                                        <div className="flex justify-center items-center gap-2">
-                                            {formData.twitterUrl && (
-                                                <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
-                                                    <FaTwitter size="sm" className="text-white w-4 h-4" />
-                                                </a>
-                                            )}
-                                            {formData.telegramUrl && (
-                                                <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
-                                                    <FaTelegram size="sm" className="text-white w-4 h-4" />
-                                                </a>
-                                            )}
-                                            {formData.discordUrl && (
-                                                <a href={formData.discordUrl} target="_blank" rel="noreferrer">
-                                                    <FaDiscord size="sm" className="text-white w-4 h-4" />
-                                                </a>
-                                            )}
-                                            {formData.websiteUrl && (
-                                                <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
-                                                    <FaGlobe size="sm" className="text-white w-4 h-4" />
-                                                </a>
-                                            )}
+                                        <div
+                                            className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMintAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, revokeMintAuthority: !prev.revokeMintAuthority }))}
+                                        >
+                                            <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMintAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                {formData.revokeMintAuthority && <span className="text-[#93c453]">✓</span>}
+                                            </div>
+                                            <label className="text-sm cursor-pointer">Mint Authority (Fixed Supply)</label>
+                                        </div>
+                                        <div
+                                            className={`p-3 border rounded-md cursor-pointer flex items-center ${formData.revokeMetadataUpdateAuthority ? 'bg-[#93c45320] border-[#93c453]' : 'border-[#404040]'}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, revokeMetadataUpdateAuthority: !prev.revokeMetadataUpdateAuthority }))}
+                                        >
+                                            <div className={`w-5 h-5 rounded-md border mr-2 flex items-center justify-center ${formData.revokeMetadataUpdateAuthority ? 'border-[#93c453] bg-[#93c45320]' : 'border-[#404040]'}`}>
+                                                {formData.revokeMetadataUpdateAuthority && <span className="text-[#93c453]">✓</span>}
+                                            </div>
+                                            <label className="text-sm cursor-pointer">Metadata Update Authority</label>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Token Preview and Create Button */}
+                        <div className="xl:col-span-1 space-y-3">
+                            {/* Token Preview */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <h3 className='font-bold text-[16px] mb-3 text-white'>Token Preview</h3>
+                                <div className="p-3 border border-[#404040] rounded-md flex justify-between items-center flex-col gap-2 sm:flex-row">
+                                    <div className="flex gap-2 justify-center items-center">
+                                        {uploadedImage || image ?
+                                            <img src={uploadedImage ? uploadedImage : image} className="w-[40px] h-[40px] bg-transparent rounded-full flex justify-center items-center" alt="" /> :
+                                            <div className="w-[40px] bg-[#404040] h-[40px] bg-transparent rounded-full flex justify-center items-center">S</div>}
+                                        <div className="">
+                                            <p className="font-light text-[#c7f285] text-xs truncate">{formData.tokenName.length > 0 ? `${formData.tokenName}` : "Token Name"}</p>
+                                            <p className="font-light text-xs truncate">{formData.tokenSymbol.length > 0 ? `${formData.tokenSymbol}` : "Symbol"}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-center items-center gap-2">
+                                        {formData.twitterUrl && (
+                                            <a href={formData.twitterUrl} target="_blank" rel="noreferrer">
+                                                <FaTwitter size="sm" className="text-white w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {formData.telegramUrl && (
+                                            <a href={formData.telegramUrl} target="_blank" rel="noreferrer">
+                                                <FaTelegram size="sm" className="text-white w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {formData.discordUrl && (
+                                            <a href={formData.discordUrl} target="_blank" rel="noreferrer">
+                                                <FaDiscord size="sm" className="text-white w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {formData.websiteUrl && (
+                                            <a href={formData.websiteUrl} target="_blank" rel="noreferrer">
+                                                <FaGlobe size="sm" className="text-white w-4 h-4" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Create Button */}
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
                                 <div className="flex justify-center items-center">
                                     <button
-                                        className="text-center w-full sm:w-2/3 border border-[#476e34] rounded-md invoke-btn py-2 mt-6"
+                                        className="text-center w-full invoke-btn"
                                         disabled={uploading || creatingToken}
                                         type="submit"
                                         id="formbutton"
                                         onClick={createTokenCallback}
                                     >
-                                        <span className="btn-text-gradient font-bold text-sm">
-                                            {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> : 'Create token'}
+                                        <span className="btn-text-gradient font-bold">
+                                            {uploading ? <span className="italic font-i ellipsis">Uploading Image</span> :
+                                                creatingToken ? <span className="italic font-i ellipsis">Creating Token</span> :
+                                                    'Create Token'}
                                         </span>
                                     </button>
                                 </div>
-                            </form>
-                        </>
-                    )}
-                </div>
-            </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            )}
         </div>
     );
 };

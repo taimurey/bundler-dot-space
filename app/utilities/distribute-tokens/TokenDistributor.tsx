@@ -24,10 +24,9 @@ import { ClipLoader } from "react-spinners";
 import { useNetworkConfiguration } from "../../../components/context/NetworkConfigurationProvider";
 import { toast } from "sonner";
 import { TransactionToast, LinkToast } from "../../../components/common/Toasts/TransactionToast";
-import { BlockEngineLocation, InputField } from "@/components/ui/input-field";
 import { FaInfoCircle } from "react-icons/fa";
 import WalletAddressInput, { WalletEntry } from "@/components/instructions/pump-bundler/wallet-input";
-import JitoBundleSelection from "@/components/ui/jito-bundle-selection";
+import JitoBundleSelection, { BlockEngineLocation } from "@/components/ui/jito-bundle-selection";
 import base58 from "bs58";
 import { sendJitoBundleClient } from "@/components/instructions/jito-bundler/sendJitoBundleClient";
 
@@ -566,6 +565,10 @@ const TokenDistributor: FC = () => {
                         formData={formData}
                         handleChange={handleChange}
                         handleSelectionChange={handleSelectionChange}
+                        snipeEnabled={false}
+                        setSnipeEnabled={() => { }}
+                        snipeAmount={''}
+                        setSnipeAmount={() => { }}
                     />
                     <div className="mt-6">
                         <button

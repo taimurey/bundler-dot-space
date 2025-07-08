@@ -2,12 +2,12 @@
 
 import React, { ChangeEvent, ReactNode, useState } from 'react';
 import { FaSpinner } from 'react-icons/fa';
-import { Listbox } from '@headlessui/react';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { toast } from 'sonner';
 import { getHeaderLayout } from '@/components/header-layout';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import Image from 'next/image';
 import { BundleToast, LinkToast } from '@/components/bundler-toasts';
@@ -21,6 +21,7 @@ import { UpdatedInputField } from '@/components/detailed-field';
 
 import LetsBonkLogo from '@/public/bonk_fun.png';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { GiBasket } from 'react-icons/gi';
 
 interface WorkerResult {
     secretKey: Uint8Array;
@@ -37,6 +38,7 @@ const LaunchLabCreate = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [uploading, setUploading] = useState(false);
+
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [bundleResult, setBundleResult] = useState<any>(null);
@@ -65,7 +67,7 @@ const LaunchLabCreate = () => {
         BundleTip: string;
         TransactionTip: string;
         BlockEngineSelection: string;
-        buyerPrivateKey: string;
+        sniperPrivateKey: string;
         tokenKeypairpublicKey: string;
         tokenKeypair: string;
         vanity: string;
@@ -75,6 +77,8 @@ const LaunchLabCreate = () => {
         coinname: string;
         symbol: string;
         BuyertokenbuyAmount: string;
+        snipeEnabled: boolean;
+        snipeAmount: string;
     }>({
         tokenName: '',
         tokenSymbol: '',
@@ -88,8 +92,8 @@ const LaunchLabCreate = () => {
         telegramUrl: '',
         BundleTip: '0.01',
         TransactionTip: '0.00001',
-        BlockEngineSelection: BlockEngineLocation[2],
-        buyerPrivateKey: '',
+        BlockEngineSelection: BlockEngineLocation[0],
+        sniperPrivateKey: '',
         tokenKeypairpublicKey: '',
         tokenKeypair: '',
         vanity: '',
@@ -99,6 +103,8 @@ const LaunchLabCreate = () => {
         coinname: '',
         symbol: '',
         BuyertokenbuyAmount: '0',
+        snipeEnabled: false,
+        snipeAmount: '0.01',
     });
 
     const handleChange = (
@@ -128,17 +134,12 @@ const LaunchLabCreate = () => {
             reader.onloadend = async () => {
                 const base64Image = reader.result as string;
                 setUploadedImage(base64Image);
-
-                // Set the uploading state to true
                 setUploading(true);
-
                 try {
-                    // Convert image to Uint8Array
                     const imageBlob = await fetch(base64Image).then((res) => res.blob());
                     const imageBuffer = await imageBlob.arrayBuffer();
                     const imageUint8Array = new Uint8Array(imageBuffer);
 
-                    // Convert Uint8Array to an array of numbers
                     const imageArray = Array.from(imageUint8Array);
 
                     const response = await fetch('https://api.bundler.space/upload-image', {
@@ -146,14 +147,12 @@ const LaunchLabCreate = () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        // Send the array of numbers instead of Uint8Array
                         body: JSON.stringify({ image: imageArray })
                     });
 
                     const responseText = await response.text();
                     console.log("Response", responseText);
 
-                    // Convert the IPFS URL to a HTTP URL
                     const httpUrl = `https://ipfs.io/ipfs/${responseText}`;
 
                     toast(() => (
@@ -163,14 +162,12 @@ const LaunchLabCreate = () => {
                         />
                     ));
 
-                    // Set the uploadedImage state variable to the HTTP URL of the uploaded image
                     setUploadedImage(httpUrl);
                     setUploadedImageUrl(httpUrl);
                 } catch (error) {
                     console.error('Error uploading file:', error);
                     toast.error('Failed to upload image');
                 } finally {
-                    // Set the uploading state to false
                     setUploading(false);
                 }
             };
@@ -187,6 +184,11 @@ const LaunchLabCreate = () => {
                     if (event.target && event.target.result) {
                         const keypairData = JSON.parse(event.target.result as string);
                         if (Array.isArray(keypairData)) {
+                            setFormData(prevState => ({
+                                ...prevState,
+                                tokenKeypair: bs58.encode(Buffer.from(keypairData)),
+                                tokenKeypairpublicKey: Keypair.fromSecretKey(new Uint8Array(keypairData)).publicKey.toBase58(),
+                            }));
                             setIsKeypairUploaded(true);
                             toast.success("Keypair loaded successfully");
                         } else {
@@ -200,12 +202,13 @@ const LaunchLabCreate = () => {
             };
             reader.readAsText(file);
         }
+        e.target.value = '';
     };
 
     const vanityAddressGenerator = async (e: any) => {
         e.preventDefault();
         const NUM_WORKERS = formData.threads || 4;
-        setIsLoading(true); // Start showing the loading SVG
+        setIsLoading(true);
 
         const workers = Array.from({ length: NUM_WORKERS }, () =>
             new Worker(new URL('../../../components/vanityWorker', import.meta.url))
@@ -223,7 +226,7 @@ const LaunchLabCreate = () => {
         );
 
         try {
-            const result = await Promise.race(promises) as WorkerResult; // Wait for the fastest worker
+            const result = await Promise.race(promises) as WorkerResult;
             setFormData(prevState => ({
                 ...prevState,
                 tokenKeypair: bs58.encode(Buffer.from(result.secretKey)),
@@ -258,17 +261,14 @@ const LaunchLabCreate = () => {
         setIsLoading(true);
 
         try {
-            // Validate form data
             if (!formData.tokenName || !formData.tokenSymbol || !formData.deployerPrivateKey) {
                 toast.error('Required fields missing');
                 setIsLoading(false);
                 return;
             }
 
-            // Create token metadata
             let uri = '';
             if (uploadedImageUrl) {
-                // Create metadata JSON
                 const metadata = {
                     name: formData.tokenName,
                     symbol: formData.tokenSymbol,
@@ -281,7 +281,6 @@ const LaunchLabCreate = () => {
                     telegram: formData.telegramUrl || undefined,
                 };
 
-                // Upload metadata to IPFS
                 const metadataResponse = await fetch('https://api.bundler.space/create-metadata', {
                     method: 'POST',
                     headers: {
@@ -299,10 +298,10 @@ const LaunchLabCreate = () => {
             let platformPublicKey: string | undefined;
             switch (Mode) {
                 case 0: // LetsBonk.fun
-                    platformPublicKey = "7mT5yQadRu11N83ELzyrZ37uygYQBKvJShQXB3ZbQx3F"; // Example, replace with actual platform ID
+                    platformPublicKey = "LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj";
                     break;
                 case 1: // Raydium
-                    platformPublicKey = "4Bu96XjU84XjPDSpveTVf6LYGCkfW5FK7SNkREWcEfV4"; // Default Raydium platform
+                    platformPublicKey = "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"; // Default Raydium platform
                     break;
                 default:
                     platformPublicKey = undefined;
@@ -317,13 +316,15 @@ const LaunchLabCreate = () => {
                     decimals: parseInt(formData.tokenDecimals),
                     tokenUri: uri,
                     deployerPrivateKey: formData.deployerPrivateKey,
-                    buyerPrivateKey: formData.buyerPrivateKey || "",
+                    sniperPrivateKey: formData.sniperPrivateKey || "",
                     buyerextraWallets: formData.buyerextraWallets || [],
                     buyerBuyAmount: formData.BuyertokenbuyAmount || "0",
                     devBuyAmount: formData.liquidityAmount,
                     platform: platformPublicKey,
                     bundleTip: formData.BundleTip,
-                    blockEngine: formData.BlockEngineSelection
+                    blockEngine: formData.BlockEngineSelection,
+                    snipeEnabled: formData.snipeEnabled,
+                    snipeAmount: formData.snipeAmount,
                 },
                 Keypair.fromSecretKey(base58.decode(formData.tokenKeypair))
             );
@@ -349,8 +350,13 @@ const LaunchLabCreate = () => {
         }
     };
 
+    const removeImage = () => {
+        setUploadedImage('');
+        setUploadedImageUrl('');
+    }
+
     const modeOptions = [
-        { value: 0, label: 'LetsBonk.fun', image: LetsBonkLogo }, // Adjusted value to match Mode state
+        { value: 0, label: 'LetsBonk.fun', image: LetsBonkLogo },
     ];
 
     React.useEffect(() => {
@@ -363,77 +369,72 @@ const LaunchLabCreate = () => {
     }, []);
 
     return (
-        <div className="lg:w-3/4 px-4 mx-auto ">
-            <form onSubmit={handleSubmit} className="w-full">
-                <div className="flex flex-col md:flex-row h-full gap-6">
-                    <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                        <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
-                            <div>
-                                <div className="mb-4 border-b border-neutral-700 pb-2">
-                                    <p className="font-bold text-xl">Launch Lab</p>
-                                    <p className="text-xs text-[#96989c]">Create your own token liquidity pool with ease</p>
+        <div className="flex py-1 justify-center items-start relative max-w-[100vw]">
+            <form className="w-full max-w-[1400px]">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                    {/* Left Column - Main Form */}
+                    <div className="xl:col-span-2 space-y-3 ">
+                        {/* Header Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <p className='font-bold text-[20px]'>Launch Lab</p>
+                                    <p className='text-[11px] text-[#96989c]'>Create your own token liquidity pool with ease</p>
                                 </div>
-                                {/* Platform Selection */}
-                                <label className="block mt-5 text-base text-white font-semibold">
-                                    Platform
-                                    <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
-                                        Select the platform you want to use
-                                    </span>
-                                </label>
-                                <div className="relative mt-1 rounded-md shadow-sm w-full">
+                                <div className="md:w-1/3">
+                                    <label className="block text-sm text-white font-semibold mb-1">Platform</label>
                                     <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
-                                        <Listbox.Button className="w-full px-4 rounded-md text-base border gap-2 border-[#404040] text-white bg-input-boxes h-[40px] focus:outline-none focus:border-blue-500 text-left flex items-center">
-                                            <Image
-                                                src={modeOptions.find((opt) => opt.value === Mode)?.image || '/path/to/fallback/image.png'}
-                                                alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                                width={20}
-                                                height={20}
-                                            />
-                                            {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                        </Listbox.Button>
-                                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
-                                            {modeOptions.map((option) => (
-                                                <Listbox.Option
-                                                    key={option.value}
-                                                    value={option.value}
-                                                    className={({ active }) =>
-                                                        `flex items-center gap-2 px-4 py-2 text-white text-[12px] cursor-pointer ${active ? 'bg-blue-500' : ''
-                                                        }`
-                                                    }
-                                                >
-                                                    <Image src={option.image} alt={option.label} width={20} height={20} />
-                                                    {option.label}
-                                                </Listbox.Option>
-                                            ))}
-                                        </Listbox.Options>
+                                        <div className="relative">
+                                            <ListboxButton className="w-full px-2 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500 text-left flex items-center gap-2">
+                                                <Image
+                                                    src={modeOptions.find((opt) => opt.value === Mode)?.image || '/path/to/fallback/image.png'}
+                                                    alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                                    width={16}
+                                                    height={16}
+                                                />
+                                                {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                            </ListboxButton>
+                                            <ListboxOptions className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
+                                                {modeOptions.map((option) => (
+                                                    <ListboxOption
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className={({ focus, selected }) =>
+                                                            `flex items-center  px-2 gap-2 py-2 text-white text-xs cursor-pointer ${focus ? 'bg-blue-500' : ''} ${selected ? 'bg-blue-500' : ''}`
+                                                        }
+                                                    >
+                                                        <Image src={option.image} alt={option.label} width={16} height={16} />
+                                                        {option.label}
+                                                    </ListboxOption>
+                                                ))}
+                                            </ListboxOptions>
+                                        </div>
                                     </Listbox>
                                 </div>
                             </div>
-                            <div className='w-full'>
-                                <label className="block text-base text-white font-semibold" >
-                                    Bundler Mode
-                                </label>
+                        </div>
 
+                        {/* Token Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Token Configuration</h3>
 
-                                <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                                    <select
-                                        id="BlockEngineSelection"
-                                        value={walletMode}
-                                        onChange={(e) => setWalletMode(Number(e.target.value))}
-                                        required={true}
-                                        className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                                    >
-                                        <option value="" disabled>
-                                            Bundler Mode
+                            {/* Bundler Mode Selection */}
+                            <div className="mb-3">
+                                <label className="block text-sm text-white font-semibold mb-1">Bundler Mode</label>
+                                <select
+                                    id="BlockEngineSelection"
+                                    value={walletMode}
+                                    onChange={(e) => setWalletMode(Number(e.target.value))}
+                                    required={true}
+                                    className="block w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes focus:outline-none h-[35px] focus:border-blue-500"
+                                >
+                                    <option value="" disabled>Select Mode</option>
+                                    {walletModeOptions.map((option, index) => (
+                                        <option key={index} value={option.value}>
+                                            {option.value} {option.label}
                                         </option>
-                                        {walletModeOptions.map((option, index) => (
-                                            <option key={index} value={option.value}>
-                                                {option.value} {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
+                                    ))}
+                                </select>
                             </div>
                             <div className='flex justify-center items-center gap-2'>
                                 <InputField
@@ -494,27 +495,19 @@ const LaunchLabCreate = () => {
                                     accept=".json"
                                     onChange={handleKeypairUpload}
                                     className="hidden"
+                                    form=""
                                 />
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <label
-                                            htmlFor="keypair_file_input"
-                                            className={`bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] ${isKeypairUploaded ? 'border-green-500 text-green-500' : 'hover:border-[#45ddc4]'} rounded-md duration-300 ease-in-out cursor-pointer flex justify-center items-center text-sm`}
-                                        >
-                                            <TooltipTrigger>
-                                                {isKeypairUploaded ? 'Keypair Loaded' : 'Upload Bytes Keypair'}
-                                                <span className="ml-2 text-xs text-gray-500">
-                                                    (Optional if local grinded)
-                                                </span>
-                                            </TooltipTrigger>
-                                        </label>
-                                        <TooltipContent>
-                                            <p>
-                                                solana-keygen grind --ends-with pump:1
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+
+                                <label
+                                    htmlFor="keypair_file_input"
+                                    className={`bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] ${isKeypairUploaded ? 'border-green-500 text-green-500' : 'hover:border-[#45ddc4]'} rounded-md duration-300 ease-in-out cursor-pointer flex justify-center items-center text-sm`}
+                                >
+                                    {isKeypairUploaded ? 'Keypair Loaded' : 'Upload Bytes Keypair'}
+                                    <span className="ml-2 text-xs text-gray-500">
+                                        (Optional if local grinded)
+                                    </span>
+                                </label>
+
                             </div>
                             <InputField
                                 id="deployerPrivatekey"
@@ -526,55 +519,59 @@ const LaunchLabCreate = () => {
                                 type="password"
                                 required={true}
                             />
-                            {Mode === 1 && (
-                                <div className='w-full'>
-                                    <InputField
-                                        id='buyerPrivateKey'
-                                        label='Buyer Private Key'
-                                        subfield='first buy - 1 wallet'
-                                        value={formData.buyerPrivateKey}
-                                        onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                        placeholder='buyer private key'
-                                        type='password'
-                                        required={true}
-                                    />
-                                </div>)}
-                            <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
-                                {Mode === 4 && (
-                                    <WalletInput
-                                        wallets={wallets}
-                                        setWallets={setWallets}
-                                        Mode={Mode}
-                                        walletType='privateKeys'
-                                        maxWallets={4}
-                                        onChange={(walletData) => {
-                                            setFormData(prevState => ({
-                                                ...prevState,
-                                                buyerextraWallets: walletData.map(entry => entry.wallet),
-                                                buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
-                                            }));
-                                        }}
-                                        onWalletsUpdate={(walletData) => {
-                                            // Log the complete wallet data with amounts
-                                            console.log('Updated wallet data:', walletData.map(entry => ({
-                                                wallet: entry.wallet,
-                                                solAmount: entry.solAmount,
-                                                lamports: entry.solAmount * LAMPORTS_PER_SOL
-                                            })));
-                                        }}
-                                    />
-                                )}
-                                {Mode === 20 && (
-                                    <div className="space-y-4 w-full border border-zinc-400 border-dashed rounded-xl p-4">
-                                        <h3 className="text-lg font-semibold text-white">20 Wallet Mode</h3>
-                                        <p className="text-sm text-gray-400">
-                                            This mode allows you to use up to 20 wallets with a Look-Up Table (LUT) for efficient transactions.
-                                        </p>
+                            {(formData.snipeEnabled) && (
+                                <InputField
+                                    id='sniperPrivateKey'
+                                    label='Sniper Private Key'
+                                    subfield=''
+                                    value={formData.sniperPrivateKey}
+                                    onChange={(e) => handleChange(e, 'sniperPrivateKey')}
+                                    placeholder='sniper private key'
+                                    type='password'
+                                    required={true}
+                                />
+                            )}
+                        </div>
+
+                        {/* Wallet Input Section (Modes 4 & 20) */}
+                        {(walletMode >= 2 && walletMode <= 4) && (
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                {walletMode >= 2 && walletMode <= 4 ? (
+                                    <>
+                                        <h3 className="text-[16px] font-semibold text-white mb-3">{walletMode} Wallet Mode</h3>
+                                        <WalletInput
+                                            wallets={wallets}
+                                            setWallets={setWallets}
+                                            Mode={walletMode}
+                                            walletType='privateKeys'
+                                            maxWallets={4}
+                                            onChange={(walletData) => {
+                                                setFormData(prevState => ({
+                                                    ...prevState,
+                                                    buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                    buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
+                                                }));
+                                            }}
+                                            onWalletsUpdate={(walletData) => {
+                                                console.log('Updated wallet data:', walletData.map(entry => ({
+                                                    wallet: entry.wallet,
+                                                    solAmount: entry.solAmount,
+                                                    lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                                })));
+                                            }}
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div>
+                                            <h3 className="text-[16px] font-semibold text-white">20 Wallet Mode</h3>
+                                            <p className="text-xs text-gray-400">Uses Look-Up Table (LUT) for efficient transactions</p>
+                                        </div>
 
                                         <WalletInput
                                             wallets={wallets}
                                             setWallets={setWallets}
-                                            Mode={Mode}
+                                            Mode={walletMode}
                                             maxWallets={20}
                                             onChange={(walletData) => {
                                                 setFormData(prevState => ({
@@ -593,80 +590,48 @@ const LaunchLabCreate = () => {
                                         />
 
                                         {wallets.length > 0 && !isLutCreated && (
-                                            <div className="mt-4">
-                                                <button
-                                                    type="button"
-                                                    className="w-full p-2 font-semibold bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-md hover:from-blue-600 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    disabled={isCreatingLut || wallets.length === 0}
-                                                    onClick={createLUT}
-                                                >
-                                                    {isCreatingLut ? (
-                                                        <div className="flex justify-center items-center gap-2">
-                                                            <span>Creating LUT...</span>
-                                                            <FaSpinner className="animate-spin" />
-                                                        </div>
-                                                    ) : (
-                                                        "Create Look-Up Table (LUT)"
-                                                    )}
-                                                </button>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                className="w-full p-2 font-semibold bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-md hover:from-blue-600 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                                disabled={isCreatingLut || wallets.length === 0}
+                                                onClick={createLUT}
+                                            >
+                                                {isCreatingLut ? (
+                                                    <div className="flex justify-center items-center gap-2">
+                                                        <span>Creating LUT...</span>
+                                                        <FaSpinner className="animate-spin" />
+                                                    </div>
+                                                ) : (
+                                                    "Create Look-Up Table (LUT)"
+                                                )}
+                                            </button>
                                         )}
 
                                         {isLutCreated && (
-                                            <div className="flex flex-col gap-2 mt-4">
+                                            <div className="flex flex-col gap-2 p-2 bg-[#101010] rounded-md">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-green-400 font-medium">✓ LUT Created</span>
+                                                    <span className="text-green-400 font-medium text-sm">✓ LUT Created</span>
                                                     <a
                                                         href={`https://solscan.io/account/${lutAddress}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-sm text-blue-400 hover:text-blue-300"
+                                                        className="text-xs text-blue-400 hover:text-blue-300"
                                                     >
                                                         View on Solscan
                                                     </a>
                                                 </div>
-                                                <InputField
-                                                    id="lutAddress"
-                                                    label="LUT Address"
-                                                    value={lutAddress}
-                                                    onChange={() => { }}
-                                                    placeholder="LUT Address"
-                                                    type="text"
-                                                    disabled={true}
-                                                    required={false}
-                                                />
+                                                <div className="text-xs text-gray-400">
+                                                    Address: {lutAddress?.substring(0, 8)}...{lutAddress?.substring(lutAddress.length - 8)}
+                                                </div>
                                             </div>
                                         )}
-
-                                        <div className="mt-4 max-h-40 overflow-y-auto bg-[#101010] rounded-md p-2">
-                                            <h4 className="text-sm font-medium text-gray-300 mb-2">LUT Creation Logs:</h4>
-                                            {lutLogs.length > 0 ? (
-                                                <div className="space-y-1 text-xs">
-                                                    {lutLogs.map((log, index) => (
-                                                        <div key={index} className="text-gray-400">{log}</div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="text-xs text-gray-500 italic">No logs yet. Add wallets and create LUT to see logs here.</div>
-                                            )}
-                                        </div>
-                                        <div className='justify-center'>
-                                            <button
-                                                className="text-center w-full invoke-btn"
-                                                type="submit"
-                                                id="formbutton"
-                                                onClick={createLUT}
-
-                                            >
-                                                <span className="btn-text-gradient font-bold">
-                                                    Create LUT
-                                                </span>
-                                            </button>
-                                        </div>
                                     </div>
                                 )}
                             </div>
+                        )}
 
+                        {/* Metadata Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
                             <div className='flex flex-col gap-2' id="tokeninfo">
                                 <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Coin Metadata</h3>
                                 <div className='flex justify-center items-center gap-2'>
@@ -701,12 +666,22 @@ const LaunchLabCreate = () => {
                                     placeholder="Enter description...">
                                 </textarea>
 
-                                <div className="w-full pt-6">
-                                    <div className="flex">
-                                        <div className="flex-grow flex mt-8  border-white border-dashed border  rounded-md shadow-lg h-full mr-14 items-start justify-center">
+                                <div className="w-full">
+                                    <div className="flex gap-4">
+                                        <div className="relative flex-grow flex p-4 w-1/4 border-white border-dashed border rounded-md shadow-lg h-full items-start justify-center">
+                                            {/* Remove button positioned in top-right corner */}
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <button
+                                                    className="bundler-btn border p-2 font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out"
+                                                    onClick={removeImage}
+                                                >
+                                                    <GiBasket className='text-white' />
+                                                </button>
+                                            </div>
+
                                             {!uploadedImage && (
                                                 <div>
-                                                    <div className="flex justify-center " onClick={() => document.getElementById('file_input')?.click()}>
+                                                    <div className="flex justify-center" onClick={() => document.getElementById('file_input')?.click()}>
                                                         <ImageUploadIcon />
                                                     </div>
                                                     <input
@@ -718,17 +693,21 @@ const LaunchLabCreate = () => {
                                                         onChange={handleImageUpload}
                                                     />
                                                     <label
-                                                        className="block align-bottom w-full py-1 px-5 text-sm text-white  rounded-lg  cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
+                                                        className="block align-bottom w-full py-1 px-5 text-sm text-white rounded-lg cursor-pointer focus:outline-none opacity-100 backdrop-blur-md"
                                                         htmlFor="file_input"
                                                     >
                                                         Upload an Image
                                                     </label>
-
                                                 </div>
                                             )}
+
                                             {uploadedImage && (
                                                 <div className="relative flex justify-center h-36 border-y-v3-bg rounded-md">
-                                                    <img src={uploadedImage} alt="Uploaded" className="rounded-md object-contain" />
+                                                    <img
+                                                        src={uploadedImage}
+                                                        alt="Uploaded"
+                                                        className="rounded-md object-contain"
+                                                    />
                                                 </div>
                                             )}
                                         </div>
@@ -782,123 +761,141 @@ const LaunchLabCreate = () => {
                                         />
                                     </div>
                                 )}
-                                <JitoBundleSelection
-                                    isJitoBundle={isJitoBundle}
-                                    setIsJitoBundle={setIsJitoBundle}
-                                    formData={formData}
-                                    handleChange={handleChange}
-                                    handleSelectionChange={handleSelectionChange}
-                                />
-                                <div className='justify-center'>
-                                    <button
-                                        className="text-center w-full invoke-btn"
-                                        disabled={uploading}
-                                        type="submit"
-                                        id="formbutton"
-                                        onClick={handleSubmission}
 
-                                    >
-                                        <span className="btn-text-gradient font-bold">
-                                            {uploading
-                                                ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
-                                                : <>
-                                                    Initiate Deployment
-                                                    <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
-                                                </>
-                                            }
-                                        </span>
-                                    </button>
-                                </div>
                             </div>
                         </div>
-                        <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
-                            <div>
-                                <div>
-                                    <p className='font-bold text-[25px]'>Status Panel</p>
-                                    <p className=' text-[12px] text-[#96989c] '>Real-time information and logs</p>
+                    </div>
+
+                    {/* Right Column - Jito Bundle Selection, Deployment Button and Status Panel */}
+                    <div className="xl:col-span-1 space-y-3">
+                        {/* Jito Bundle Selection */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Bundle Configuration</h3>
+                            <JitoBundleSelection
+                                isJitoBundle={isJitoBundle}
+                                setIsJitoBundle={setIsJitoBundle}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={formData.snipeEnabled}
+                                snipeAmount={formData.snipeAmount}
+                                setSnipeEnabled={(value) => setFormData(prev => ({ ...prev, snipeEnabled: value }))}
+                                setSnipeAmount={(value) => setFormData(prev => ({ ...prev, snipeAmount: value }))}
+                            />
+                            <button
+                                className="text-center w-full invoke-btn"
+                                disabled={uploading}
+                                type="submit"
+                                id="formbutton"
+                                onClick={handleSubmission}
+                            >
+                                <span className="btn-text-gradient font-bold">
+                                    {uploading
+                                        ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
+                                        : <>
+                                            Initiate Deployment
+                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
+                                        </>
+                                    }
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Status Panel */}
+                        {/* Right Column - Status Panel */}
+                        <div className="xl:col-span-1 space-y-3">
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-600 rounded-xl shadow-2xl shadow-black sticky top-4">
+                                <div className="mb-4">
+                                    <p className='font-bold text-[18px]'>Status Panel</p>
+                                    <p className='text-[11px] text-[#96989c]'>Real-time information and logs</p>
                                 </div>
-                                <div className='w-full'>
-                                    <label className="block mt-5 text-base text-white font-semibold" >
-                                        Wallets:
+
+                                {/* Wallets Section */}
+                                <div className='mb-4'>
+                                    <label className="block text-sm text-white font-semibold mb-2">
+                                        Wallets ({balances.length}):
                                     </label>
-                                    <br />
-                                    <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
+                                    <div className="space-y-2 max-h-40 overflow-y-auto">
                                         {balances.map(({ balance, publicKey }, index) => (
                                             <a
                                                 key={index}
                                                 href={`https://solscan.io/account/${publicKey}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
-                                                style={{ userSelect: 'text' }}
+                                                className="block p-2 bg-[#101010] rounded-md hover:bg-[#181818] transition-colors"
                                             >
-                                                <p>
-                                                    <span className='text-[#96989c] text-[15px] font-normal'>{index + 1}: </span>
-                                                    {truncate(publicKey, 6, 7)!}
-                                                    <br />
-                                                    <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
-                                                    <br />
-                                                </p>
+                                                <div className="flex justify-between items-center">
+                                                    <span className='text-[#96989c] text-xs'>#{index + 1}</span>
+                                                    <span className='text-xs text-gray-300'>{balance} SOL</span>
+                                                </div>
+                                                <div className="text-xs text-blue-400 font-mono mt-1">
+                                                    {truncate(publicKey, 6, 6)}
+                                                </div>
                                             </a>
                                         ))}
+                                        {balances.length === 0 && (
+                                            <div className="text-xs text-gray-500 italic p-2 text-center">
+                                                No wallets added yet
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                {Mode === 20 && lutAddress && (
-                                    <div className='w-full mt-5'>
-                                        <label className="block text-base text-white font-semibold">
+                                {Mode === 20 && (
+                                    <div className='mb-4 p-3 bg-[#101010] rounded-md'>
+                                        <label className="block text-sm text-white font-semibold mb-2">
                                             LUT Status:
                                         </label>
-                                        <div className="mt-2 p-2 bg-[#101010] rounded-md">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-300">Address:</span>
-                                                <a
-                                                    href={`https://solscan.io/account/${lutAddress}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm text-blue-400 hover:underline"
-                                                >
-                                                    {truncate(lutAddress, 4, 4)}
-                                                </a>
-                                            </div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <span className="text-sm text-gray-300">Status:</span>
-                                                <span className={`text-sm ${isLutCreated ? 'text-green-400' : 'text-yellow-400'}`}>
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Status:</span>
+                                                <span className={isLutCreated ? 'text-green-400' : 'text-yellow-400'}>
                                                     {isLutCreated ? 'Active' : 'Not Created'}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <span className="text-sm text-gray-300">Wallets:</span>
-                                                <span className="text-sm text-gray-300">
-                                                    {wallets.length} / 20
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <span className="text-sm text-gray-300">Last Updated:</span>
-                                                <span className="text-sm text-gray-300">
-                                                    {new Date().toLocaleTimeString()}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <span className="text-sm text-gray-300">Note:</span>
-                                                <span className="text-xs text-gray-500 italic max-w-[60%] text-right">
-                                                    LUT enables efficient transactions with up to 20 wallets
-                                                </span>
+                                            {lutAddress && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-400">Address:</span>
+                                                    <a
+                                                        href={`https://solscan.io/account/${lutAddress}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-400 hover:underline"
+                                                    >
+                                                        {truncate(lutAddress, 4, 4)}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Wallets:</span>
+                                                <span className="text-gray-300">{wallets.length} / 20</span>
                                             </div>
                                         </div>
+
+                                        {/* LUT Logs */}
+                                        {lutLogs.length > 0 && (
+                                            <div className="mt-3 max-h-32 overflow-y-auto bg-[#0a0a0a] rounded-md p-2">
+                                                <h4 className="text-xs font-medium text-gray-300 mb-1">LUT Logs:</h4>
+                                                <div className="space-y-1">
+                                                    {lutLogs.slice(-5).map((log, index) => (
+                                                        <div key={index} className="text-xs text-gray-400">{log}</div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
                                 {/* Bundle Status Panel */}
                                 {bundleStatus !== 'idle' && (
-                                    <div className='w-full mt-5'>
-                                        <label className="block text-base text-white font-semibold">
+                                    <div className='p-3 bg-[#101010] rounded-md'>
+                                        <label className="block text-sm text-white font-semibold mb-2">
                                             Bundle Status:
                                         </label>
-                                        <div className="mt-2 p-2 bg-[#101010] rounded-md">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-300">Status:</span>
-                                                <span className={`text-sm font-medium ${bundleStatus === 'sending' ? 'text-yellow-400' :
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Status:</span>
+                                                <span className={`font-medium ${bundleStatus === 'sending' ? 'text-yellow-400' :
                                                     bundleStatus === 'confirmed' ? 'text-green-400' :
                                                         bundleStatus === 'rejected' ? 'text-red-400' : 'text-gray-300'
                                                     }`}>
@@ -909,51 +906,32 @@ const LaunchLabCreate = () => {
                                             </div>
 
                                             {bundleId && (
-                                                <div className="flex items-center justify-between mt-1">
-                                                    <span className="text-sm text-gray-300">Bundle ID:</span>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-400">Bundle ID:</span>
                                                     <a
                                                         href={`https://explorer.jito.wtf/bundle/${bundleId}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-sm text-blue-400 hover:underline"
+                                                        className="text-blue-400 hover:underline"
                                                     >
                                                         {bundleId.substring(0, 8)}...
                                                     </a>
                                                 </div>
                                             )}
 
-                                            {bundleResult && bundleResult.confirmed && bundleResult.confirmed.landedInSlot && (
-                                                <div className="flex items-center justify-between mt-1">
-                                                    <span className="text-sm text-gray-300">Landed in Slot:</span>
-                                                    <span className="text-sm text-gray-300">
-                                                        {bundleResult.confirmed.landedInSlot}
-                                                    </span>
+                                            {bundleResult?.confirmed?.landedInSlot && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-400">Slot:</span>
+                                                    <span className="text-gray-300">{bundleResult.confirmed.landedInSlot}</span>
                                                 </div>
                                             )}
+                                        </div>
 
-                                            <div className="flex items-center justify-between mt-1">
-                                                <span className="text-sm text-gray-300">Last Updated:</span>
-                                                <span className="text-sm text-gray-300">
-                                                    {new Date().toLocaleTimeString()}
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-2 max-h-60 overflow-y-auto bg-[#0a0a0a] rounded-md p-2">
-                                                <h4 className="text-sm font-medium text-gray-300 mb-2">Bundle Logs:</h4>
-                                                {bundleLogs.length > 0 ? (
-                                                    <div className="space-y-1 text-xs">
-                                                        {bundleLogs.map((log, index) => (
-                                                            <div key={index} className="text-gray-400">{log}</div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-xs text-gray-500 italic">No logs yet.</div>
-                                                )}
-                                            </div>
-
-                                            {/* Clear logs button */}
-                                            {(bundleLogs.length > 0 || bundleStatus === 'sending' || bundleStatus === 'confirmed' || bundleStatus === 'rejected') && (
-                                                <div className="mt-2 flex justify-end">
+                                        {/* Bundle Logs */}
+                                        <div className="mt-3 max-h-40 overflow-y-auto bg-[#0a0a0a] rounded-md p-2">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <h4 className="text-xs font-medium text-gray-300">Bundle Logs:</h4>
+                                                {bundleLogs.length > 0 && (
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
@@ -962,27 +940,37 @@ const LaunchLabCreate = () => {
                                                         }}
                                                         className="text-xs px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded border border-zinc-700 transition-colors"
                                                     >
-                                                        Clear logs
+                                                        Clear
                                                     </button>
+                                                )}
+                                            </div>
+                                            {bundleLogs.length > 0 ? (
+                                                <div className="space-y-1">
+                                                    {bundleLogs.slice(-10).map((log, index) => (
+                                                        <div key={index} className="text-xs text-gray-400">{log}</div>
+                                                    ))}
                                                 </div>
-                                            )}
-
-                                            {bundleResult && bundleResult.rejected && bundleResult.rejected.simulationFailure && (
-                                                <div className="mt-2 p-2 bg-[#1a0000] rounded-md border border-red-900">
-                                                    <h4 className="text-sm font-medium text-red-300">Error Details:</h4>
-                                                    <div className="mt-1 text-xs text-red-200 opacity-80">
-                                                        <div>Transaction: {bundleResult.rejected.simulationFailure.txSignature.substring(0, 12)}...</div>
-                                                        <div className="mt-1">{bundleResult.rejected.simulationFailure.msg}</div>
-                                                    </div>
-                                                </div>
+                                            ) : (
+                                                <div className="text-xs text-gray-500 italic">No logs yet.</div>
                                             )}
                                         </div>
+
+                                        {/* Error Details */}
+                                        {bundleResult?.rejected?.simulationFailure && (
+                                            <div className="mt-2 p-2 bg-[#1a0000] rounded-md border border-red-900">
+                                                <h4 className="text-xs font-medium text-red-300 mb-1">Error Details:</h4>
+                                                <div className="text-xs text-red-200 opacity-80">
+                                                    <div>TX: {bundleResult.rejected.simulationFailure.txSignature.substring(0, 12)}...</div>
+                                                    <div className="mt-1">{bundleResult.rejected.simulationFailure.msg}</div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
+                </div >
             </form >
         </div >
     );
@@ -990,8 +978,9 @@ const LaunchLabCreate = () => {
 
 const walletModeOptions = [
     { value: 1, label: "Wallet Mode" },
+    { value: 2, label: "Wallet Mode" },
+    { value: 3, label: "Wallet Mode" },
     { value: 4, label: "Wallet Mode" },
-    // { value: 20, label: "Wallet Mode" },
 ];
 
 LaunchLabCreate.getLayout = (page: ReactNode) => getHeaderLayout(page, 'Launch Lab - Create');

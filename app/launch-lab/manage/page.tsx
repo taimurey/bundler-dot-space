@@ -12,11 +12,11 @@ import { BalanceType } from '@/components/types/solana-types';
 import { truncate } from '@/components/sidebar-drawer';
 import WalletInput from '@/components/instructions/pump-bundler/wallet-input';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { Listbox } from '@headlessui/react';
 import { FaSpinner } from 'react-icons/fa';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 import { LaunchLabBuyer, LaunchLabSeller } from '@/components/LaunchLabSDK/LaunchLabBundler';
 import Image from 'next/image';
 
@@ -24,6 +24,11 @@ import LetsBonkLogo from '@/public/bonk_fun.png';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
+
+const WalletmodeOptions = [
+    { value: 1, label: "Wallet Mode" },
+    { value: 100, label: "Multi-Wallet" },
+];
 
 const LaunchLabManage = () => {
     const { cluster } = useSolana();
@@ -57,7 +62,7 @@ const LaunchLabManage = () => {
         buyAmount: '',
         BundleTip: '0.01',
         TransactionTip: '0.00001',
-        BlockEngineSelection: BlockEngineLocation[2],
+        BlockEngineSelection: BlockEngineLocation[0],
         GoalSolAmount: '',
         buyerextraWallets: [],
         buyerWalletAmounts: [],
@@ -315,104 +320,106 @@ const LaunchLabManage = () => {
     ];
 
     return (
-        <div className="lg:w-3/4 px-4 mx-auto">
-            <div className="w-full">
-                <div className="flex flex-col md:flex-row h-full gap-6">
-                    <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
-                        <div className="mb-4 border-b border-neutral-700 pb-2">
-                            <p className="font-bold text-xl">Launch Lab Manager</p>
-                            <p className="text-xs text-[#96989c]">Manage your existing tokens with buy and sell operations</p>
+        <div className="flex py-1 justify-center items-start relative max-w-[100vw]">
+            <form className="w-full max-w-[1400px]">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                    {/* Left Column - Main Form */}
+                    <div className="xl:col-span-2 space-y-3">
+                        {/* Header Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <p className='font-bold text-[20px]'>Launch Lab Manager</p>
+                                    <p className='text-[11px] text-[#96989c]'>Manage your existing tokens with buy and sell operations</p>
+                                </div>
+                                <div className="md:w-1/3">
+                                    <label className="block text-sm text-white font-semibold mb-1">Platform</label>
+                                    <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
+                                        <div className="relative">
+                                            <Listbox.Button className="w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500 text-left flex items-center gap-2">
+                                                <Image
+                                                    src={modeOptions.find((opt) => opt.value === Mode)?.image || '/path/to/fallback/image.png'}
+                                                    alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                                    width={16}
+                                                    height={16}
+                                                />
+                                                {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                            </Listbox.Button>
+                                            <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
+                                                {modeOptions.map((option) => (
+                                                    <Listbox.Option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className={({ active }) =>
+                                                            `flex items-center gap-2 px-4 py-2 text-white text-xs cursor-pointer ${active ? 'bg-blue-500' : ''}`
+                                                        }
+                                                    >
+                                                        <Image src={option.image} alt={option.label} width={16} height={16} />
+                                                        {option.label}
+                                                    </Listbox.Option>
+                                                ))}
+                                            </Listbox.Options>
+                                        </div>
+                                    </Listbox>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Tab Navigation */}
-                        <div className="flex border-b border-neutral-700 mb-4">
-                            <button
-                                onClick={() => setActiveTab('buy')}
-                                className={`py-2 px-4 ${activeTab === 'buy' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
-                            >
-                                Buy
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('sell')}
-                                className={`py-2 px-4 ${activeTab === 'sell' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
-                            >
-                                Sell
-                            </button>
-                        </div>
+                        {/* Tab Navigation and Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Operation Configuration</h3>
 
-                        {/* Platform Selection */}
-                        <label className="block mt-2 text-base text-white font-semibold">
-                            Platform
-                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
-                                Select the platform your token is on
-                            </span>
-                        </label>
-                        <div className="relative mt-1 rounded-md shadow-sm w-full">
-                            <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
-                                <Listbox.Button className="block w-full px-4 rounded-md text-base border gap-2 border-[#404040] text-white bg-input-boxes h-[40px] focus:outline-none focus:border-blue-500 text-left flex items-center">
-                                    <Image
-                                        src={modeOptions.find((opt) => opt.value === Mode)?.image || ''}
-                                        alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                        width={20}
-                                        height={20}
-                                    />
-                                    {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                </Listbox.Button>
-                                <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
-                                    {modeOptions.map((option) => (
-                                        <Listbox.Option
-                                            key={option.value}
-                                            value={option.value}
-                                            className={({ active }) =>
-                                                `flex items-center gap-2 px-4 py-2 text-white text-[12px] cursor-pointer ${active ? 'bg-blue-500' : ''
-                                                }`
-                                            }
-                                        >
-                                            <Image src={option.image} alt={option.label} width={20} height={20} />
-                                            {option.label}
-                                        </Listbox.Option>
-                                    ))}
-                                </Listbox.Options>
-                            </Listbox>
-                        </div>
+                            {/* Tab Navigation */}
+                            <div className="flex border-b border-neutral-700 mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('buy')}
+                                    className={`py-2 px-4 ${activeTab === 'buy' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
+                                >
+                                    Buy
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('sell')}
+                                    className={`py-2 px-4 ${activeTab === 'sell' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-400'}`}
+                                >
+                                    Sell
+                                </button>
+                            </div>
 
-                        {/* Wallet Mode Selection */}
-                        <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                            <select
-                                id="WalletMode"
-                                value={WalletMode}
-                                onChange={(e) => setWalletMode(Number(e.target.value))}
-                                required={true}
-                                className="block w-full px-4 rounded-md text-base border border-[#404040] text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                            >
-                                <option value="" disabled>
-                                    Wallet Mode
-                                </option>
-                                {WalletmodeOptions
-                                    .map((option, index) => (
+                            {/* Wallet Mode Selection */}
+                            <div className="mb-3">
+                                <label className="block text-sm text-white font-semibold mb-1">Wallet Mode</label>
+                                <select
+                                    id="WalletMode"
+                                    value={WalletMode}
+                                    onChange={(e) => setWalletMode(Number(e.target.value))}
+                                    required={true}
+                                    className="block w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes focus:outline-none h-[35px] focus:border-blue-500"
+                                >
+                                    <option value="" disabled>Select Mode</option>
+                                    {WalletmodeOptions.map((option, index) => (
                                         <option key={index} value={option.value}>
                                             {option.value} {option.label}
                                         </option>
                                     ))}
-                            </select>
-                        </div>
+                                </select>
+                            </div>
 
-                        {/* Token Address */}
-                        <InputField
-                            id="tokenAddress"
-                            label="Token Address"
-                            subfield='Mint address'
-                            value={formData.tokenAddress}
-                            onChange={(e) => handleChange(e, 'tokenAddress')}
-                            placeholder="Enter token mint address"
-                            type="text"
-                            required={true}
-                        />
+                            {/* Token Address */}
+                            <InputField
+                                id="tokenAddress"
+                                label="Token Address"
+                                subfield='Mint address'
+                                value={formData.tokenAddress}
+                                onChange={(e) => handleChange(e, 'tokenAddress')}
+                                placeholder="Enter token mint address"
+                                type="text"
+                                required={true}
+                            />
 
-                        {/* Display content based on active tab */}
-                        {activeTab === 'buy' ? (
-                            <>
-                                {/* Buy Tab Content */}
+                            {/* Display content based on active tab */}
+                            {activeTab === 'buy' ? (
                                 <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center">
                                     {WalletMode === 1 ? (
                                         <>
@@ -461,42 +468,7 @@ const LaunchLabManage = () => {
                                         </>
                                     )}
                                 </div>
-
-                                <JitoBundleSelection
-                                    isJitoBundle={isJitoBundle}
-                                    setIsJitoBundle={setIsJitoBundle}
-                                    formData={formData}
-                                    handleChange={handleChange}
-                                    handleSelectionChange={handleSelectionChange}
-                                />
-
-                                <div className='justify-center'>
-                                    <button
-                                        className="text-center btn-normal mt-5 w-full"
-                                        type="submit"
-                                        id="buyButton"
-                                        onClick={handleBuy}
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading ? (
-                                            <div className='flex justify-center items-center gap-2'>
-                                                <span className="italic font-i">Processing</span>
-                                                <FaSpinner className='animate-spin' />
-                                            </div>
-                                        ) : (
-                                            <span className="btn-text-gradient font-bold">
-                                                Buy Tokens
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
-                                                    ({WalletMode === 1 ? 'Single wallet' : 'Multi wallet'})
-                                                </span>
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                {/* Sell Tab Content */}
+                            ) : (
                                 <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center">
                                     <InputField
                                         label="Fee Payer Private Key"
@@ -538,44 +510,38 @@ const LaunchLabManage = () => {
                                         required={true}
                                     />
                                 </div>
+                            )}
+                        </div>
 
-                                <JitoBundleSelection
-                                    isJitoBundle={isJitoBundle}
-                                    setIsJitoBundle={setIsJitoBundle}
-                                    formData={formData}
-                                    handleChange={handleChange}
-                                    handleSelectionChange={handleSelectionChange}
+                        {/* Wallet Input Section */}
+                        {WalletMode !== 1 && (
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                                <h3 className="text-[16px] font-semibold text-white mb-3">
+                                    {WalletMode} Wallet Mode
+                                </h3>
+                                <WalletInput
+                                    wallets={wallets}
+                                    setWallets={setWallets}
+                                    Mode={WalletMode}
+                                    walletType='privateKeys'
+                                    maxWallets={WalletMode}
+                                    onChange={(walletData) => {
+                                        setFormData(prevState => ({
+                                            ...prevState,
+                                            buyerextraWallets: walletData.map(entry => entry.wallet),
+                                            buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
+                                        }));
+                                    }}
+                                    onWalletsUpdate={(walletData) => {
+                                        console.log('Updated wallet data:', walletData);
+                                    }}
                                 />
-
-                                <div className='justify-center'>
-                                    <button
-                                        className="text-center btn-normal mt-5 w-full"
-                                        type="submit"
-                                        id="sellButton"
-                                        onClick={handleSell}
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading ? (
-                                            <div className='flex justify-center items-center gap-2'>
-                                                <span className="italic font-i">Processing</span>
-                                                <FaSpinner className='animate-spin' />
-                                            </div>
-                                        ) : (
-                                            <span className="btn-text-gradient font-bold">
-                                                Sell Tokens
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
-                                                    (Sells percentage from all wallets)
-                                                </span>
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
-                            </>
+                            </div>
                         )}
 
                         {/* Limit Order Section - Disabled */}
-                        <div className="border-t border-dashed border-neutral-700 pt-4 mt-4">
-                            <h3 className='btn-text-gradient font-bold text-[15px]'>Limit Order</h3>
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='btn-text-gradient font-bold text-[16px] mb-3'>Limit Order</h3>
                             <InputField
                                 id="GoalSolAmount"
                                 label={`Goal SOL Amount`}
@@ -604,86 +570,131 @@ const LaunchLabManage = () => {
                         </div>
                     </div>
 
-                    <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
-                        <div className="w-full">
-                            <div>
-                                <p className='font-bold text-[25px]'>Wallet Information</p>
-                                <p className='text-[12px] text-[#96989c]'>Current wallet balances and token holdings</p>
+                    {/* Right Column - Bundle Configuration, Action Buttons and Status Panel */}
+                    <div className="xl:col-span-1 space-y-3">
+                        {/* Bundle Configuration */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Bundle Configuration</h3>
+                            <JitoBundleSelection
+                                isJitoBundle={isJitoBundle}
+                                setIsJitoBundle={setIsJitoBundle}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
+                            />
+                        </div>
+
+                        {/* Action Button */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <div className='justify-center'>
+                                <button
+                                    className="text-center w-full invoke-btn"
+                                    type="submit"
+                                    onClick={activeTab === 'buy' ? handleBuy : handleSell}
+                                    disabled={isLoading}
+                                >
+                                    <span className="btn-text-gradient font-bold">
+                                        {isLoading ? (
+                                            <div className='flex justify-center items-center gap-2'>
+                                                <span className="italic font-i">Processing</span>
+                                                <FaSpinner className='animate-spin' />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {activeTab === 'buy' ? 'Buy Tokens' : 'Sell Tokens'}
+                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
+                                                    ({WalletMode === 1 ? 'Single wallet' : 'Multi wallet'})
+                                                </span>
+                                            </>
+                                        )}
+                                    </span>
+                                </button>
                             </div>
+                        </div>
 
-                            {balances.length > 0 ? (
-                                <div className='w-full'>
-                                    <label className="block mt-5 text-base text-white font-semibold">
-                                        Wallets ({balances.length}):
-                                    </label>
-                                    <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end mt-2">
-                                        {balances.map(({ balance, publicKey, token }, index) => (
-                                            <a
-                                                key={index}
-                                                href={`https://solscan.io/account/${publicKey}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="block w-full rounded-md text-base bg-transparent focus:outline-none sm:text-base mb-3 select-text p-2 border border-neutral-800 hover:border-neutral-700"
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-[#96989c] text-sm">{index + 1}:</span>
-                                                    <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncate(publicKey, 6, 6)}</span>
-                                                </div>
-                                                <div className="mt-1 flex justify-between items-center">
-                                                    <span className="text-[#96989c] text-xs">SOL:</span>
-                                                    <span className="text-white text-sm">{balance}</span>
-                                                </div>
-                                                {formData.tokenAddress && (
-                                                    <div className="mt-1 flex justify-between items-center">
-                                                        <span className="text-[#96989c] text-xs">Token:</span>
-                                                        <span className="text-white text-sm">{token}</span>
-                                                    </div>
-                                                )}
-                                            </a>
-                                        ))}
+                        {/* Status Panel */}
+                        <div className="space-y-3">
+                            <div className="p-4 bg-[#0c0e11] border border-neutral-600 rounded-xl shadow-2xl shadow-black sticky top-4">
+                                <div>
+                                    <div>
+                                        <p className='font-bold text-[25px]'>Wallet Information</p>
+                                        <p className='text-[12px] text-[#96989c]'>Current wallet balances and token holdings</p>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="mt-5 p-3 bg-neutral-900 rounded-md text-gray-400 text-sm">
-                                    No wallets loaded yet. Add wallets to see balance information.
-                                </div>
-                            )}
 
-                            {bundleIds.length > 0 && (
-                                <div className="mt-5">
-                                    <label className="block text-base text-white font-semibold">
-                                        Recent Bundles:
-                                    </label>
-                                    <div className="mt-2 max-h-40 overflow-y-auto">
-                                        {bundleIds.map((id, index) => (
-                                            <div key={index} className="mb-2 p-2 bg-neutral-900 rounded border border-neutral-800">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-gray-400 text-xs">{index + 1}:</span>
+                                    {balances.length > 0 ? (
+                                        <div className='w-full'>
+                                            <label className="block mt-5 text-base text-white font-semibold">
+                                                Wallets ({balances.length}):
+                                            </label>
+                                            <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end mt-2">
+                                                {balances.map(({ balance, publicKey, token }, index) => (
                                                     <a
-                                                        href={`https://explorer.jito.wtf/bundle/${id}`}
+                                                        key={index}
+                                                        href={`https://solscan.io/account/${publicKey}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-blue-400 text-xs hover:underline"
+                                                        className="block w-full rounded-md text-base bg-transparent focus:outline-none sm:text-base mb-3 select-text p-2 border border-neutral-800 hover:border-neutral-700"
                                                     >
-                                                        {id.substring(0, 8)}...
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-[#96989c] text-sm">{index + 1}:</span>
+                                                            <span className="bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold">{truncate(publicKey, 6, 6)}</span>
+                                                        </div>
+                                                        <div className="mt-1 flex justify-between items-center">
+                                                            <span className="text-[#96989c] text-xs">SOL:</span>
+                                                            <span className="text-white text-sm">{balance}</span>
+                                                        </div>
+                                                        {formData.tokenAddress && (
+                                                            <div className="mt-1 flex justify-between items-center">
+                                                                <span className="text-[#96989c] text-xs">Token:</span>
+                                                                <span className="text-white text-sm">{token}</span>
+                                                            </div>
+                                                        )}
                                                     </a>
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div className="mt-5 p-3 bg-neutral-900 rounded-md text-gray-400 text-sm">
+                                            No wallets loaded yet. Add wallets to see balance information.
+                                        </div>
+                                    )}
+
+                                    {bundleIds.length > 0 && (
+                                        <div className="mt-5">
+                                            <label className="block text-base text-white font-semibold">
+                                                Recent Bundles:
+                                            </label>
+                                            <div className="mt-2 max-h-40 overflow-y-auto">
+                                                {bundleIds.map((id, index) => (
+                                                    <div key={index} className="mb-2 p-2 bg-neutral-900 rounded border border-neutral-800">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-gray-400 text-xs">{index + 1}:</span>
+                                                            <a
+                                                                href={`https://explorer.jito.wtf/bundle/${id}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-400 text-xs hover:underline"
+                                                            >
+                                                                {id.substring(0, 8)}...
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     );
 };
-
-const WalletmodeOptions = [
-    { value: 1, label: "Wallet Mode" },
-    { value: 100, label: "Multi-Wallet" },
-];
 
 export default LaunchLabManage; 

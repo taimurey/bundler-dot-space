@@ -3,7 +3,7 @@ import axios from 'axios';
 import LaunchLabSDK from './launch-lab-interface';
 import base58 from 'bs58';
 import { WalletEntry } from '../instructions/pump-bundler/wallet-input';
-import { BlockEngineLocation } from '../ui/input-field';
+import { BlockEngineLocation } from '../ui/jito-bundle-selection';
 import { tipAccounts } from '../instructions/pump-bundler/constants';
 
 // Interface for LaunchLab token creator parameters
@@ -13,13 +13,15 @@ interface LaunchLabTokenCreator {
     decimals: number;
     tokenUri: string;
     deployerPrivateKey: string;
-    buyerPrivateKey: string;
+    sniperPrivateKey: string;
     buyerextraWallets: string[];
     buyerBuyAmount: string;
     devBuyAmount: string;
     platform?: string;
     bundleTip: string;
     blockEngine: string;
+    snipeEnabled: boolean;
+    snipeAmount: string;
 }
 
 // Helper function to get a random element from an array (same as in misc.ts)
@@ -68,20 +70,14 @@ export const LaunchLabBundler = async (
         }
 
         // Create the buy transaction
-        const { transaction: buyTransaction } = await LaunchLabSDK.buyToken({
-            privateKey: pool_data.deployerPrivateKey,
+        const { transaction: sniperTransaction } = await LaunchLabSDK.buyToken({
+            privateKey: pool_data.sniperPrivateKey,
             connection,
             mintAddress,
             buyAmount: buyAmount.toString(),
         });
 
-        // Add buy transaction to bundle
-        if (buyTransaction instanceof VersionedTransaction) {
-            bundleTxns.push(buyTransaction);
-        } else {
-            const versionedBuyTx = await convertToVersionedTransaction(connection, buyTransaction, devKeypair);
-            bundleTxns.push(versionedBuyTx);
-        }
+
 
         // Skip buyer wallets processing if there are no buyer wallets
         const buyerWallets = [...pool_data.buyerextraWallets];
@@ -89,8 +85,8 @@ export const LaunchLabBundler = async (
             let lastNonZeroBalanceIndex = -1;
 
             // Add main buyer wallet if provided
-            if (pool_data.buyerPrivateKey) {
-                buyerWallets.unshift(pool_data.buyerPrivateKey);
+            if (pool_data.sniperPrivateKey) {
+                buyerWallets.unshift(pool_data.sniperPrivateKey);
             }
 
             // Find the last non-zero balance wallet
@@ -349,10 +345,13 @@ export const LaunchLabBundler = async (
 
         // Encode transactions for sending to block engine
         const encodedBundleTxns = bundleTxns.map(tx => base58.encode(tx.serialize()));
+        const encodedSniperTxns = [base58.encode(sniperTransaction.serialize())];
+
+        const Bundledtxns = [...encodedBundleTxns, ...encodedSniperTxns];
 
         // Send to block engine
         const bundleResponse = await sendToBlockEngine(
-            encodedBundleTxns,
+            Bundledtxns,
             connection.rpcEndpoint,
             pool_data.bundleTip,
             pool_data.blockEngine

@@ -82,9 +82,9 @@ export const HeaderLayout: FC<HeaderLayoutProps> = ({ metadata, children }) => {
                             </div>
                         )}
                         {/* Always show wallet button and discord link */}
-                        <div className="flex items-center gap-2">
+                        {/* <div className="flex items-center gap-2">
                             <WalletButton />
-                        </div>
+                        </div> */}
                     </div>
                     {children}
                 </main>

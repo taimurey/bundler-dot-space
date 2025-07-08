@@ -15,10 +15,10 @@ import { truncate } from '@/components/sidebar-drawer';
 import { BalanceType } from '@/components/types/solana-types';
 import { getKeypairFromBs58 } from '@/components/instructions/pump-bundler/misc';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { randomColor } from '@/components/utils/random-color';
 import { getHeaderLayout } from '@/components/header-layout';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -441,6 +441,10 @@ const CPMMPoolCreator = () => {
                                 formData={formData}
                                 handleChange={handleChange}
                                 handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
                             />
                             <button
                                 onClick={handlesubmission}

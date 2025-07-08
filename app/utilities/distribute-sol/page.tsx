@@ -160,6 +160,10 @@ const SOLDistributor: FC = () => {
                         formData={formData}
                         handleChange={handleChange}
                         handleSelectionChange={handleSelectionChange}
+                        snipeEnabled={false}
+                        setSnipeEnabled={() => { }}
+                        snipeAmount={''}
+                        setSnipeAmount={() => { }}
                     />
                 </div>
             </div>

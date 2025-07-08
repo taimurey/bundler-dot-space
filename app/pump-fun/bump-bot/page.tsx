@@ -7,13 +7,13 @@ import base58 from 'bs58';
 import { toast } from "sonner";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { getHeaderLayout } from '@/components/header-layout';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ClipLoader } from "react-spinners";
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction, closeAccount, createCloseAccountInstruction, TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction } from '@solana/spl-token';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountLayout } from '@solana/spl-token';
@@ -986,8 +986,11 @@ const BumpBot = () => {
                                 formData={formData}
                                 handleChange={handleChange}
                                 handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
                             />
-
                             <div className='justify-center'>
                                 <button
                                     type="button"

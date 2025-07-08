@@ -4,8 +4,8 @@ import React, { ChangeEvent, useState } from 'react';
 import { ReactNode } from 'react';
 import { getHeaderLayout } from '@/components/header-layout';
 import { toast } from "sonner";
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import { InputField } from '@/components/ui/input-field';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 
 
 
@@ -125,6 +125,10 @@ const VolumeCommentBomb = () => {
                                 formData={formData}
                                 handleChange={handleChange}
                                 handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
                             />
 
                             <div className='justify-center'>

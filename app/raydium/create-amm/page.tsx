@@ -17,9 +17,9 @@ import { CreatePoolSwap } from '@/components/instructions/RaydiumBundler/AmmPool
 import { BalanceType } from '@/components/types/solana-types';
 import { getKeypairFromBs58 } from '@/components/instructions/pump-bundler/misc';
 import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { randomColor } from '@/components/utils/random-color';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
@@ -505,6 +505,10 @@ const LiquidityHandlerRaydium = () => {
                                         formData={formData}
                                         handleChange={handleChange}
                                         handleSelectionChange={handleSelectionChange}
+                                        snipeEnabled={false}
+                                        setSnipeEnabled={() => { }}
+                                        snipeAmount={''}
+                                        setSnipeAmount={() => { }}
                                     />
 
                                     <button

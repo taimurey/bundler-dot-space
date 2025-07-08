@@ -8,12 +8,12 @@ import base58 from 'bs58';
 import { toast } from "sonner";
 import { BundleToast } from '@/components/bundler-toasts';
 import { useSolana } from '@/components/SolanaWallet/SolanaContext';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { getHeaderLayout } from '@/components/header-layout';
 import { Slider } from "@/components/ui/slider";
 import { FaCoins, FaSpinner, FaSync } from "react-icons/fa";
 import { ClipLoader } from "react-spinners";
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 import { truncate } from '@/components/sidebar-drawer';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { createDesalinatorBundle, DesalinatorParams } from '@/components/instructions/pump-bundler/DesalinatorJito';
@@ -447,6 +447,10 @@ const Desalinator = () => {
                                     formData={formData}
                                     handleChange={handleChange}
                                     handleSelectionChange={handleSelectionChange}
+                                    snipeEnabled={false}
+                                    setSnipeEnabled={() => { }}
+                                    snipeAmount={''}
+                                    setSnipeAmount={() => { }}
                                 />
 
                                 {/* Submit Button */}

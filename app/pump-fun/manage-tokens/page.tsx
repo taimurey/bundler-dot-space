@@ -17,10 +17,10 @@ import { truncate } from '@/components/sidebar-drawer';
 import { PumpSeller } from '@/components/instructions/pump-bundler/PumpSeller';
 import WalletInput from '@/components/instructions/pump-bundler/wallet-input';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
-import { BlockEngineLocation, InputField } from '@/components/ui/input-field';
+import { InputField } from '@/components/ui/input-field';
 import { WalletEntry } from '@/components/instructions/pump-bundler/wallet-input';
 import { getHeaderLayout } from '@/components/header-layout';
-import JitoBundleSelection from '@/components/ui/jito-bundle-selection';
+import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
 
 const ZERO = new BN(0)
 type BN = typeof ZERO
@@ -355,6 +355,10 @@ const PumpfunSell = () => {
                                         formData={formData}
                                         handleChange={handleChange}
                                         handleSelectionChange={handleSelectionChange}
+                                        snipeEnabled={false}
+                                        setSnipeEnabled={() => { }}
+                                        snipeAmount={''}
+                                        setSnipeAmount={() => { }}
                                     />
                                     <div className='justify-center'>
                                         <button
