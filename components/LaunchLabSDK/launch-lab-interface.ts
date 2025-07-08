@@ -98,6 +98,7 @@ class LaunchLabSDK {
         const configInfo = LaunchpadConfig.decode(configData.data)
         const mintBInfo = await raydium.token.getTokenInfo(configInfo.mintB)
 
+        console.log(buyAmount);
         const inAmount = new BN(buyAmount.toString())
 
         const platformId = platform ? new PublicKey(platform) : undefined
@@ -126,7 +127,7 @@ class LaunchLabSDK {
             return {
                 // result,
                 mintAddress: mintA.toString(),
-                poolId: extInfo.toString(),
+                poolId: extInfo.address.poolId.toString(),
                 transactions
             }
         } catch (error) {

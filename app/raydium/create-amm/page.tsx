@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, ReactNode, useState } from 'react';
 import { BN } from 'bn.js';
 import { Metaplex } from "@metaplex-foundation/js";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -20,9 +20,12 @@ import WalletInput, { WalletEntry } from '@/components/instructions/pump-bundler
 import { InputField } from '@/components/ui/input-field';
 import { randomColor } from '@/components/utils/random-color';
 import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-bundle-selection';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
+import Image from 'next/image';
+import { getHeaderLayout } from '@/components/header-layout';
+
 const ZERO = new BN(0)
 type BN = typeof ZERO
-
 
 const LiquidityHandlerRaydium = () => {
     const { cluster } = useSolana();
@@ -75,7 +78,6 @@ const LiquidityHandlerRaydium = () => {
 
     const [setsideWallets, setdeployerwallets] = useState<Array<{ id: number, name: string, wallet: string, color: string }>>([]);
 
-
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
         setFormData(prevState => ({
@@ -87,12 +89,10 @@ const LiquidityHandlerRaydium = () => {
             let wallet: Keypair;
             try {
                 wallet = (Keypair.fromSecretKey(new Uint8Array(base58.decode(value))));
-
             } catch (error) {
                 toast.error('Invalid Private Key');
                 return;
             }
-
 
             // Add new wallet to setsideWallets
             setdeployerwallets(prevProfiles => [...prevProfiles, {
@@ -126,7 +126,7 @@ const LiquidityHandlerRaydium = () => {
     };
 
     const [fistLoad, setFirstLoad] = useState(true);
-    // const handleloadMintmetadata = async (e: any) => {
+
     React.useEffect(() => {
         if (fistLoad) {
             setFirstLoad(false);
@@ -159,14 +159,12 @@ const LiquidityHandlerRaydium = () => {
             let allBalances: BalanceType[] = [];
 
             if (formData.deployerPrivateKey) {
-
                 const deployerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.deployerPrivateKey)));
                 const balance = parseFloat((await connection.getBalance(deployerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
                 allBalances.push({ balance, publicKey: deployerWallet.publicKey.toString() });
             }
 
             if (formData.buyerPrivateKey) {
-
                 const buyerWallet = Keypair.fromSecretKey(new Uint8Array(base58.decode(formData.buyerPrivateKey)));
                 const balance = parseFloat((await connection.getBalance(buyerWallet.publicKey) / LAMPORTS_PER_SOL).toFixed(3));
                 allBalances.push({ balance, publicKey: buyerWallet.publicKey.toString() });
@@ -288,7 +286,7 @@ const LiquidityHandlerRaydium = () => {
                 () => (
                     <TransactionToast
                         txSig={ammID}
-                        message={'Mint:'}
+                        message={'AMM ID:'}
                     />
                 ),
                 { duration: 5000 }
@@ -328,232 +326,262 @@ const LiquidityHandlerRaydium = () => {
     const { setDeployerWallets } = WalletProfileContext();
 
     return (
-        <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative" >
-            <form>
-                <div className="">
-                    <div className="">
-                        <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-[#0c0e11] border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
+        <div className="flex py-1 justify-center items-start relative max-w-[100vw]">
+            <form className="w-full max-w-[1400px]">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                    {/* Left Column - Main Form */}
+                    <div className="xl:col-span-2 space-y-3">
+                        {/* Header Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    <p className='font-bold text-[25px]'>
-                                        Raydium AMM Bundler
-                                        <span className='text-[#ff3535] text-[12px] ml-6 font-bold'>(Report Any Errors in the Discord)</span>
-                                    </p>
-                                    <p className=' text-[12px] text-[#96989c] '>Create a liquidity pool and set buy amounts for your token.</p>
+                                    <p className='font-bold text-[20px]'>Raydium AMM Bundler</p>
+                                    <p className='text-[11px] text-[#96989c]'>Create a liquidity pool and set buy amounts for your token</p>
+                                    <p className='text-[11px] text-[#ff3535]'>(Report Any Errors in the Discord)</p>
                                 </div>
-                                <div className='w-full'>
-                                    <label className="block mt-5 text-base text-white font-semibold" >
-                                        Bundler Mode
-                                        <span className="pl-5 text-[#FFC107] text-[12px] font-normal">
-                                            5 wallet mode is now available
-                                        </span>
-                                    </label>
-                                    <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
-                                        <select
-                                            id="BlockEngineSelection"
-                                            value={Mode}
-                                            onChange={(e) => setMode(Number(e.target.value))}
-                                            required={true}
-                                            className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
-                                        >
-                                            <option value="" disabled>
-                                                Bundler Mode
-                                            </option>
-                                            {modeOptions.map((option, index) => (
-                                                <option key={index} value={option.value}>
-                                                    {option.value} {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="mt-5">
-
-                                        <InputField
-                                            id="deployerPrivatekey"
-                                            label="Deployer Private Key"
-                                            subfield='Pool Deployer'
-                                            value={formData.deployerPrivateKey}
-                                            onChange={(e) => handleChange(e, 'deployerPrivateKey')}
-                                            placeholder="Enter deployer private key"
-                                            type="password"
-                                            required={true}
-                                        />
-                                        {Mode === 1 && (
-                                            <div className='w-full'>
-                                                <InputField
-                                                    id='buyerPrivateKey'
-                                                    label='Buyer Private Key'
-                                                    subfield='first buy - 1 wallet'
-                                                    value={formData.buyerPrivateKey}
-                                                    onChange={(e) => handleChange(e, 'buyerPrivateKey')}
-                                                    placeholder='buyer private key'
-                                                    type='password'
-                                                    required={true}
-                                                />
-                                            </div>)}
-                                        <div className="relative rounded-md shadow-sm w-full flex flex-col gap-2 justify-end">
-                                            {Mode === 5 && (
-                                                <WalletInput
-                                                    wallets={wallets}
-                                                    setWallets={setWallets}
-                                                    Mode={Mode}
-                                                    maxWallets={4}
-                                                    onChange={(walletData) => {
-                                                        setFormData(prevState => ({
-                                                            ...prevState,
-                                                            buyerextraWallets: walletData.map(entry => entry.wallet),
-                                                            buyerWalletAmounts: walletData.map(entry => entry.solAmount)
-                                                        }));
-                                                    }}
-                                                    onWalletsUpdate={(walletData) => {
-                                                        // Log the complete wallet data with amounts
-                                                        console.log('Updated wallet data:', walletData.map(entry => ({
-                                                            wallet: entry.wallet,
-                                                            solAmount: entry.solAmount,
-                                                            lamports: entry.solAmount * LAMPORTS_PER_SOL
-                                                        })));
-                                                    }}
-                                                />
-                                            )}
+                                <div className="md:w-1/3">
+                                    <label className="block text-sm text-white font-semibold mb-1">Bundler Mode</label>
+                                    <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
+                                        <div className="relative">
+                                            <ListboxButton className="w-full px-2 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500 text-left flex items-center gap-2">
+                                                {Mode} Wallet Mode
+                                                <span className="text-[#FFC107] text-[10px] ml-2">{Mode === 5 ? '(5 wallets available)' : ''}</span>
+                                            </ListboxButton>
+                                            <ListboxOptions className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
+                                                {modeOptions.map((option) => (
+                                                    <ListboxOption
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className={({ focus, selected }) =>
+                                                            `flex items-center px-2 gap-2 py-2 text-white text-xs cursor-pointer ${focus ? 'bg-blue-500' : ''} ${selected ? 'bg-blue-500' : ''}`
+                                                        }
+                                                    >
+                                                        {option.value} {option.label}
+                                                    </ListboxOption>
+                                                ))}
+                                            </ListboxOptions>
                                         </div>
-                                    </div>
-                                </div>
-                                <div className='flex flex-col gap-2' id="tokeninfo">
-                                    <div className='flex justify-center items-center gap-2'>
-                                        <InputField
-                                            id="tokenMintAddress"
-                                            label="Mint"
-                                            subfield='token address'
-                                            value={formData.tokenMintAddress}
-                                            onChange={(e) => handleChange(e, 'tokenMintAddress')}
-                                            placeholder="Enter Mint Address"
-                                            type="text"
-                                            required={true}
-                                        />
-
-                                    </div>
-                                    <InputField
-                                        label=""
-                                        id="tokenMarketID"
-                                        value={formData.tokenMarketID}
-                                        onChange={(e) => handleChange(e, 'tokenMarketID')}
-                                        placeholder="Enter Market ID"
-                                        type="text"
-                                        required={true}
-                                    />
-
-                                    <div className='flex justify-center items-center gap-2'>
-
-                                        <InputField
-                                            label=""
-                                            id="tokenDecimals"
-                                            value={formData.tokenDecimals}
-                                            onChange={(e) => handleChange(e, 'tokenDecimals')}
-                                            placeholder="Enter decimals"
-                                            type="number"
-                                            required={true}
-                                        />
-                                        <InputField
-                                            label=""
-                                            id="totalSupply"
-                                            value={formData.totalSupply}
-                                            onChange={(e) => handleChange(e, 'totalSupply')}
-                                            placeholder="Enter total supply"
-                                            type="number"
-                                            required={true}
-                                        />
-
-                                    </div>
-                                    {Mode === 1 && (
-                                        <InputField
-                                            id="tokenbuyAmount"
-                                            label="Buy Amount"
-                                            subfield='sol'
-                                            value={formData.tokenbuyAmount}
-                                            onChange={(e) => handleChange(e, 'tokenbuyAmount')}
-                                            placeholder="First Buy Amount"
-                                            type="number"
-                                            required={true}
-                                        />
-                                    )}
-
-                                    <div className='flex justify-end items-end gap-2'>
-                                        <InputField
-                                            id="tokenLiquidityAmount"
-                                            label="Liquidity Amount"
-                                            subfield='sol'
-                                            value={formData.tokenLiquidityAmount}
-                                            onChange={(e) => handleChange(e, 'tokenLiquidityAmount')}
-                                            placeholder="Enter Liquidity Amount"
-                                            type="number"
-                                            required={true}
-                                        />
-                                        <InputField
-                                            id="tokenLiquidityAddPercent"
-                                            subfield='%'
-                                            value={formData.tokenLiquidityAddPercent}
-                                            onChange={(e) => handleChange(e, 'tokenLiquidityAddPercent')}
-                                            placeholder="% of tokens (1-100)"
-                                            type="number"
-                                            label="Amount Percentage"
-                                            required={true}
-                                        />
-                                    </div>
-                                    <JitoBundleSelection
-                                        isJitoBundle={isJitoBundle}
-                                        setIsJitoBundle={setIsJitoBundle}
-                                        formData={formData}
-                                        handleChange={handleChange}
-                                        handleSelectionChange={handleSelectionChange}
-                                        snipeEnabled={false}
-                                        setSnipeEnabled={() => { }}
-                                        snipeAmount={''}
-                                        setSnipeAmount={() => { }}
-                                    />
-
-                                    <button
-                                        onClick={handlesubmission}
-                                        className='invoke-btn w-full'
-                                        type='button'
-                                    >
-                                        <span className='btn-text-gradient'>Initiate Deployment Sequence</span>
-
-                                    </button>
-
+                                    </Listbox>
                                 </div>
                             </div>
-                            <div className="min-w-[44px] p-4 bg-[#0c0e11] border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
-                                <div>
-                                    <div>
-                                        <p className='font-bold text-[25px]'>Predicted Parameters</p>
-                                        <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
-                                    </div>
-                                    <div className='w-full'>
-                                        <label className="block mt-5 text-base text-white font-semibold" >
-                                            Wallets:
-                                        </label>
-                                        <br />
-                                        <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {balances.map(({ balance, publicKey }, index) => (
-                                                <a
-                                                    key={index}
-                                                    href={`https://solscan.io/account/${publicKey}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
-                                                    style={{ userSelect: 'text' }}
-                                                >
-                                                    <p>
-                                                        <span className='text-[#96989c] text-[15px] font-normal'>{index + 1}: </span>
-                                                        {truncate(publicKey, 6, 7)!}
-                                                        <br />
-                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>Balance: {balance}</span>
-                                                        <br />
-                                                    </p>
-                                                </a>
-                                            ))}
+                        </div>
+
+                        {/* Wallet Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Wallet Configuration</h3>
+
+                            <InputField
+                                id="deployerPrivatekey"
+                                label="Deployer Private Key"
+                                subfield='Pool Deployer'
+                                value={formData.deployerPrivateKey}
+                                onChange={(e) => handleChange(e, 'deployerPrivateKey')}
+                                placeholder="Enter deployer private key"
+                                type="password"
+                                required={true}
+                            />
+
+                            {Mode === 1 && (
+                                <InputField
+                                    id='buyerPrivateKey'
+                                    label='Buyer Private Key'
+                                    subfield='first buy - 1 wallet'
+                                    value={formData.buyerPrivateKey}
+                                    onChange={(e) => handleChange(e, 'buyerPrivateKey')}
+                                    placeholder='buyer private key'
+                                    type='password'
+                                    required={true}
+                                />
+                            )}
+
+                            {Mode === 5 && (
+                                <div className="mt-4">
+                                    <h4 className="text-sm text-white font-semibold mb-2">Multi-Wallet Configuration</h4>
+                                    <WalletInput
+                                        wallets={wallets}
+                                        setWallets={setWallets}
+                                        Mode={Mode}
+                                        maxWallets={4}
+                                        onChange={(walletData) => {
+                                            setFormData(prevState => ({
+                                                ...prevState,
+                                                buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                            }));
+                                        }}
+                                        onWalletsUpdate={(walletData) => {
+                                            console.log('Updated wallet data:', walletData.map(entry => ({
+                                                wallet: entry.wallet,
+                                                solAmount: entry.solAmount,
+                                                lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                            })));
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Token Information Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Token Information</h3>
+
+                            <InputField
+                                id="tokenMintAddress"
+                                label="Mint Address"
+                                subfield='token address'
+                                value={formData.tokenMintAddress}
+                                onChange={(e) => handleChange(e, 'tokenMintAddress')}
+                                placeholder="Enter Mint Address"
+                                type="text"
+                                required={true}
+                            />
+
+                            <InputField
+                                label="Market ID"
+                                id="tokenMarketID"
+                                value={formData.tokenMarketID}
+                                onChange={(e) => handleChange(e, 'tokenMarketID')}
+                                placeholder="Enter Market ID"
+                                type="text"
+                                required={true}
+                            />
+
+                            <div className='flex justify-center items-center gap-2'>
+                                <InputField
+                                    label="Decimals"
+                                    id="tokenDecimals"
+                                    value={formData.tokenDecimals}
+                                    onChange={(e) => handleChange(e, 'tokenDecimals')}
+                                    placeholder="Enter decimals"
+                                    type="number"
+                                    required={true}
+                                />
+                                <InputField
+                                    label="Total Supply"
+                                    id="totalSupply"
+                                    value={formData.totalSupply}
+                                    onChange={(e) => handleChange(e, 'totalSupply')}
+                                    placeholder="Enter total supply"
+                                    type="number"
+                                    required={true}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Liquidity Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Liquidity Configuration</h3>
+
+                            {Mode === 1 && (
+                                <InputField
+                                    id="tokenbuyAmount"
+                                    label="Buy Amount"
+                                    subfield='sol'
+                                    value={formData.tokenbuyAmount}
+                                    onChange={(e) => handleChange(e, 'tokenbuyAmount')}
+                                    placeholder="First Buy Amount"
+                                    type="number"
+                                    required={true}
+                                />
+                            )}
+
+                            <div className='flex justify-center items-center gap-2'>
+                                <InputField
+                                    id="tokenLiquidityAmount"
+                                    label="Liquidity Amount"
+                                    subfield='sol'
+                                    value={formData.tokenLiquidityAmount}
+                                    onChange={(e) => handleChange(e, 'tokenLiquidityAmount')}
+                                    placeholder="Enter Liquidity Amount"
+                                    type="number"
+                                    required={true}
+                                />
+                                <InputField
+                                    id="tokenLiquidityAddPercent"
+                                    subfield='%'
+                                    value={formData.tokenLiquidityAddPercent}
+                                    onChange={(e) => handleChange(e, 'tokenLiquidityAddPercent')}
+                                    placeholder="% of tokens (1-100)"
+                                    type="number"
+                                    label="Token Percentage"
+                                    required={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Bundle Configuration and Status Panel */}
+                    <div className="xl:col-span-1 space-y-3">
+                        {/* Bundle Configuration */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Bundle Configuration</h3>
+                            <JitoBundleSelection
+                                isJitoBundle={isJitoBundle}
+                                setIsJitoBundle={setIsJitoBundle}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
+                            />
+                            <button
+                                onClick={handlesubmission}
+                                className='text-center w-full invoke-btn'
+                                type='button'
+                            >
+                                <span className='btn-text-gradient font-bold'>
+                                    Initiate Pool Creation
+                                    <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 SOL Bundler Cost)</span>
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Status Panel */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-600 rounded-xl shadow-2xl shadow-black sticky top-4">
+                            <div className="mb-4">
+                                <p className='font-bold text-[18px]'>Status Panel</p>
+                                <p className='text-[11px] text-[#96989c]'>Real-time wallet information and parameters</p>
+                            </div>
+
+                            {/* Wallets Section */}
+                            <div className='mb-4'>
+                                <label className="block text-sm text-white font-semibold mb-2">
+                                    Wallets ({balances.length}):
+                                </label>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {balances.map(({ balance, publicKey }, index) => (
+                                        <a
+                                            key={index}
+                                            href={`https://solscan.io/account/${publicKey}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block p-2 bg-[#101010] rounded-md hover:bg-[#181818] transition-colors"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className='text-[#96989c] text-xs'>#{index + 1}</span>
+                                                <span className='text-xs text-gray-300'>{balance} SOL</span>
+                                            </div>
+                                            <div className="text-xs text-blue-400 font-mono mt-1">
+                                                {truncate(publicKey, 6, 6)}
+                                            </div>
+                                        </a>
+                                    ))}
+                                    {balances.length === 0 && (
+                                        <div className="text-xs text-gray-500 italic p-2 text-center">
+                                            No wallets configured yet
                                         </div>
-                                    </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Predicted Parameters */}
+                            <div className='mb-4'>
+                                <label className="block text-sm text-white font-semibold mb-2">
+                                    Predicted Parameters:
+                                </label>
+                                <div className="space-y-2 text-xs">
                                     <OutputField
                                         id="totalmintaddress"
                                         label="Mint Address:"
@@ -562,22 +590,20 @@ const LiquidityHandlerRaydium = () => {
                                     />
                                     <OutputField
                                         id="MarketId"
-                                        label="Market ID"
+                                        label="Market ID:"
                                         value={formData.tokenMarketID}
                                         latedisplay={true}
-
                                     />
                                     <OutputField
                                         id="buyamount"
-                                        label="Buy Amount"
-                                        value={`${formData.tokenbuyAmount && formData.tokenbuyAmount !== '0' ? `${formData.tokenbuyAmount} sol` : formData.tokenbuyAmount}`}
+                                        label="Buy Amount:"
+                                        value={`${formData.tokenbuyAmount && formData.tokenbuyAmount !== '0' ? `${formData.tokenbuyAmount} SOL` : formData.tokenbuyAmount}`}
                                         latedisplay={true}
-
                                     />
                                     <OutputField
                                         id="liquidityamount"
-                                        label="Liquidity Amount"
-                                        value={`${formData.tokenLiquidityAmount && formData.tokenLiquidityAmount !== '0' ? `${formData.tokenLiquidityAmount} sol` : formData.tokenLiquidityAmount}`}
+                                        label="Liquidity Amount:"
+                                        value={`${formData.tokenLiquidityAmount && formData.tokenLiquidityAmount !== '0' ? `${formData.tokenLiquidityAmount} SOL` : formData.tokenLiquidityAmount}`}
                                         latedisplay={true}
                                     />
                                 </div>
@@ -585,8 +611,8 @@ const LiquidityHandlerRaydium = () => {
                         </div>
                     </div>
                 </div>
-            </form >
-        </div >
+            </form>
+        </div>
     );
 }
 
@@ -595,6 +621,6 @@ const modeOptions = [
     { value: 5, label: "Wallet Mode" },
 ];
 
-
+LiquidityHandlerRaydium.getLayout = (page: ReactNode) => getHeaderLayout(page, 'Raydium AMM - Create');
 
 export default LiquidityHandlerRaydium;

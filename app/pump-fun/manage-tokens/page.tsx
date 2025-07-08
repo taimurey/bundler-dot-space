@@ -25,7 +25,6 @@ import JitoBundleSelection, { BlockEngineLocation } from '@/components/ui/jito-b
 const ZERO = new BN(0)
 type BN = typeof ZERO
 
-
 const PumpfunSell = () => {
     const { cluster } = useSolana();
     const connection = new Connection(cluster.endpoint);
@@ -33,7 +32,6 @@ const PumpfunSell = () => {
     const [wallets, setWallets] = useState<WalletEntry[]>([]);
     const [Mode, setMode] = useState(1);
     const [isJitoBundle, setIsJitoBundle] = useState(true);
-
 
     const [formData, setFormData] = useState<{
         tokenAddress: string;
@@ -63,7 +61,6 @@ const PumpfunSell = () => {
         }));
     }
 
-
     const handleChange = (e: ChangeEvent<HTMLInputElement>, field: string) => {
         const { value } = e.target;
         setFormData(prevState => ({
@@ -75,20 +72,10 @@ const PumpfunSell = () => {
             try {
                 const wallet = (Keypair.fromSecretKey(new Uint8Array(base58.decode(value))));
                 console.log(wallet.publicKey);
-
             } catch (error) {
                 toast.error('Invalid Private Key');
                 return;
             }
-
-
-            // Add new wallet to setsideWallets
-            // setdeployerwallets(prevProfiles => [...prevProfiles, {
-            //     id: prevProfiles.length,
-            //     name: 'Deployer',
-            //     wallet: base58.encode(wallet.secretKey), // Use JSON.stringify instead of toString
-            //     color: randomColor(),
-            // }]);
 
             setFormData(prevState => ({
                 ...prevState,
@@ -104,15 +91,6 @@ const PumpfunSell = () => {
                 toast.error('Invalid Private Key');
                 return;
             }
-            // setWallets([value]);
-
-            // Add new wallet to setsideWallets
-            // setdeployerwallets(prevProfiles => [...prevProfiles, {
-            //     id: prevProfiles.length,
-            //     name: 'Buyer',
-            //     wallet: wallet.toString(),
-            //     color: randomColor(),
-            // }]);
         }
     };
 
@@ -196,8 +174,6 @@ const PumpfunSell = () => {
                             }
                         }
 
-
-
                         return { balance: solBalance, publicKey: keypair.publicKey.toString(), tokenAmount: tokenBalance };
                     } catch (error) {
                         toast.error(`Error fetching balance: ${error}`);
@@ -226,210 +202,282 @@ const PumpfunSell = () => {
     }, [wallets, formData.tokenAddress]);
 
     return (
-        <div className=" mb-8 mx-8  flex mt-8 justify-center items-center relative">
-            <form>
-                <div className="">
-                    <div className="">
-                        <div className="flex flex-col md:flex-row h-full gap-6 justify-center">
-                            <div className="space-y-4 p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-500 rounded-2xl sm:p-6 shadow-2xl shadow-black">
+        <div className="flex py-1 justify-center items-start relative max-w-[100vw]">
+            <form className="w-full max-w-[1400px]">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                    {/* Left Column - Main Form */}
+                    <div className="xl:col-span-2 space-y-3">
+                        {/* Header Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    <p className='font-bold text-[25px]'>Sell Mode</p>
-                                    <p className=' text-[12px] text-[#96989c] '>Create a pump-fun token and ghost wallet buys in one go</p>
+                                    <p className='font-bold text-[20px]'>Pump.fun Token Manager</p>
+                                    <p className='text-[11px] text-[#96989c]'>Sell your pump.fun tokens in bulk with advanced bundling</p>
                                 </div>
-                                <div className="relative mt-1 rounded-md shadow-sm w-full flex justify-end">
+                                <div className="md:w-1/3">
+                                    <label className="block text-sm text-white font-semibold mb-1">Mode</label>
                                     <select
                                         id="BlockEngineSelection"
                                         value={Mode}
                                         onChange={(e) => setMode(Number(e.target.value))}
                                         required={true}
-                                        className="block w-full px-4 rounded-md text-base border  border-[#404040]  text-white bg-input-boxes focus:outline-none sm:text-base text-[12px] h-[40px] focus:border-blue-500"
+                                        className="block w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500"
                                     >
-                                        <option value="" disabled>
-                                            Bundler Mode
-                                        </option>
-                                        {modeOptions
-                                            .map((option, index) => (
-                                                <option key={index} value={option.value}>
-                                                    {option.value} {option.label}
-                                                </option>
-                                            ))}
+                                        <option value="" disabled>Bundler Mode</option>
+                                        {modeOptions.map((option, index) => (
+                                            <option key={index} value={option.value}>
+                                                {option.value} {option.label}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
-                                <h3 className="btn-text-gradient font-bold text-[15px] mt-2"
-                                >Optional - If wallets not Loaded in Browser</h3>
-                                <div className="border border-dashed border-white rounded-md shadow-lg p-4 items-start justify-center"
+                            </div>
+                        </div>
+
+                        {/* Wallet Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Wallet Configuration</h3>
+
+                            <div className="space-y-3">
+                                <InputField
+                                    label="Fee Payer Wallet"
+                                    subfield='Private key for transaction fees'
+                                    id="feeKeypair"
+                                    value={formData.feeKeypair}
+                                    onChange={(e) => handleChange(e, 'feeKeypair')}
+                                    placeholder="D5bBVBQ....aeVK5W"
+                                    type="password"
+                                    required={true}
+                                />
+
+                                {Mode > 1 && (
+                                    <div>
+                                        <label className="block text-sm text-white font-semibold mb-2">
+                                            Multi-Wallet Configuration ({Mode} wallets)
+                                        </label>
+                                        <WalletInput
+                                            wallets={wallets}
+                                            setWallets={setWallets}
+                                            Mode={Mode}
+                                            maxWallets={Mode}
+                                            onChange={(walletData) => {
+                                                setFormData(prevState => ({
+                                                    ...prevState,
+                                                    buyerextraWallets: walletData.map(entry => entry.wallet),
+                                                    buyerWalletAmounts: walletData.map(entry => entry.solAmount)
+                                                }));
+                                            }}
+                                            onWalletsUpdate={(walletData) => {
+                                                console.log('Updated wallet data:', walletData.map(entry => ({
+                                                    wallet: entry.wallet,
+                                                    solAmount: entry.solAmount,
+                                                    lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                                })));
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Token Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Token Configuration</h3>
+
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <InputField
+                                    id="tokenAddress"
+                                    label="Token Mint Address"
+                                    subfield='The pump.fun token to sell'
+                                    value={formData.tokenAddress}
+                                    onChange={(e) => handleChange(e, 'tokenAddress')}
+                                    placeholder="D5bBVBQ....eVK5W"
+                                    type="text"
+                                    required={true}
+                                />
+                                <InputField
+                                    label="Sell Percentage"
+                                    subfield='% of tokens to sell from each wallet'
+                                    id="SellPercentage"
+                                    value={formData.SellPercentage}
+                                    onChange={(e) => handleChange(e, 'SellPercentage')}
+                                    placeholder="90"
+                                    type="number"
+                                    required={true}
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <button
+                                    className="text-center w-full invoke-btn"
+                                    type="submit"
+                                    id="formbutton"
+                                    onClick={handleSubmission}
                                 >
-                                    <InputField
-                                        label="Fee Payer Wallet"
-                                        subfield='private key'
-                                        id="feeKeypair"
-                                        value={formData.feeKeypair}
-                                        onChange={(e) => handleChange(e, 'feeKeypair')}
-                                        placeholder="D5bBVBQ....aeVK5W"
-                                        type="text"
-                                        required={true}
-                                    />
-                                    <div className="relative rounded-md shadow-sm w-full flex gap-2 mt-2">
-                                        {Mode > 1 && (
-                                            <WalletInput
-                                                wallets={wallets}
-                                                setWallets={setWallets}
-                                                Mode={Mode}
-                                                maxWallets={Mode}
-                                                onChange={(walletData) => {
-                                                    setFormData(prevState => ({
-                                                        ...prevState,
-                                                        buyerextraWallets: walletData.map(entry => entry.wallet),
-                                                        buyerWalletAmounts: walletData.map(entry => entry.solAmount)
-                                                    }));
-                                                }}
-                                                onWalletsUpdate={(walletData) => {
-                                                    // Log the complete wallet data with amounts
-                                                    console.log('Updated wallet data:', walletData.map(entry => ({
-                                                        wallet: entry.wallet,
-                                                        solAmount: entry.solAmount,
-                                                        lamports: entry.solAmount * LAMPORTS_PER_SOL
-                                                    })));
-                                                }}
-                                            />
+                                    <span className="btn-text-gradient font-bold">
+                                        Execute Percentage Sell
+                                        <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(Sells % from all wallets)</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Limit Order Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Limit Order (Coming Soon)</h3>
+
+                            <InputField
+                                id="GoalSolAmount"
+                                label="Goal SOL Amount"
+                                subfield="Sell tokens when this SOL amount is reached"
+                                value={formData.GoalSolAmount}
+                                onChange={(e) => handleChange(e, 'GoalSolAmount')}
+                                placeholder="50"
+                                type="number"
+                                required={true}
+                            />
+
+                            <div className="mt-4">
+                                <button
+                                    className="text-center w-full invoke-btn opacity-50 cursor-not-allowed"
+                                    type="button"
+                                    disabled={true}
+                                    title="Coming Soon"
+                                >
+                                    <span className="btn-text-gradient font-bold">
+                                        Setup Limit Order
+                                        <span className="pl-5 text-[#FFC107] text-[12px] font-normal">Coming Soon</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Bundle Configuration Section */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
+                            <h3 className='font-bold text-[16px] mb-3 text-white'>Bundle Configuration</h3>
+
+                            <JitoBundleSelection
+                                isJitoBundle={isJitoBundle}
+                                setIsJitoBundle={setIsJitoBundle}
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectionChange={handleSelectionChange}
+                                snipeEnabled={false}
+                                setSnipeEnabled={() => { }}
+                                snipeAmount={''}
+                                setSnipeAmount={() => { }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right Column - Status Panel */}
+                    <div className="xl:col-span-1 space-y-3">
+                        {/* Wallet Status */}
+                        <div className="p-4 bg-[#0c0e11] border border-neutral-600 rounded-xl shadow-2xl shadow-black sticky top-4">
+                            <div className="mb-4">
+                                <p className='font-bold text-[18px]'>Wallet Status</p>
+                                <p className='text-[11px] text-[#96989c]'>Connected wallets and their balances</p>
+                            </div>
+
+                            <div className='mb-4'>
+                                <label className="block text-sm text-white font-semibold mb-2">
+                                    Active Wallets ({balances.length}):
+                                </label>
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                    {balances.map((walletData, index) => (
+                                        <a
+                                            key={index}
+                                            href={`https://solscan.io/account/${walletData.publicKey}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block p-3 bg-[#101010] rounded-md hover:bg-[#181818] transition-colors"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className='text-[#96989c] text-xs'>#{index + 1}</span>
+                                                <span className='text-xs text-gray-300'>{walletData.balance} SOL</span>
+                                            </div>
+                                            <div className="text-xs text-blue-400 font-mono mt-1">
+                                                {truncate(walletData.publicKey, 6, 6)}
+                                            </div>
+                                            {formData.tokenAddress && (walletData as any).tokenAmount && (
+                                                <div className="text-xs text-green-400 mt-1">
+                                                    Token: {parseInt((walletData as any).tokenAmount).toLocaleString()}
+                                                </div>
+                                            )}
+                                        </a>
+                                    ))}
+                                    {balances.length === 0 && (
+                                        <div className="text-xs text-gray-500 italic p-2 text-center">
+                                            No wallets loaded yet
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Sell Predictions */}
+                            {formData.SellPercentage && balances.length > 0 && (
+                                <div className='p-3 bg-[#101010] rounded-md'>
+                                    <label className="block text-sm text-white font-semibold mb-2">
+                                        Sell Predictions:
+                                    </label>
+                                    <div className="space-y-2 text-xs">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Sell Percentage:</span>
+                                            <span className="text-yellow-400">{formData.SellPercentage}%</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Total Wallets:</span>
+                                            <span className="text-gray-300">{balances.length}</span>
+                                        </div>
+                                        {formData.tokenAddress && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Token:</span>
+                                                <span className="text-blue-400">{truncate(formData.tokenAddress, 4, 4)}</span>
+                                            </div>
+                                        )}
+                                        {formData.GoalSolAmount && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Goal SOL:</span>
+                                                <span className="text-green-400">{formData.GoalSolAmount} SOL</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
+                            )}
 
-                                <div className='flex flex-col gap-2' id="tokeninfo">
-                                    <h3 className='btn-text-gradient font-bold text-[15px] mt-2'>Percentage Sell</h3>
-                                    <div className='flex justify-center items-center gap-2'>
-                                        <InputField
-                                            id="coinname"
-                                            label="Mint Address"
-                                            subfield='address'
-                                            value={formData.tokenAddress}
-                                            onChange={(e) => handleChange(e, 'tokenAddress')}
-                                            placeholder="D5bBVBQ....eVK5W"
-                                            type="text"
-                                            required={true}
-                                        />
-                                        <InputField
-                                            label="Sell Percentage"
-                                            subfield='%'
-                                            id="tokenMarketID"
-                                            value={formData.SellPercentage}
-                                            onChange={(e) => handleChange(e, 'SellPercentage')}
-                                            placeholder="90..."
-                                            type="text"
-                                            required={true}
-                                        />
+                            {/* Bundle Info */}
+                            <div className='mt-4 p-3 bg-[#101010] rounded-md'>
+                                <label className="block text-sm text-white font-semibold mb-2">
+                                    Bundle Information:
+                                </label>
+                                <div className="space-y-2 text-xs">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Bundle Tip:</span>
+                                        <span className="text-gray-300">{formData.BundleTip} SOL</span>
                                     </div>
-                                    <div className='flex justify-center'>
-
-                                        <button
-                                            className="text-center btn-normal mt-5 w-2/3"
-                                            type="submit"
-                                            id="formbutton"
-                                            onClick={handleSubmission}
-                                        >
-                                            <span className="btn-text-gradient font-bold">
-
-                                                Sell
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(Sells % from all wallets)</span>
-
-                                            </span>
-                                        </button>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Transaction Tip:</span>
+                                        <span className="text-gray-300">{formData.TransactionTip} SOL</span>
                                     </div>
-                                    <h3 className='btn-text-gradient font-bold text-[15px] mt-2'>Limit Order</h3>
-
-                                    <InputField
-                                        id="GoalSolAmount"
-                                        label={`Goal Sol Amount`}
-                                        subfield={`Sell tokens at specific goal`}
-                                        value={formData.GoalSolAmount}
-                                        onChange={(e) => handleChange(e, 'GoalSolAmount')}
-                                        placeholder="50..."
-                                        type="number"
-                                        required={true}
-                                    />
-
-                                    <JitoBundleSelection
-                                        isJitoBundle={isJitoBundle}
-                                        setIsJitoBundle={setIsJitoBundle}
-                                        formData={formData}
-                                        handleChange={handleChange}
-                                        handleSelectionChange={handleSelectionChange}
-                                        snipeEnabled={false}
-                                        setSnipeEnabled={() => { }}
-                                        snipeAmount={''}
-                                        setSnipeAmount={() => { }}
-                                    />
-                                    <div className='justify-center'>
-                                        <button
-                                            className="text-center w-full invoke-btn"
-                                            type="submit"
-                                            id="formbutton"
-                                            disabled={true}
-                                            title="Coming Soon"
-                                            style={{ backgroundColor: 'black', color: 'white', cursor: 'not-allowed' }}
-                                        >
-                                            <span className="btn-text-gradient font-bold">
-                                                Initiate Mode
-                                                {/* <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(sells once certain amount of sol is reached in token)</span> */}
-                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">Coming Soon</span>
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="min-w-[44px] p-4 bg-[#0c0e11] bg-opacity-70 border border-neutral-600 shadow rounded-2xl sm:p-6 flex flex-col justify-between items-center">
-                                <div>
-                                    <div>
-                                        <p className='font-bold text-[25px]'>Predicted Parameters</p>
-                                        <p className=' text-[12px] text-[#96989c] '>Here are the predicted parameters based on your input.</p>
-                                    </div>
-                                    <div className='w-full'>
-                                        <label className="block mt-5 text-base text-white font-semibold" >
-                                            Wallets:
-                                        </label>
-                                        <br />
-                                        <div className="relative rounded-md shadow-sm w-full flex flex-col justify-end">
-                                            {balances.map(({ balance, publicKey }, index) => (
-                                                <a
-                                                    key={index}
-                                                    href={`https://solscan.io/account/${publicKey}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block w-full rounded-md text-base text-[#96989c] bg-transparent focus:outline-none sm:text-base max-w-[300px] bg-gradient-to-r from-[#5cf3ac] to-[#8ce3f8] bg-clip-text text-transparent font-semibold text-[10px] select-text"
-                                                    style={{ userSelect: 'text' }}
-                                                >
-                                                    <p>
-                                                        <span className='text-[#96989c] text-[10px] font-normal'>{index + 1}: </span>
-                                                        {truncate(publicKey, 6, 7)!}
-                                                        <br />
-                                                        <span className='text-[#96989c] text-[14px] font-normal ml-2'>SOL Balance: {balance}</span>
-                                                        <br />
-                                                        {/* <span className='text-[#96989c] text-[14px] font-normal ml-2'>Token Balance: {tokenAmount}</span> */}
-                                                        <br />
-                                                    </p>
-                                                </a>
-                                            ))}
-                                        </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Block Engine:</span>
+                                        <span className="text-gray-300">{formData.BlockEngineSelection}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </form >
-        </div >
+            </form>
+        </div>
     );
 }
 
 const modeOptions = [
-    { value: 1, label: "Wallet Mode" },
-    { value: 100, label: "Multi-Wallet" },
+    { value: 1, label: "Single Wallet Mode" },
+    { value: 100, label: "Multi-Wallet Mode" },
 ];
 
-
-
-
-PumpfunSell.getLayout = (page: ReactNode) => getHeaderLayout(page, "Pumpfun - Sell");
+PumpfunSell.getLayout = (page: ReactNode) => getHeaderLayout(page, "Pumpfun - Manage Tokens");
 
 export default PumpfunSell;

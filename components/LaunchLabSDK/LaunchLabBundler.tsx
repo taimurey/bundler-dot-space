@@ -1,10 +1,9 @@
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
-import axios from 'axios';
 import LaunchLabSDK from './launch-lab-interface';
 import base58 from 'bs58';
 import { WalletEntry } from '../instructions/pump-bundler/wallet-input';
-import { BlockEngineLocation } from '../ui/jito-bundle-selection';
 import { tipAccounts } from '../instructions/pump-bundler/constants';
+import { sendBundleToPuff } from './puff-bundle-api';
 
 // Interface for LaunchLab token creator parameters
 interface LaunchLabTokenCreator {
@@ -15,13 +14,13 @@ interface LaunchLabTokenCreator {
     deployerPrivateKey: string;
     sniperPrivateKey: string;
     buyerextraWallets: string[];
-    buyerBuyAmount: string;
-    devBuyAmount: string;
+    buyerWalletAmounts: string[];
+    initialBuyAmount: string;
+    snipeEnabled: boolean;
+    snipeAmount: string;
     platform?: string;
     bundleTip: string;
     blockEngine: string;
-    snipeEnabled: boolean;
-    snipeAmount: string;
 }
 
 // Helper function to get a random element from an array (same as in misc.ts)
@@ -40,10 +39,19 @@ export const LaunchLabBundler = async (
         const devKeypair = Keypair.fromSecretKey(new Uint8Array(base58.decode(pool_data.deployerPrivateKey)));
 
         // Convert amount to lamports (SOL * 10^9)
-        const buyAmount = parseFloat(pool_data.devBuyAmount) * LAMPORTS_PER_SOL;
+        const buyAmount = parseFloat(pool_data.initialBuyAmount) * LAMPORTS_PER_SOL;
 
         // Create an array to store all the versioned transactions for the bundle
         const bundleTxns: VersionedTransaction[] = [];
+
+        console.log(buyAmount);
+
+        let createonly = true;
+        if (buyAmount > 0) {
+            createonly = false;
+        } else {
+            createonly = true;
+        }
 
         // Create the token and launch pad
         const { mintAddress, poolId, transactions } = await LaunchLabSDK.createMint({
@@ -53,10 +61,12 @@ export const LaunchLabBundler = async (
             symbol: pool_data.tokenSymbol,
             decimals: pool_data.decimals,
             uri: pool_data.tokenUri,
-            buyAmount: buyAmount.toString(),
+            buyAmount: buyAmount,
             platform: pool_data.platform,
-            createOnly: true, // We want to create the mint only, not buy in the same transaction
+            createOnly: createonly,
         });
+
+        console.log(poolId);
 
         // Add creation transactions to the bundle
         for (const tx of transactions) {
@@ -95,7 +105,7 @@ export const LaunchLabBundler = async (
                 let balance;
 
                 if (buyerWallets.length === 1) {
-                    balance = parseFloat(pool_data.buyerBuyAmount) * LAMPORTS_PER_SOL;
+                    balance = parseFloat(pool_data.buyerWalletAmounts[i]) * LAMPORTS_PER_SOL;
                 } else {
                     const walletBalance = await connection.getBalance(buyerWallet.publicKey);
                     // Ensure balance is at least enough for transaction fees
@@ -125,7 +135,7 @@ export const LaunchLabBundler = async (
 
                     let balance;
                     if (buyerWallets.length === 1) {
-                        balance = parseFloat(pool_data.buyerBuyAmount) * LAMPORTS_PER_SOL;
+                        balance = parseFloat(pool_data.buyerWalletAmounts[i]) * LAMPORTS_PER_SOL;
                     } else {
                         const walletBalance = await connection.getBalance(buyerWallet.publicKey);
                         // Ensure balance is at least enough for transaction fees
@@ -349,12 +359,11 @@ export const LaunchLabBundler = async (
 
         const Bundledtxns = [...encodedBundleTxns, ...encodedSniperTxns];
 
-        // Send to block engine
-        const bundleResponse = await sendToBlockEngine(
+        // Send to Puff.space bundler API
+        const bundleResponse = await sendBundleToPuff(
             Bundledtxns,
-            connection.rpcEndpoint,
-            pool_data.bundleTip,
-            pool_data.blockEngine
+            pool_data.blockEngine,
+            devKeypair.publicKey.toString()
         );
 
         return {
@@ -437,12 +446,11 @@ export const LaunchLabBuyer = async (
         // Encode the transaction
         const encodedTx = base58.encode(versionedTx.serialize());
 
-        // Send to bundler
-        const bundleResponse = await sendToBlockEngine(
+        // Send to Puff.space bundler API
+        const bundleResponse = await sendBundleToPuff(
             [encodedTx],
-            connection.rpcEndpoint,
-            bundleTip,
-            blockEngine
+            blockEngine,
+            buyerKeypair.publicKey.toString()
         );
 
         return {
@@ -515,12 +523,11 @@ export const LaunchLabSeller = async (
                 // Encode the transaction
                 const encodedTx = base58.encode(versionedTx.serialize());
 
-                // Send to bundler
-                const bundleResponse = await sendToBlockEngine(
+                // Send to Puff.space bundler API
+                const bundleResponse = await sendBundleToPuff(
                     [encodedTx],
-                    connection.rpcEndpoint,
-                    bundleTip,
-                    blockEngine
+                    blockEngine,
+                    keypair.publicKey.toString()
                 );
 
                 bundleIds.push(bundleResponse.bundleId);
@@ -542,53 +549,3 @@ function getRandomTipAddress(): string {
     return getRandomElement(tipAccounts);
 }
 
-// Helper function to send transactions to bundler
-async function sendToBlockEngine(
-    serializedTxs: string[],
-    rpcUrl: string,
-    bundleTip: string,
-    blockEngine: string
-) {
-    try {
-        const apiUrl = getBlockEngineUrl(blockEngine);
-
-        const tipLamports = parseFloat(bundleTip) * 1e9;
-
-        const response = await axios.post(apiUrl, {
-            jsonrpc: '2.0',
-            id: 'bundler-space',
-            method: 'sendBundle',
-            params: {
-                transactions: serializedTxs,
-                options: {
-                    maxSimulationSlippage: 0.01,
-                    skipPreflight: true,
-                },
-                tip: Math.floor(tipLamports),
-            },
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        return { bundleId: response.data.result };
-    } catch (error) {
-        console.error('Error sending to block engine:', error);
-        throw error;
-    }
-}
-
-// Helper function to get block engine URL
-function getBlockEngineUrl(blockEngine: string) {
-    switch (blockEngine) {
-        case BlockEngineLocation[0]:
-            return 'https://bundler-jito-testnet.space/';
-        case BlockEngineLocation[1]:
-            return 'https://bundler-jito-mainnet.space/';
-        case BlockEngineLocation[2]:
-            return 'https://bundler.space/api/bundler';
-        default:
-            return 'https://bundler.space/api/bundler';
-    }
-} 

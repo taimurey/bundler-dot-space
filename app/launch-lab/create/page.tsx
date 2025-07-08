@@ -35,7 +35,8 @@ const LaunchLabCreate = () => {
     const [isJitoBundle, setIsJitoBundle] = useState(true);
     const [Mode, setMode] = useState(0);
     const [walletMode, setWalletMode] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isDeploying, setIsDeploying] = useState(false);
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
     const [uploading, setUploading] = useState(false);
 
@@ -58,7 +59,7 @@ const LaunchLabCreate = () => {
         tokenSymbol: string;
         tokenDescription: string;
         tokenDecimals: string;
-        liquidityAmount: string;
+        InitialBuyAmount: string;
         pricePerToken: string;
         deployerPrivateKey: string;
         websiteUrl: string;
@@ -74,9 +75,6 @@ const LaunchLabCreate = () => {
         threads: number;
         buyerextraWallets: string[];
         buyerWalletAmounts: string[];
-        coinname: string;
-        symbol: string;
-        BuyertokenbuyAmount: string;
         snipeEnabled: boolean;
         snipeAmount: string;
     }>({
@@ -84,7 +82,7 @@ const LaunchLabCreate = () => {
         tokenSymbol: '',
         tokenDescription: '',
         tokenDecimals: '9',
-        liquidityAmount: '',
+        InitialBuyAmount: '0.01',
         pricePerToken: '',
         deployerPrivateKey: '',
         websiteUrl: '',
@@ -96,14 +94,11 @@ const LaunchLabCreate = () => {
         sniperPrivateKey: '',
         tokenKeypairpublicKey: '',
         tokenKeypair: '',
-        vanity: '',
+        vanity: 'bonk',
         threads: 4,
         buyerextraWallets: [],
         buyerWalletAmounts: [],
-        coinname: '',
-        symbol: '',
-        BuyertokenbuyAmount: '0',
-        snipeEnabled: false,
+        snipeEnabled: true,
         snipeAmount: '0.01',
     });
 
@@ -208,7 +203,7 @@ const LaunchLabCreate = () => {
     const vanityAddressGenerator = async (e: any) => {
         e.preventDefault();
         const NUM_WORKERS = formData.threads || 4;
-        setIsLoading(true);
+        setIsGenerating(true);
 
         const workers = Array.from({ length: NUM_WORKERS }, () =>
             new Worker(new URL('../../../components/vanityWorker', import.meta.url))
@@ -235,7 +230,7 @@ const LaunchLabCreate = () => {
         } catch (error) {
             console.error('Error generating vanity address:', error);
         } finally {
-            setIsLoading(false);
+            setIsGenerating(false);
         }
     }
 
@@ -258,12 +253,25 @@ const LaunchLabCreate = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
+        setIsDeploying(true);
 
         try {
-            if (!formData.tokenName || !formData.tokenSymbol || !formData.deployerPrivateKey) {
-                toast.error('Required fields missing');
-                setIsLoading(false);
+            // Validate required fields
+            const missingFields = [];
+
+            if (!formData.tokenName) missingFields.push('Token Name');
+            if (!formData.tokenSymbol) missingFields.push('Token Symbol');
+            if (!formData.deployerPrivateKey) missingFields.push('Deployer Private Key');
+            if (!formData.InitialBuyAmount) missingFields.push('Initial Buy Amount');
+
+            if (formData.snipeEnabled) {
+                if (!formData.sniperPrivateKey) missingFields.push('Sniper Private Key');
+                if (!formData.snipeAmount) missingFields.push('Snipe Amount');
+            }
+
+            if (missingFields.length > 0) {
+                toast.error(`Required fields missing: ${missingFields.join(', ')}`);
+                setIsDeploying(false);
                 return;
             }
 
@@ -318,13 +326,13 @@ const LaunchLabCreate = () => {
                     deployerPrivateKey: formData.deployerPrivateKey,
                     sniperPrivateKey: formData.sniperPrivateKey || "",
                     buyerextraWallets: formData.buyerextraWallets || [],
-                    buyerBuyAmount: formData.BuyertokenbuyAmount || "0",
-                    devBuyAmount: formData.liquidityAmount,
+                    buyerWalletAmounts: formData.buyerWalletAmounts || [],
+                    initialBuyAmount: formData.InitialBuyAmount || "0.01",
                     platform: platformPublicKey,
                     bundleTip: formData.BundleTip,
                     blockEngine: formData.BlockEngineSelection,
                     snipeEnabled: formData.snipeEnabled,
-                    snipeAmount: formData.snipeAmount,
+                    snipeAmount: formData.snipeAmount || "0.01",
                 },
                 Keypair.fromSecretKey(base58.decode(formData.tokenKeypair))
             );
@@ -346,7 +354,7 @@ const LaunchLabCreate = () => {
             console.error('Error creating token:', error);
             toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
-            setIsLoading(false);
+            setIsDeploying(false);
         }
     };
 
@@ -377,37 +385,58 @@ const LaunchLabCreate = () => {
                         {/* Header Section */}
                         <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div>
-                                    <p className='font-bold text-[20px]'>Launch Lab</p>
-                                    <p className='text-[11px] text-[#96989c]'>Create your own token liquidity pool with ease</p>
-                                </div>
+                                {/* Title */}
                                 <div className="md:w-1/3">
-                                    <label className="block text-sm text-white font-semibold mb-1">Platform</label>
+                                    <p className='font-bold text-[20px]'>Launch Lab</p>
+                                </div>
+
+                                {/* Bundler Mode Selection */}
+                                <div className="md:w-1/3">
+                                    <select
+                                        id="BlockEngineSelection"
+                                        value={walletMode}
+                                        onChange={(e) => setWalletMode(Number(e.target.value))}
+                                        required={true}
+                                        className="block w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes focus:outline-none h-[35px] focus:border-blue-500"
+                                    >
+                                        <option value="" disabled>Select Mode</option>
+                                        {walletModeOptions.map((option, index) => (
+                                            <option key={index} value={option.value}>
+                                                {option.value} {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Platform Selection */}
+                                <div className="md:w-1/3">
                                     <Listbox value={Mode} onChange={(value) => setMode(Number(value))}>
                                         <div className="relative">
-                                            <ListboxButton className="w-full px-2 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500 text-left flex items-center gap-2">
-                                                <Image
-                                                    src={modeOptions.find((opt) => opt.value === Mode)?.image || '/path/to/fallback/image.png'}
-                                                    alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                                    width={16}
-                                                    height={16}
-                                                />
-                                                {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
-                                            </ListboxButton>
-                                            <ListboxOptions className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
-                                                {modeOptions.map((option) => (
-                                                    <ListboxOption
-                                                        key={option.value}
-                                                        value={option.value}
-                                                        className={({ focus, selected }) =>
-                                                            `flex items-center  px-2 gap-2 py-2 text-white text-xs cursor-pointer ${focus ? 'bg-blue-500' : ''} ${selected ? 'bg-blue-500' : ''}`
-                                                        }
-                                                    >
-                                                        <Image src={option.image} alt={option.label} width={16} height={16} />
-                                                        {option.label}
-                                                    </ListboxOption>
-                                                ))}
-                                            </ListboxOptions>
+                                            <div>
+                                                <ListboxButton className="w-full px-2 rounded-md text-sm border border-[#404040] text-white bg-input-boxes h-[35px] focus:outline-none focus:border-blue-500 text-left flex items-center gap-2">
+                                                    <Image
+                                                        src={modeOptions.find((opt) => opt.value === Mode)?.image || '/path/to/fallback/image.png'}
+                                                        alt={modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                                        width={16}
+                                                        height={16}
+                                                    />
+                                                    {modeOptions.find((opt) => opt.value === Mode)?.label || 'Platform'}
+                                                </ListboxButton>
+                                                <ListboxOptions className="absolute z-10 mt-1 w-full bg-[#0c0e11] border border-[#404040] rounded-md shadow-lg max-h-60 overflow-auto">
+                                                    {modeOptions.map((option) => (
+                                                        <ListboxOption
+                                                            key={option.value}
+                                                            value={option.value}
+                                                            className={({ focus, selected }) =>
+                                                                `flex items-center  px-2 gap-2 py-2 text-white text-xs cursor-pointer ${focus ? 'bg-blue-500' : ''} ${selected ? 'bg-blue-500' : ''}`
+                                                            }
+                                                        >
+                                                            <Image src={option.image} alt={option.label} width={16} height={16} />
+                                                            {option.label}
+                                                        </ListboxOption>
+                                                    ))}
+                                                </ListboxOptions>
+                                            </div>
                                         </div>
                                     </Listbox>
                                 </div>
@@ -418,24 +447,7 @@ const LaunchLabCreate = () => {
                         <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
                             <h3 className='font-bold text-[16px] mb-3 text-white'>Token Configuration</h3>
 
-                            {/* Bundler Mode Selection */}
-                            <div className="mb-3">
-                                <label className="block text-sm text-white font-semibold mb-1">Bundler Mode</label>
-                                <select
-                                    id="BlockEngineSelection"
-                                    value={walletMode}
-                                    onChange={(e) => setWalletMode(Number(e.target.value))}
-                                    required={true}
-                                    className="block w-full px-3 rounded-md text-sm border border-[#404040] text-white bg-input-boxes focus:outline-none h-[35px] focus:border-blue-500"
-                                >
-                                    <option value="" disabled>Select Mode</option>
-                                    {walletModeOptions.map((option, index) => (
-                                        <option key={index} value={option.value}>
-                                            {option.value} {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+
                             <div className='flex justify-center items-center gap-2'>
                                 <InputField
                                     id="tokenmintKeypair"
@@ -477,7 +489,7 @@ const LaunchLabCreate = () => {
                                         className='bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] hover:border-[#45ddc4] rounded-md duration-300 ease-in-out'
                                         onClick={vanityAddressGenerator}
                                     >
-                                        {isLoading ? (
+                                        {isGenerating ? (
                                             <div className='flex justify-center items-center gap-2'>
                                                 <span className="italic font-i">Generating</span>
                                                 <FaSpinner className='animate-spin' />
@@ -488,7 +500,7 @@ const LaunchLabCreate = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="relative border-t border-dashed border-gray-500">
+                            <div className="border-gray-500">
                                 <input
                                     type="file"
                                     id="keypair_file_input"
@@ -497,7 +509,6 @@ const LaunchLabCreate = () => {
                                     className="hidden"
                                     form=""
                                 />
-
                                 <label
                                     htmlFor="keypair_file_input"
                                     className={`bundler-btn border p-2 w-full font-semibold border-[#3d3d3d] ${isKeypairUploaded ? 'border-green-500 text-green-500' : 'hover:border-[#45ddc4]'} rounded-md duration-300 ease-in-out cursor-pointer flex justify-center items-center text-sm`}
@@ -507,7 +518,6 @@ const LaunchLabCreate = () => {
                                         (Optional if local grinded)
                                     </span>
                                 </label>
-
                             </div>
                             <InputField
                                 id="deployerPrivatekey"
@@ -519,11 +529,12 @@ const LaunchLabCreate = () => {
                                 type="password"
                                 required={true}
                             />
+
                             {(formData.snipeEnabled) && (
                                 <InputField
                                     id='sniperPrivateKey'
                                     label='Sniper Private Key'
-                                    subfield=''
+                                    subfield='Wallet for sniping the token'
                                     value={formData.sniperPrivateKey}
                                     onChange={(e) => handleChange(e, 'sniperPrivateKey')}
                                     placeholder='sniper private key'
@@ -531,102 +542,43 @@ const LaunchLabCreate = () => {
                                     required={true}
                                 />
                             )}
+                            <InputField
+                                id="InitialBuyAmount"
+                                label="Initial Buy Amount"
+                                subfield='SOL amount for initial token creation'
+                                value={formData.InitialBuyAmount}
+                                onChange={(e) => handleChange(e, 'InitialBuyAmount')}
+                                placeholder="0.01"
+                                type="number"
+                                required={true}
+                            />
                         </div>
 
                         {/* Wallet Input Section (Modes 4 & 20) */}
                         {(walletMode >= 2 && walletMode <= 4) && (
                             <div className="p-4 bg-[#0c0e11] border border-neutral-500 rounded-xl shadow-2xl shadow-black">
-                                {walletMode >= 2 && walletMode <= 4 ? (
-                                    <>
-                                        <h3 className="text-[16px] font-semibold text-white mb-3">{walletMode} Wallet Mode</h3>
-                                        <WalletInput
-                                            wallets={wallets}
-                                            setWallets={setWallets}
-                                            Mode={walletMode}
-                                            walletType='privateKeys'
-                                            maxWallets={4}
-                                            onChange={(walletData) => {
-                                                setFormData(prevState => ({
-                                                    ...prevState,
-                                                    buyerextraWallets: walletData.map(entry => entry.wallet),
-                                                    buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
-                                                }));
-                                            }}
-                                            onWalletsUpdate={(walletData) => {
-                                                console.log('Updated wallet data:', walletData.map(entry => ({
-                                                    wallet: entry.wallet,
-                                                    solAmount: entry.solAmount,
-                                                    lamports: entry.solAmount * LAMPORTS_PER_SOL
-                                                })));
-                                            }}
-                                        />
-                                    </>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div>
-                                            <h3 className="text-[16px] font-semibold text-white">20 Wallet Mode</h3>
-                                            <p className="text-xs text-gray-400">Uses Look-Up Table (LUT) for efficient transactions</p>
-                                        </div>
-
-                                        <WalletInput
-                                            wallets={wallets}
-                                            setWallets={setWallets}
-                                            Mode={walletMode}
-                                            maxWallets={20}
-                                            onChange={(walletData) => {
-                                                setFormData(prevState => ({
-                                                    ...prevState,
-                                                    buyerextraWallets: walletData.map(entry => entry.wallet),
-                                                    buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
-                                                }));
-                                            }}
-                                            onWalletsUpdate={(walletData) => {
-                                                console.log('Updated 20-wallet data:', walletData.map(entry => ({
-                                                    wallet: entry.wallet,
-                                                    solAmount: entry.solAmount,
-                                                    lamports: entry.solAmount * LAMPORTS_PER_SOL
-                                                })));
-                                            }}
-                                        />
-
-                                        {wallets.length > 0 && !isLutCreated && (
-                                            <button
-                                                type="button"
-                                                className="w-full p-2 font-semibold bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-md hover:from-blue-600 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                                                disabled={isCreatingLut || wallets.length === 0}
-                                                onClick={createLUT}
-                                            >
-                                                {isCreatingLut ? (
-                                                    <div className="flex justify-center items-center gap-2">
-                                                        <span>Creating LUT...</span>
-                                                        <FaSpinner className="animate-spin" />
-                                                    </div>
-                                                ) : (
-                                                    "Create Look-Up Table (LUT)"
-                                                )}
-                                            </button>
-                                        )}
-
-                                        {isLutCreated && (
-                                            <div className="flex flex-col gap-2 p-2 bg-[#101010] rounded-md">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-green-400 font-medium text-sm">✓ LUT Created</span>
-                                                    <a
-                                                        href={`https://solscan.io/account/${lutAddress}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-xs text-blue-400 hover:text-blue-300"
-                                                    >
-                                                        View on Solscan
-                                                    </a>
-                                                </div>
-                                                <div className="text-xs text-gray-400">
-                                                    Address: {lutAddress?.substring(0, 8)}...{lutAddress?.substring(lutAddress.length - 8)}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                <h3 className="text-[16px] font-semibold text-white mb-3">{walletMode} Wallet Mode</h3>
+                                <WalletInput
+                                    wallets={wallets}
+                                    setWallets={setWallets}
+                                    Mode={walletMode}
+                                    walletType='privateKeys'
+                                    maxWallets={walletMode}
+                                    onChange={(walletData) => {
+                                        setFormData(prevState => ({
+                                            ...prevState,
+                                            buyerextraWallets: walletData.map(entry => entry.wallet),
+                                            buyerWalletAmounts: walletData.map(entry => entry.solAmount.toString())
+                                        }));
+                                    }}
+                                    onWalletsUpdate={(walletData) => {
+                                        console.log('Updated wallet data:', walletData.map(entry => ({
+                                            wallet: entry.wallet,
+                                            solAmount: entry.solAmount,
+                                            lamports: entry.solAmount * LAMPORTS_PER_SOL
+                                        })));
+                                    }}
+                                />
                             </div>
                         )}
 
@@ -636,11 +588,11 @@ const LaunchLabCreate = () => {
                                 <h3 className='btn-text-gradient font-bold text-[25px] mt-2'>Coin Metadata</h3>
                                 <div className='flex justify-center items-center gap-2'>
                                     <InputField
-                                        id="coinname"
+                                        id="tokenName"
                                         label="Coin"
                                         subfield='name'
-                                        value={formData.coinname}
-                                        onChange={(e) => handleChange(e, 'coinname')}
+                                        value={formData.tokenName}
+                                        onChange={(e) => handleChange(e, 'tokenName')}
                                         placeholder="Coin Name"
                                         type="text"
                                         required={true}
@@ -648,9 +600,9 @@ const LaunchLabCreate = () => {
                                     <InputField
                                         label="Symbol"
                                         subfield='ticker'
-                                        id="tokenMarketID"
-                                        value={formData.symbol}
-                                        onChange={(e) => handleChange(e, 'symbol')}
+                                        id="tokenSymbol"
+                                        value={formData.tokenSymbol}
+                                        onChange={(e) => handleChange(e, 'tokenSymbol')}
                                         placeholder="Coin Symbol"
                                         type="text"
                                         required={true}
@@ -747,20 +699,7 @@ const LaunchLabCreate = () => {
                                         </div>
                                     </div>
                                 </div>
-                                {Mode === 1 && (
-                                    <div className='flex justify-end items-end gap-2'>
-                                        <InputField
-                                            id="BuyertokenbuyAmount"
-                                            label="Buy Amount"
-                                            subfield={`${formData.BuyertokenbuyAmount} Supply: ${buyerMaxSolPercentage}%`}
-                                            value={formData.BuyertokenbuyAmount}
-                                            onChange={(e) => handleChange(e, 'BuyertokenbuyAmount')}
-                                            placeholder="First Buy Amount"
-                                            type="number"
-                                            required={true}
-                                        />
-                                    </div>
-                                )}
+
 
                             </div>
                         </div>
@@ -784,7 +723,7 @@ const LaunchLabCreate = () => {
                             />
                             <button
                                 className="text-center w-full invoke-btn"
-                                disabled={uploading}
+                                disabled={uploading || isDeploying}
                                 type="submit"
                                 id="formbutton"
                                 onClick={handleSubmission}
@@ -792,10 +731,12 @@ const LaunchLabCreate = () => {
                                 <span className="btn-text-gradient font-bold">
                                     {uploading
                                         ? <span className='btn-text-gradient italic font-i ellipsis'>Uploading Image</span>
-                                        : <>
-                                            Initiate Deployment
-                                            <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
-                                        </>
+                                        : isDeploying
+                                            ? <span className='btn-text-gradient italic font-i ellipsis'>Deploying Token</span>
+                                            : <>
+                                                Initiate Deployment
+                                                <span className="pl-5 text-[#FFC107] text-[12px] font-normal">(0.25 Bundler Cost)</span>
+                                            </>
                                     }
                                 </span>
                             </button>
